@@ -253,7 +253,7 @@
     font-size: 14px;
   }
 
-  /* Стили и свечение рангов */
+  /* Стили и яркое свечение рангов из index (2).html */
   .rank-cell {
     display: inline-flex;
     align-items: center;
@@ -1266,6 +1266,9 @@
   let matches = [];
   let adminKey = sessionStorage.getItem('dota_admin_key') || '';
   let activePos = 'all';
+
+  // Состояние сортировки (по умолчанию: по убыванию MMR)
+  let activeSortType = 'mmr';
   let sortDirection = { mmr: -1, name: 1 };
   let currentLobbyData = null;
 
@@ -1275,6 +1278,30 @@
   let currentFormPool = [];
 
   function isAdmin() { return Boolean(adminKey); }
+
+  // Функция применения текущей активной сортировки
+  function applySort() {
+    if (!activeSortType) return;
+    players.sort((a, b) => {
+      if (activeSortType === 'mmr') {
+        return (a.mmr - b.mmr) * sortDirection.mmr;
+      }
+      if (activeSortType === 'name') {
+        return a.name.localeCompare(b.name) * sortDirection.name;
+      }
+      return 0;
+    });
+  }
+
+  function sortTable(type) {
+    if (activeSortType === type) {
+      sortDirection[type] = -sortDirection[type];
+    } else {
+      activeSortType = type;
+    }
+    applySort();
+    renderTable();
+  }
 
   function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1325,7 +1352,7 @@
     }
   }
 
-  // Авторизация с обязательной проверкой ключа через сервер JSONBin
+  // Авторизация с обязательной валидацией на сервере JSONBin
   async function toggleAdminLogin() {
     if (isAdmin()) {
       if (confirm('Выйти из режима администратора?')) {
@@ -1341,7 +1368,7 @@
 
       const candidateKey = pass.trim();
 
-      // Мгновенная защита от простых строк ("1", "admin" и т.д.)
+      // Мгновенная защита от коротких строк ("1", "admin" и т.д.)
       if (!candidateKey.startsWith('$2a$') || candidateKey.length < 50) {
         alert('Доступ запрещен: введен неверный Master Key! Ключ JSONBin должен начинаться с $2a$ и содержать полную секретную строку.');
         return;
@@ -1417,6 +1444,7 @@
       }
     }
     document.getElementById('badge-history-count').textContent = matches.length;
+    applySort();
     renderTable();
   }
 
@@ -1533,11 +1561,6 @@
     btn.classList.add('active');
     renderTable();
   }
-  function sortTable(type) {
-    sortDirection[type] = -sortDirection[type];
-    players.sort((a, b) => type === 'mmr' ? (a.mmr - b.mmr) * sortDirection[type] : a.name.localeCompare(b.name) * sortDirection[type]);
-    renderTable();
-  }
 
   // --- УПРАВЛЕНИЕ ИГРОКОМ И ЕГО ПУЛОМ ---
   function openAddModal() {
@@ -1607,6 +1630,10 @@
     } else {
       players.unshift({ id: Date.now().toString(), name, mmr, roles, heroes: currentFormPool, selected: true });
     }
+
+    // Мгновенная автоматическая сортировка: игрок сразу встает на свое место по MMR!
+    applySort();
+
     closeModal();
     renderTable();
     syncCloud();
@@ -1616,14 +1643,16 @@
     const p = players.find(x => x.id === id);
     if (p && confirm(`Удалить игрока "${p.name}"?`)) {
       players = players.filter(x => x.id !== id);
+      applySort();
       renderTable();
       syncCloud();
     }
   }
 
   function resetToDefault() {
-    if (confirm('Сбросить состав до первоначального?')) {
+    if (confirm('Сбросить состав до исходного?')) {
       players = JSON.parse(JSON.stringify(DEFAULT_ROSTER));
+      applySort();
       renderTable();
       closeLobby();
       syncCloud();
