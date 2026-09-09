@@ -12,6 +12,12 @@
     --border-color: #242a38;
     --accent-red: #b91c1c;
     --accent-blue: #2563eb;
+    --accent-green: #16a34a;
+    --accent-gold: #f59e0b;
+    --attr-str: #ef4444;
+    --attr-agi: #22c55e;
+    --attr-int: #3b82f6;
+    --attr-uni: #a855f7;
   }
   body {
     background: var(--bg-main);
@@ -24,11 +30,46 @@
     margin: 0;
   }
   .app-container {
-    max-width: 1240px;
+    max-width: 1260px;
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 16px;
+  }
+
+  /* Навигационные вкладки */
+  .nav-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid #242a38;
+    padding-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: #171b24;
+    border: 1px solid #2d3648;
+    color: #94a3b8;
+    padding: 8px 18px;
+    border-radius: 8px 8px 0 0;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.15s ease;
+  }
+  .tab-btn:hover { background: #222938; color: #fff; }
+  .tab-btn.active {
+    background: #2563eb;
+    border-color: #3b82f6;
+    color: #fff;
+  }
+  .badge-counter {
+    background: rgba(0,0,0,0.35);
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-size: 11.5px;
   }
 
   /* Панель управления */
@@ -106,9 +147,10 @@
   .btn-reset { background: #1f2937; color: #9ca3af; border: 1px solid #374151; }
   .btn-admin { background: #4b5563; border: 1px solid #6b7280; }
   .btn-admin.active { background: #059669; border-color: #10b981; }
+  .btn-finish { background: linear-gradient(135deg, #9333ea, #7e22ce); }
 
-  /* Карточка состава */
-  #roster-card {
+  /* Карточка контента */
+  .content-section {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 12px;
@@ -210,6 +252,8 @@
     color: #f9fafb;
     font-size: 14px;
   }
+
+  /* Стили и свечение рангов */
   .rank-cell {
     display: inline-flex;
     align-items: center;
@@ -326,7 +370,7 @@
   .btn-icon:hover { background: #374151; color: #fff; }
   .btn-icon.del:hover { background: #991b1b; color: #fff; border-color: #ef4444; }
 
-  /* Скрытие чекбоксов и кнопок действий при экспорте в PNG */
+  /* Чистый экспорт в PNG без чекбоксов и служебных кнопок */
   .exporting .action-col,
   .exporting .check-col {
     display: none !important;
@@ -335,17 +379,366 @@
     background: transparent !important;
   }
 
-  /* Модальное окно */
+  /* Лобби 5x5 */
+  .lobby-header {
+    background: linear-gradient(90deg, #14532d, #1c1917, #7f1d1d);
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #374151;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .match-diff {
+    font-family: ui-monospace, monospace;
+    font-size: 13.5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fbbf24;
+    font-weight: 700;
+  }
+  .teams-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 16px;
+  }
+  @media (max-width: 960px) {
+    .teams-container { grid-template-columns: 1fr; }
+  }
+  .team-panel {
+    background: #171b24;
+    border-radius: 8px;
+    border: 1px solid #283040;
+    overflow: hidden;
+  }
+  .team-bar {
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 800;
+    font-size: 15px;
+    text-transform: uppercase;
+  }
+  .team-bar.radiant {
+    background: linear-gradient(90deg, rgba(34, 197, 94, 0.2), transparent);
+    color: #4ade80;
+    border-bottom: 2px solid #22c55e;
+  }
+  .team-bar.dire {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), transparent);
+    color: #f87171;
+    border-bottom: 2px solid #ef4444;
+  }
+
+  .lobby-player-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 14px;
+    border-bottom: 1px solid #212735;
+    font-size: 13px;
+    gap: 12px;
+  }
+  .lobby-player-row:last-child { border-bottom: none; }
+  .lobby-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 180px;
+  }
+  .hero-pick-btn {
+    background: #10131a;
+    border: 1px solid #374151;
+    color: #f3f4f6;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.15s ease;
+  }
+  .hero-pick-btn:hover {
+    background: #1e2433;
+    border-color: #60a5fa;
+    transform: translateY(-1px);
+  }
+  .hero-pick-btn img {
+    width: 32px;
+    height: 18px;
+    border-radius: 3px;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .bench-panel {
+    background: #141720;
+    border-top: 1px solid #283040;
+    padding: 14px 18px;
+  }
+  .bench-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .bench-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .bench-badge {
+    background: #1e2433;
+    border: 1px solid #333c4d;
+    border-radius: 6px;
+    padding: 4px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+  }
+
+  /* Сетка выбора героев (Модальное окно) */
+  .hero-grid-modal {
+    max-width: 860px !important;
+    width: 95% !important;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .grid-controls-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .attr-filters {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .attr-btn {
+    background: #1a202c;
+    border: 1px solid #333d4d;
+    color: #94a3b8;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .attr-btn:hover { color: #fff; background: #242c3d; }
+  .attr-btn.active { color: #fff; }
+  .attr-btn.all.active { background: #374151; border-color: #6b7280; }
+  .attr-btn.str.active { background: #991b1b; border-color: var(--attr-str); }
+  .attr-btn.agi.active { background: #166534; border-color: var(--attr-agi); }
+  .attr-btn.int.active { background: #1e40af; border-color: var(--attr-int); }
+  .attr-btn.uni.active { background: #6b21a8; border-color: var(--attr-uni); }
+
+  .hero-grid-container {
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 8px;
+    padding: 6px 4px;
+    max-height: 480px;
+  }
+  .hero-card {
+    background: #10131c;
+    border: 1px solid #273042;
+    border-radius: 6px;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s ease;
+    user-select: none;
+  }
+  .hero-card:hover {
+    border-color: #60a5fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+  }
+  .hero-card.is-signature {
+    border: 1.5px solid var(--accent-gold);
+    background: rgba(245, 158, 11, 0.1);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+  }
+  .hero-card.is-signature::after {
+    content: "⭐";
+    position: absolute;
+    top: -5px;
+    right: -4px;
+    font-size: 11px;
+  }
+  .hero-card.is-selected {
+    border: 1.5px solid #10b981 !important;
+    background: rgba(16, 185, 129, 0.15) !important;
+  }
+  .hero-card.is-selected::after {
+    content: "✓";
+    position: absolute;
+    top: -5px;
+    right: -4px;
+    background: #10b981;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 900;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hero-card img {
+    width: 100%;
+    height: 42px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  .hero-card-name {
+    font-size: 10px;
+    font-weight: 600;
+    color: #e5e7eb;
+    margin-top: 4px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
+
+  /* Пул героев в форме игрока */
+  .player-pool-container {
+    background: #0f1218;
+    border: 1px solid #333c4d;
+    border-radius: 6px;
+    padding: 8px 10px;
+    min-height: 52px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .pool-chip {
+    background: #1a202c;
+    border: 1px solid #374151;
+    border-radius: 4px;
+    padding: 3px 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .pool-chip img {
+    width: 26px;
+    height: 15px;
+    border-radius: 2px;
+    object-fit: cover;
+  }
+  .pool-chip-del {
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    padding-left: 2px;
+  }
+  .pool-chip-del:hover { color: #f87171; }
+
+  /* История матчей */
+  .match-card {
+    background: #171b24;
+    border: 1px solid #2a3346;
+    border-radius: 10px;
+    padding: 16px;
+    margin: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .match-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #262e3d;
+    padding-bottom: 8px;
+  }
+  .winner-tag {
+    font-size: 12px;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 6px;
+    text-transform: uppercase;
+  }
+  .winner-radiant { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; }
+  .winner-dire { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
+
+  .match-teams-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 768px) {
+    .match-teams-grid { grid-template-columns: 1fr; }
+  }
+  .match-team-col {
+    background: #11141c;
+    border-radius: 6px;
+    padding: 10px;
+  }
+  .match-player-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 12.5px;
+    border-bottom: 1px solid #1a202c;
+  }
+
+  /* Статистика */
+  .winrate-bar-bg {
+    width: 100px;
+    height: 7px;
+    background: #374151;
+    border-radius: 4px;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  .winrate-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #3b82f6);
+  }
+
+  /* Модалки */
   .modal-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.75);
+    background: rgba(0,0,0,0.8);
     display: none;
     justify-content: center;
     align-items: center;
     z-index: 1000;
     backdrop-filter: blur(4px);
   }
+  #hero-select-modal { z-index: 1100; }
   .modal-window {
     background: #161922;
     border: 1px solid #374151;
@@ -378,7 +771,7 @@
     color: #9ca3af;
     text-transform: uppercase;
   }
-  .form-input, .form-textarea {
+  .form-input {
     background: #0f1218;
     border: 1px solid #333c4d;
     border-radius: 6px;
@@ -387,7 +780,7 @@
     font-size: 14px;
     outline: none;
   }
-  .form-input:focus, .form-textarea:focus { border-color: #3b82f6; }
+  .form-input:focus { border-color: #3b82f6; }
   .role-checkboxes {
     display: flex;
     flex-wrap: wrap;
@@ -411,166 +804,103 @@
     gap: 10px;
     margin-top: 8px;
   }
-
-  /* Блок матча 5x5 */
-  #lobby-view {
-    display: none;
-    background: #12151d;
-    border: 1px solid #333c4d;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-  }
-  .lobby-header {
-    background: linear-gradient(90deg, #14532d, #1c1917, #7f1d1d);
-    padding: 14px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #374151;
-  }
-  .lobby-meta {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-  .match-diff {
-    font-family: ui-monospace, monospace;
-    font-size: 13.5px;
-    padding: 4px 10px;
-    border-radius: 6px;
-    background: rgba(0,0,0,0.5);
-    border: 1px solid rgba(255,255,255,0.15);
-    color: #fbbf24;
-    font-weight: 700;
-  }
-  .teams-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    padding: 16px;
-  }
-  @media (max-width: 860px) {
-    .teams-container { grid-template-columns: 1fr; }
-  }
-  .team-panel {
-    background: #171b24;
-    border-radius: 8px;
-    border: 1px solid #283040;
-    overflow: hidden;
-  }
-  .team-bar {
-    padding: 10px 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 800;
-    font-size: 15px;
-    text-transform: uppercase;
-  }
-  .team-bar.radiant {
-    background: linear-gradient(90deg, rgba(34, 197, 94, 0.2), transparent);
-    color: #4ade80;
-    border-bottom: 2px solid #22c55e;
-  }
-  .team-bar.dire {
-    background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), transparent);
-    color: #f87171;
-    border-bottom: 2px solid #ef4444;
-  }
-  .team-avg {
-    font-family: monospace;
-    font-size: 13px;
-    color: #cbd5e1;
-  }
-  .lobby-list {
-    display: flex;
-    flex-direction: column;
-  }
-  .lobby-player-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
-    border-bottom: 1px solid #212735;
-    font-size: 13px;
-  }
-  .lobby-player-row:last-child { border-bottom: none; }
-  .lobby-player-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 170px;
-  }
-  .bench-panel {
-    background: #141720;
-    border-top: 1px solid #283040;
-    padding: 14px 18px;
-  }
-  .bench-title {
-    font-size: 12.5px;
-    font-weight: 700;
-    color: #9ca3af;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-  }
-  .bench-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .bench-badge {
-    background: #1e2433;
-    border: 1px solid #333c4d;
-    border-radius: 6px;
-    padding: 4px 10px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12.5px;
-  }
 </style>
 </head>
 <body>
 
 <div class="app-container">
 
-  <!-- Панель инструментов -->
-  <div class="controls-panel">
-    <div class="filter-group">
-      <button class="filter-btn active" onclick="setPosFilter('all', this)">Все</button>
-      <button class="filter-btn" onclick="setPosFilter('1', this)">Carry</button>
-      <button class="filter-btn" onclick="setPosFilter('2', this)">Mid</button>
-      <button class="filter-btn" onclick="setPosFilter('3', this)">Offlane</button>
-      <button class="filter-btn" onclick="setPosFilter('4', this)">Support</button>
-      <button class="filter-btn" onclick="setPosFilter('5', this)">Hard Sup</button>
+  <!-- Вкладки -->
+  <div class="nav-tabs">
+    <button id="tab-btn-roster" class="tab-btn active" onclick="switchTab('roster')">
+      👥 Состав игроков <span id="badge-roster-count" class="badge-counter">0</span>
+    </button>
+    <button id="tab-btn-lobby" class="tab-btn" onclick="switchTab('lobby')">
+      ⚔️ Лобби и Драфт <span id="badge-lobby-active" class="badge-counter" style="display:none; color:#f59e0b;">●</span>
+    </button>
+    <button id="tab-btn-history" class="tab-btn" onclick="switchTab('history')">
+      📜 История матчей <span id="badge-history-count" class="badge-counter">0</span>
+    </button>
+    <button id="tab-btn-stats" class="tab-btn" onclick="switchTab('stats')">
+      📊 Таблица лидеров (Винрейт)
+    </button>
+  </div>
+
+  <!-- ВКЛАДКА 1: СОСТАВ ИГРОКОВ -->
+  <div id="section-roster" style="display: flex; flex-direction: column; gap: 14px;">
+    <div class="controls-panel">
+      <div class="filter-group">
+        <button class="filter-btn active" onclick="setPosFilter('all', this)">Все</button>
+        <button class="filter-btn" onclick="setPosFilter('1', this)">Carry</button>
+        <button class="filter-btn" onclick="setPosFilter('2', this)">Mid</button>
+        <button class="filter-btn" onclick="setPosFilter('3', this)">Offlane</button>
+        <button class="filter-btn" onclick="setPosFilter('4', this)">Support</button>
+        <button class="filter-btn" onclick="setPosFilter('5', this)">Hard Sup</button>
+      </div>
+
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <input type="text" id="search-input" class="search-box" placeholder="Поиск ника или героя..." oninput="renderTable()">
+        <div class="action-btns">
+          <button id="admin-toggle-btn" class="btn btn-admin" onclick="toggleAdminLogin()">🔑 Админ</button>
+          <button id="btn-add-player" class="btn btn-add" style="display: none;" onclick="openAddModal()">➕ Игрок</button>
+          <button class="btn btn-random10" onclick="selectRandom10()">🎲 Выбрать 10</button>
+          <button class="btn btn-lobby" onclick="generateLobby()">⚔️ Собрать 5x5</button>
+          <button id="btn-export" class="btn btn-export" onclick="exportToPNG()">📸 Скачать</button>
+          <button id="btn-reset-roster" class="btn btn-reset" style="display: none;" onclick="resetToDefault()" title="Восстановить исходный список из 18 игроков">🔄</button>
+        </div>
+      </div>
     </div>
 
-    <div style="display: flex; gap: 8px; align-items: center;">
-      <input type="text" id="search-input" class="search-box" placeholder="Поиск по нику или герою..." oninput="renderTable()">
-      
-      <div class="action-btns">
-        <button id="admin-toggle-btn" class="btn btn-admin" onclick="toggleAdminLogin()">🔑 Админ</button>
-        <button id="btn-add-player" class="btn btn-add" style="display: none;" onclick="openAddModal()">➕ Игрок</button>
-        <button class="btn btn-random10" onclick="selectRandom10()">🎲 Выбрать 10</button>
-        <button class="btn btn-lobby" onclick="generateLobby()">⚔️ Собрать 5x5</button>
-        <button id="btn-export" class="btn btn-export" onclick="exportToPNG()">📸 Скачать</button>
-        <button id="btn-reset-roster" class="btn btn-reset" style="display: none;" onclick="resetToDefault()" title="Восстановить исходный список из 18 игроков">🔄</button>
+    <div id="roster-card" class="content-section">
+      <div class="header-widget">
+        <div class="header-title-box">
+          <span class="header-title">Состав игроков Dota 2</span>
+          <span id="sync-status" class="sync-badge">⚪ Проверка...</span>
+        </div>
+        <div class="stats-badges">
+          <div class="stat-card">
+            <span class="stat-label">Выбрано</span>
+            <span class="stat-val" id="stat-selected" style="color: #60a5fa;">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Всего</span>
+            <span class="stat-val" id="stat-count">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Средний MMR</span>
+            <span class="stat-val" id="stat-avg">0</span>
+          </div>
+        </div>
       </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 32px; text-align: center;" class="check-col"><input type="checkbox" id="check-all" onchange="toggleSelectAll(this)" title="Выбрать всех"></th>
+            <th style="width: 36px; text-align: center;">#</th>
+            <th style="width: 140px;" class="sortable" onclick="sortTable('name')">Игрок ⬍</th>
+            <th style="width: 130px;">Звание</th>
+            <th style="width: 95px;" class="sortable" onclick="sortTable('mmr')">MMR ⬍</th>
+            <th style="width: 155px;">Позиция</th>
+            <th>Пул героев</th>
+            <th id="th-actions" style="width: 80px; text-align: right; display: none;" class="action-col">Действия</th>
+          </tr>
+        </thead>
+        <tbody id="roster-body"></tbody>
+      </table>
     </div>
   </div>
 
-  <!-- Блок лобби 5x5 -->
-  <div id="lobby-view">
+  <!-- ВКЛАДКА 2: ЛОББИ И ДРАФТ -->
+  <div id="section-lobby" class="content-section" style="display: none;">
     <div class="lobby-header">
       <div style="display: flex; align-items: center; gap: 10px;">
-        <span style="font-size: 16px; font-weight: 800; letter-spacing: 0.5px;">⚔️ БАЛАНСНОЕ ЛОББИ 5x5</span>
-        <button class="btn btn-random10" style="padding: 4px 8px; font-size: 11px;" onclick="copyLobbyToDiscord()">📋 Копировать для Discord</button>
+        <span style="font-size: 16px; font-weight: 800; letter-spacing: 0.5px;">⚔️ БАЛАНСНОЕ ЛОББИ 5x5 И ДРАФТ</span>
+        <button class="btn btn-random10" style="padding: 4px 8px; font-size: 11px;" onclick="copyLobbyToDiscord()">📋 Для Discord</button>
       </div>
-      <div class="lobby-meta">
+      <div style="display: flex; align-items: center; gap: 10px;">
         <span id="lobby-diff" class="match-diff">Разница: 0 MMR</span>
-        <button style="background: none; border: none; color: #9ca3af; font-size: 18px; cursor: pointer;" onclick="closeLobby()">✕</button>
+        <button id="btn-finish-lobby-match" class="btn btn-finish" style="display: none;" onclick="openFinishMatchModal()">🏁 Завершить матч</button>
       </div>
     </div>
     
@@ -601,69 +931,85 @@
     </div>
   </div>
 
-  <!-- Карточка таблицы -->
-  <div id="roster-card">
+  <!-- ВКЛАДКА 3: ИСТОРИЯ МАТЧЕЙ -->
+  <div id="section-history" class="content-section" style="display: none;">
     <div class="header-widget">
-      <div class="header-title-box">
-        <span class="header-title">Состав игроков Dota 2</span>
-        <span id="sync-status" class="sync-badge">⚪ Проверка...</span>
-      </div>
-      <div class="stats-badges">
-        <div class="stat-card">
-          <span class="stat-label">Выбрано</span>
-          <span class="stat-val" id="stat-selected" style="color: #60a5fa;">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Игроков</span>
-          <span class="stat-val" id="stat-count">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Средний MMR</span>
-          <span class="stat-val" id="stat-avg">0</span>
-        </div>
-      </div>
+      <div class="header-title">Архив сыгранных матчей</div>
+      <span style="font-size: 12px; color: #94a3b8;">Результаты сохраняются в общее облако JSONBin</span>
     </div>
+    <div id="history-container"></div>
+  </div>
 
+  <!-- ВКЛАДКА 4: СТАТИСТИКА И ЛИДЕРБОРД -->
+  <div id="section-stats" class="content-section" style="display: none;">
+    <div class="header-widget">
+      <div class="header-title">Таблица лидеров пати</div>
+      <span style="font-size: 12px; color: #94a3b8;">Рейтинг формируется по завершенным играм</span>
+    </div>
     <table>
       <thead>
         <tr>
-          <th style="width: 32px; text-align: center;" class="check-col"><input type="checkbox" id="check-all" onchange="toggleSelectAll(this)" title="Выбрать всех"></th>
-          <th style="width: 36px; text-align: center;">#</th>
-          <th style="width: 140px;" class="sortable" onclick="sortTable('name')">Игрок ⬍</th>
-          <th style="width: 130px;">Звание</th>
-          <th style="width: 95px;" class="sortable" onclick="sortTable('mmr')">MMR ⬍</th>
-          <th style="width: 155px;">Позиция</th>
-          <th>Пул героев</th>
-          <th id="th-actions" style="width: 80px; text-align: right; display: none;" class="action-col">Действия</th>
+          <th style="width: 50px; text-align: center;">Место</th>
+          <th>Игрок</th>
+          <th style="width: 110px; text-align: center;">Игр</th>
+          <th style="width: 110px; text-align: center;">Побед (W)</th>
+          <th style="width: 110px; text-align: center;">Поражений (L)</th>
+          <th style="width: 180px;">Винрейт (%)</th>
         </tr>
       </thead>
-      <tbody id="roster-body"></tbody>
+      <tbody id="stats-table-body"></tbody>
     </table>
+  </div>
+
+</div>
+
+<!-- Модальное окно выбора героя (Сетка с фильтрами по атрибутам) -->
+<div id="hero-select-modal" class="modal-overlay">
+  <div class="modal-window hero-grid-modal">
+    <div class="modal-header">
+      <span id="hero-modal-title">Выбор героя</span>
+      <button style="background: none; border: none; color: #9ca3af; font-size: 20px; cursor: pointer;" onclick="closeHeroSelectModal()">✕</button>
+    </div>
+    
+    <div class="grid-controls-row">
+      <div class="attr-filters">
+        <button class="attr-btn all active" onclick="setGridAttrFilter('all', this)">Все</button>
+        <button class="attr-btn str" onclick="setGridAttrFilter('str', this)">🔴 Сила</button>
+        <button class="attr-btn agi" onclick="setGridAttrFilter('agi', this)">🟢 Ловкость</button>
+        <button class="attr-btn int" onclick="setGridAttrFilter('int', this)">🔵 Интеллект</button>
+        <button class="attr-btn uni" onclick="setGridAttrFilter('uni', this)">🟣 Универсал</button>
+      </div>
+
+      <input type="text" id="hero-grid-filter" class="search-box" style="min-width: 180px;" placeholder="Поиск героя..." oninput="renderHeroGrid()">
+    </div>
+
+    <div class="hero-grid-container" id="hero-grid-cards"></div>
+
+    <div id="hero-grid-multi-actions" style="display:none; justify-content: space-between; align-items:center; border-top:1px solid #2d3446; padding-top:10px;">
+      <span id="hero-grid-selected-counter" style="font-size: 13px; font-weight: 700; color: #10b981;">Выбрано: 0</span>
+      <button class="btn btn-export" onclick="applyMultiHeroSelect()">Готово</button>
+    </div>
   </div>
 </div>
 
-<!-- Модальное окно добавления/редактирования -->
+<!-- Модальное окно создания / редактирования игрока -->
 <div id="player-modal" class="modal-overlay">
   <div class="modal-window">
     <div class="modal-header">
       <span id="modal-title">Редактировать игрока</span>
       <button style="background: none; border: none; color: #9ca3af; font-size: 18px; cursor: pointer;" onclick="closeModal()">✕</button>
     </div>
-
     <input type="hidden" id="edit-player-id">
-
     <div class="form-group">
       <label class="form-label">Никнейм игрока</label>
       <input type="text" id="form-name" class="form-input" placeholder="Например: Miracle-">
     </div>
-
     <div class="form-group">
       <label class="form-label">MMR рейтинг</label>
       <input type="number" id="form-mmr" class="form-input" placeholder="Например: 4500" step="10">
     </div>
-
     <div class="form-group">
-      <label class="form-label">Игровые роли (позиции)</label>
+      <label class="form-label">Игровые роли</label>
       <div class="role-checkboxes">
         <label class="role-label"><input type="checkbox" name="edit-role" value="1"> 1 - Carry</label>
         <label class="role-label"><input type="checkbox" name="edit-role" value="2"> 2 - Mid</label>
@@ -674,8 +1020,11 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label">Пул персонажей (через запятую)</label>
-      <textarea id="form-heroes" class="form-textarea" rows="3" placeholder="Axe, Shadow Fiend, Invoker, Pudge..."></textarea>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <label class="form-label">Пул персонажей игрока</label>
+        <button type="button" class="btn btn-add" style="padding: 3px 8px; font-size: 11px;" onclick="openHeroGridForPlayerPool()">➕ Выбрать из сетки</button>
+      </div>
+      <div id="player-form-pool-chips" class="player-pool-container"></div>
     </div>
 
     <div class="modal-actions">
@@ -685,13 +1034,212 @@
   </div>
 </div>
 
+<!-- Модальное окно завершения матча (только для админа) -->
+<div id="finish-match-modal" class="modal-overlay">
+  <div class="modal-window">
+    <div class="modal-header">
+      <span>🏁 Завершить матч и записать в историю</span>
+      <button style="background: none; border: none; color: #9ca3af; font-size: 18px; cursor: pointer;" onclick="closeFinishMatchModal()">✕</button>
+    </div>
+    <p style="font-size: 13.5px; color: #cbd5e1; margin: 0;">Выберите команду-победителя текущей карты:</p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0;">
+      <button class="btn" style="background: #15803d; justify-content: center; padding: 12px;" onclick="confirmFinishMatch('Radiant')">🟢 Победа Radiant</button>
+      <button class="btn" style="background: #b91c1c; justify-content: center; padding: 12px;" onclick="confirmFinishMatch('Dire')">🔴 Победа Dire</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-reset" onclick="closeFinishMatchModal()">Отмена</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // ==========================================
-  // НАСТРОЙКИ ОБЛАКА JSONBIN.IO (БЕСПЛАТНО)
+  // НАСТРОЙКИ ОБЛАКА JSONBIN.IO
   // ==========================================
-  const BIN_ID = "6aa1b60dffd5d16053f30a87"; // Вставьте сюда полученный Bin ID
-  const READ_KEY = "";          // Оставьте пустым если Bin публичный, или вставьте Access Key
+  const BIN_ID = "6aa1b60dffd5d16053f30a87";
+  const READ_KEY = "";
   // ==========================================
+
+  // Официальный ассет Largo из игры
+  const LARGO_IMG_URL = "https://liquipedia.net/commons/images/7/78/Largo_icon_dota2_gameasset.png";
+  const LARGO_IMG_PROXY = "https://wsrv.nl/?url=https://liquipedia.net/commons/images/7/78/Largo_icon_dota2_gameasset.png";
+
+  // Полный каталог героев Dota 2 (127 героев строго по сетке Liquipedia)
+  const DOTA2_HEROES_CATALOG = [
+    // 🔴 СИЛА (36)
+    { name: "Alchemist", slug: "alchemist", attr: "str" },
+    { name: "Axe", slug: "axe", attr: "str" },
+    { name: "Bristleback", slug: "bristleback", attr: "str" },
+    { name: "Centaur Warrunner", slug: "centaur", attr: "str" },
+    { name: "Chaos Knight", slug: "chaos_knight", attr: "str" },
+    { name: "Clockwerk", slug: "rattletrap", attr: "str" },
+    { name: "Dawnbreaker", slug: "dawnbreaker", attr: "str" },
+    { name: "Doom", slug: "doom_bringer", attr: "str" },
+    { name: "Dragon Knight", slug: "dragon_knight", attr: "str" },
+    { name: "Earth Spirit", slug: "earth_spirit", attr: "str" },
+    { name: "Earthshaker", slug: "earthshaker", attr: "str" },
+    { name: "Elder Titan", slug: "elder_titan", attr: "str" },
+    { name: "Huskar", slug: "huskar", attr: "str" },
+    { name: "Kunkka", slug: "kunkka", attr: "str" },
+    { name: "Largo", slug: "largo", attr: "str" },
+    { name: "Legion Commander", slug: "legion_commander", attr: "str" },
+    { name: "Lifestealer", slug: "life_stealer", attr: "str" },
+    { name: "Lycan", slug: "lycan", attr: "str" },
+    { name: "Mars", slug: "mars", attr: "str" },
+    { name: "Night Stalker", slug: "night_stalker", attr: "str" },
+    { name: "Ogre Magi", slug: "ogre_magi", attr: "str" },
+    { name: "Omniknight", slug: "omniknight", attr: "str" },
+    { name: "Phoenix", slug: "phoenix", attr: "str" },
+    { name: "Primal Beast", slug: "primal_beast", attr: "str" },
+    { name: "Pudge", slug: "pudge", attr: "str" },
+    { name: "Slardar", slug: "slardar", attr: "str" },
+    { name: "Spirit Breaker", slug: "spirit_breaker", attr: "str" },
+    { name: "Sven", slug: "sven", attr: "str" },
+    { name: "Tidehunter", slug: "tidehunter", attr: "str" },
+    { name: "Timbersaw", slug: "shredder", attr: "str" },
+    { name: "Tiny", slug: "tiny", attr: "str" },
+    { name: "Treant Protector", slug: "treant", attr: "str" },
+    { name: "Tusk", slug: "tusk", attr: "str" },
+    { name: "Underlord", slug: "abyssal_underlord", attr: "str" },
+    { name: "Undying", slug: "undying", attr: "str" },
+    { name: "Wraith King", slug: "skeleton_king", attr: "str" },
+
+    // 🟢 ЛОВКОСТЬ (35)
+    { name: "Anti-Mage", slug: "antimage", attr: "agi" },
+    { name: "Bloodseeker", slug: "bloodseeker", attr: "agi" },
+    { name: "Bounty Hunter", slug: "bounty_hunter", attr: "agi" },
+    { name: "Broodmother", slug: "broodmother", attr: "agi" },
+    { name: "Clinkz", slug: "clinkz", attr: "agi" },
+    { name: "Drow Ranger", slug: "drow_ranger", attr: "agi" },
+    { name: "Ember Spirit", slug: "ember_spirit", attr: "agi" },
+    { name: "Faceless Void", slug: "faceless_void", attr: "agi" },
+    { name: "Gyrocopter", slug: "gyrocopter", attr: "agi" },
+    { name: "Hoodwink", slug: "hoodwink", attr: "agi" },
+    { name: "Juggernaut", slug: "juggernaut", attr: "agi" },
+    { name: "Kez", slug: "kez", attr: "agi" },
+    { name: "Lone Druid", slug: "lone_druid", attr: "agi" },
+    { name: "Luna", slug: "luna", attr: "agi" },
+    { name: "Medusa", slug: "medusa", attr: "agi" },
+    { name: "Meepo", slug: "meepo", attr: "agi" },
+    { name: "Mirana", slug: "mirana", attr: "agi" },
+    { name: "Monkey King", slug: "monkey_king", attr: "agi" },
+    { name: "Morphling", slug: "morphling", attr: "agi" },
+    { name: "Naga Siren", slug: "naga_siren", attr: "agi" },
+    { name: "Phantom Assassin", slug: "phantom_assassin", attr: "agi" },
+    { name: "Phantom Lancer", slug: "phantom_lancer", attr: "agi" },
+    { name: "Razor", slug: "razor", attr: "agi" },
+    { name: "Riki", slug: "riki", attr: "agi" },
+    { name: "Shadow Fiend", slug: "nevermore", attr: "agi" },
+    { name: "Slark", slug: "slark", attr: "agi" },
+    { name: "Sniper", slug: "sniper", attr: "agi" },
+    { name: "Spectre", slug: "spectre", attr: "agi" },
+    { name: "Templar Assassin", slug: "templar_assassin", attr: "agi" },
+    { name: "Terrorblade", slug: "terrorblade", attr: "agi" },
+    { name: "Troll Warlord", slug: "troll_warlord", attr: "agi" },
+    { name: "Ursa", slug: "ursa", attr: "agi" },
+    { name: "Vengeful Spirit", slug: "vengefulspirit", attr: "agi" },
+    { name: "Viper", slug: "viper", attr: "agi" },
+    { name: "Weaver", slug: "weaver", attr: "agi" },
+
+    // 🔵 ИНТЕЛЛЕКТ (34)
+    { name: "Ancient Apparition", slug: "ancient_apparition", attr: "int" },
+    { name: "Chen", slug: "chen", attr: "int" },
+    { name: "Crystal Maiden", slug: "crystal_maiden", attr: "int" },
+    { name: "Dark Seer", slug: "dark_seer", attr: "int" },
+    { name: "Dark Willow", slug: "dark_willow", attr: "int" },
+    { name: "Disruptor", slug: "disruptor", attr: "int" },
+    { name: "Enchantress", slug: "enchantress", attr: "int" },
+    { name: "Grimstroke", slug: "grimstroke", attr: "int" },
+    { name: "Invoker", slug: "invoker", attr: "int" },
+    { name: "Jakiro", slug: "jakiro", attr: "int" },
+    { name: "Keeper of the Light", slug: "keeper_of_the_light", attr: "int" },
+    { name: "Leshrac", slug: "leshrac", attr: "int" },
+    { name: "Lich", slug: "lich", attr: "int" },
+    { name: "Lina", slug: "lina", attr: "int" },
+    { name: "Lion", slug: "lion", attr: "int" },
+    { name: "Muerta", slug: "muerta", attr: "int" },
+    { name: "Necrophos", slug: "necrolyte", attr: "int" },
+    { name: "Oracle", slug: "oracle", attr: "int" },
+    { name: "Outworld Destroyer", slug: "obsidian_destroyer", attr: "int" },
+    { name: "Puck", slug: "puck", attr: "int" },
+    { name: "Pugna", slug: "pugna", attr: "int" },
+    { name: "Queen of Pain", slug: "queenofpain", attr: "int" },
+    { name: "Ringmaster", slug: "ringmaster", attr: "int" },
+    { name: "Rubick", slug: "rubick", attr: "int" },
+    { name: "Shadow Demon", slug: "shadow_demon", attr: "int" },
+    { name: "Shadow Shaman", slug: "shadow_shaman", attr: "int" },
+    { name: "Silencer", slug: "silencer", attr: "int" },
+    { name: "Skywrath Mage", slug: "skywrath_mage", attr: "int" },
+    { name: "Storm Spirit", slug: "storm_spirit", attr: "int" },
+    { name: "Tinker", slug: "tinker", attr: "int" },
+    { name: "Warlock", slug: "warlock", attr: "int" },
+    { name: "Winter Wyvern", slug: "winter_wyvern", attr: "int" },
+    { name: "Witch Doctor", slug: "witch_doctor", attr: "int" },
+    { name: "Zeus", slug: "zuus", attr: "int" },
+
+    // 🟣 УНИВЕРСАЛЬНЫЕ (22)
+    { name: "Abaddon", slug: "abaddon", attr: "uni" },
+    { name: "Arc Warden", slug: "arc_warden", attr: "uni" },
+    { name: "Bane", slug: "bane", attr: "uni" },
+    { name: "Batrider", slug: "batrider", attr: "uni" },
+    { name: "Beastmaster", slug: "beastmaster", attr: "uni" },
+    { name: "Brewmaster", slug: "brewmaster", attr: "uni" },
+    { name: "Dazzle", slug: "dazzle", attr: "uni" },
+    { name: "Death Prophet", slug: "death_prophet", attr: "uni" },
+    { name: "Enigma", slug: "enigma", attr: "uni" },
+    { name: "Io", slug: "wisp", attr: "uni" },
+    { name: "Magnus", slug: "magnataur", attr: "uni" },
+    { name: "Marci", slug: "marci", attr: "uni" },
+    { name: "Nature's Prophet", slug: "furion", attr: "uni" },
+    { name: "Nyx Assassin", slug: "nyx_assassin", attr: "uni" },
+    { name: "Pangolier", slug: "pangolier", attr: "uni" },
+    { name: "Sand King", slug: "sand_king", attr: "uni" },
+    { name: "Snapfire", slug: "snapfire", attr: "uni" },
+    { name: "Techies", slug: "techies", attr: "uni" },
+    { name: "Venomancer", slug: "venomancer", attr: "uni" },
+    { name: "Visage", slug: "visage", attr: "uni" },
+    { name: "Void Spirit", slug: "void_spirit", attr: "uni" },
+    { name: "Windranger", slug: "windrunner", attr: "uni" }
+  ];
+
+  const HERO_MAP = {};
+  DOTA2_HEROES_CATALOG.forEach(h => {
+    HERO_MAP[h.name.toLowerCase()] = h.slug;
+  });
+  HERO_MAP["sf"] = "nevermore";
+  HERO_MAP["pa"] = "phantom_assassin";
+  HERO_MAP["ta"] = "templar_assassin";
+  HERO_MAP["od"] = "obsidian_destroyer";
+  HERO_MAP["sb"] = "spirit_breaker";
+  HERO_MAP["aa"] = "ancient_apparition";
+  HERO_MAP["np"] = "furion";
+  HERO_MAP["tb"] = "terrorblade";
+  HERO_MAP["wk"] = "skeleton_king";
+
+  function getHeroSlug(name) {
+    const clean = (name || '').toLowerCase().trim();
+    if (HERO_MAP[clean]) return HERO_MAP[clean];
+    return clean.replace(/['\s-]+/g, '_');
+  }
+
+  function getHeroImg(name) {
+    const clean = (name || '').toLowerCase().trim();
+    if (clean === 'largo') {
+      return LARGO_IMG_PROXY;
+    }
+    const slug = getHeroSlug(name);
+    return `https://wsrv.nl/?url=https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/${slug}.png`;
+  }
+
+  function getRankInfo(mmr) {
+    if (mmr >= 5600) return { name: "Титан", medal: 8, class: "rank-immortal" };
+    if (mmr >= 4700) return { name: "Божество", medal: 7, class: "rank-divine" };
+    if (mmr >= 3800) return { name: "Властелин", medal: 6, class: "rank-ancient" };
+    if (mmr >= 3000) return { name: "Легенда", medal: 5, class: "rank-legend" };
+    if (mmr >= 2200) return { name: "Герой", medal: 4, class: "rank-archon" };
+    if (mmr >= 1540) return { name: "Рыцарь", medal: 3, class: "rank-crusader" };
+    return { name: "Страж", medal: 2, class: "rank-guardian" };
+  }
 
   const DEFAULT_ROSTER = [
     { id: "1", name: "Varker32", mmr: 6800, roles: [3], heroes: ["Primal Beast", "Night Stalker", "Axe", "Doom", "Sand King", "Dark Seer", "Enigma", "Slardar", "Pudge", "Dawnbreaker"], selected: true },
@@ -714,57 +1262,43 @@
     { id: "18", name: "Roman", mmr: 900, roles: [3], heroes: ["Dawnbreaker"], selected: true }
   ];
 
-  const HERO_MAP = {
-    "primal beast": "primal_beast", "night stalker": "night_stalker", "axe": "axe",
-    "doom": "doom_bringer", "sand king": "sand_king", "dark seer": "dark_seer",
-    "enigma": "enigma", "slardar": "slardar", "pudge": "pudge", "dawnbreaker": "dawnbreaker",
-    "bane": "bane", "tusk": "tusk", "ringmaster": "ringmaster", "shadow demon": "shadow_demon",
-    "grimstroke": "grimstroke", "ancient apparition": "ancient_apparition", "aa": "ancient_apparition",
-    "lycan": "lycan", "nature prophet": "furion", "nature's prophet": "furion", "np": "furion", "furion": "furion",
-    "brewmaster": "brewmaster", "tidehunter": "tidehunter", "beastmaster": "beastmaster", "beast master": "beastmaster",
-    "batrider": "batrider", "dragon knight": "dragon_knight", "dk": "dragon_knight",
-    "invoker": "invoker", "shadow fiend": "nevermore", "sf": "nevermore", "leshrac": "leshrac", "leshrak": "leshrac",
-    "outworld destroyer": "obsidian_destroyer", "od": "obsidian_destroyer", "ember spirit": "ember_spirit", "ember": "ember_spirit",
-    "lone druid": "lone_druid", "ld": "lone_druid", "necrophos": "necrolyte", "necrofos": "necrolyte", "necro": "necrolyte",
-    "arc warden": "arc_warden", "arc": "arc_warden", "templar assassin": "templar_assassin", "ta": "templar_assassin",
-    "huskar": "huskar", "void spirit": "void_spirit", "drow ranger": "drow_ranger", "drow": "drow_ranger",
-    "phantom lancer": "phantom_lancer", "pl": "phantom_lancer", "medusa": "medusa", "dusa": "medusa",
-    "lifestealer": "life_stealer", "naix": "life_stealer", "ursa": "ursa", "faceless void": "faceless_void", "void": "faceless_void",
-    "anti-mage": "antimage", "anti mage": "antimage", "am": "antimage", "clockwerk": "rattletrap", "clock": "rattletrap",
-    "warlock": "warlock", "hoodwink": "hoodwink", "jakiro": "jakiro", "phantom assassin": "phantom_assassin", "pa": "phantom_assassin",
-    "lion": "lion", "tinker": "tinker", "naga siren": "naga_siren", "naga": "naga_siren", "juggernaut": "juggernaut", "jugg": "juggernaut",
-    "terrorblade": "terrorblade", "tb": "terrorblade", "dazzle": "dazzle", "timbersaw": "shredder", "timber": "shredder",
-    "centaur warrunner": "centaur", "centaur": "centaur", "centauwr": "centaur",
-    "spirit breaker": "spirit_breaker", "sb": "spirit_breaker", "bara": "spirit_breaker",
-    "ogre magi": "ogre_magi", "ogre mage": "ogre_magi", "ogre": "ogre_magi", "spectre": "spectre",
-    "wraith king": "skeleton_king", "wk": "skeleton_king", "skeleton king": "skeleton_king",
-    "zeus": "zuus", "undying": "undying", "largo": "slardar"
-  };
-
-  function getHeroSlug(name) {
-    const clean = name.toLowerCase().trim();
-    if (HERO_MAP[clean]) return HERO_MAP[clean];
-    return clean.replace(/['\s-]+/g, '_');
-  }
-
-  function getRankInfo(mmr) {
-    if (mmr >= 5600) return { name: "Титан", medal: 8, class: "rank-immortal" };
-    if (mmr >= 4700) return { name: "Божество", medal: 7, class: "rank-divine" };
-    if (mmr >= 3800) return { name: "Властелин", medal: 6, class: "rank-ancient" };
-    if (mmr >= 3000) return { name: "Легенда", medal: 5, class: "rank-legend" };
-    if (mmr >= 2200) return { name: "Герой", medal: 4, class: "rank-archon" };
-    if (mmr >= 1540) return { name: "Рыцарь", medal: 3, class: "rank-crusader" };
-    return { name: "Страж", medal: 2, class: "rank-guardian" };
-  }
-
   let players = [];
+  let matches = [];
   let adminKey = sessionStorage.getItem('dota_admin_key') || '';
   let activePos = 'all';
   let sortDirection = { mmr: -1, name: 1 };
   let currentLobbyData = null;
 
-  function isAdmin() {
-    return Boolean(adminKey);
+  let heroSelectMode = 'lobbyPick';
+  let activeGridAttr = 'all';
+  let heroSelectContext = { team: null, playerIndex: null, player: null };
+  let currentFormPool = [];
+
+  function isAdmin() { return Boolean(adminKey); }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('section-roster').style.display = 'none';
+    document.getElementById('section-lobby').style.display = 'none';
+    document.getElementById('section-history').style.display = 'none';
+    document.getElementById('section-stats').style.display = 'none';
+
+    if (tab === 'roster') {
+      document.getElementById('tab-btn-roster').classList.add('active');
+      document.getElementById('section-roster').style.display = 'flex';
+      renderTable();
+    } else if (tab === 'lobby') {
+      document.getElementById('tab-btn-lobby').classList.add('active');
+      document.getElementById('section-lobby').style.display = 'block';
+    } else if (tab === 'history') {
+      document.getElementById('tab-btn-history').classList.add('active');
+      document.getElementById('section-history').style.display = 'block';
+      renderHistory();
+    } else if (tab === 'stats') {
+      document.getElementById('tab-btn-stats').classList.add('active');
+      document.getElementById('section-stats').style.display = 'block';
+      renderStats();
+    }
   }
 
   function updateAdminUI() {
@@ -772,6 +1306,7 @@
     const addBtn = document.getElementById('btn-add-player');
     const resetBtn = document.getElementById('btn-reset-roster');
     const thActions = document.getElementById('th-actions');
+    const finishBtn = document.getElementById('btn-finish-lobby-match');
 
     if (isAdmin()) {
       btn.textContent = '🔓 Выйти (Админ)';
@@ -779,103 +1314,137 @@
       addBtn.style.display = 'inline-flex';
       resetBtn.style.display = 'inline-flex';
       thActions.style.display = '';
+      if (finishBtn) finishBtn.style.display = 'inline-flex';
     } else {
       btn.textContent = '🔑 Админ';
       btn.classList.remove('active');
       addBtn.style.display = 'none';
       resetBtn.style.display = 'none';
       thActions.style.display = 'none';
+      if (finishBtn) finishBtn.style.display = 'none';
     }
   }
 
-  function toggleAdminLogin() {
+  // Авторизация с обязательной проверкой ключа через сервер JSONBin
+  async function toggleAdminLogin() {
     if (isAdmin()) {
       if (confirm('Выйти из режима администратора?')) {
         adminKey = '';
         sessionStorage.removeItem('dota_admin_key');
         updateAdminUI();
         renderTable();
+        renderHistory();
       }
     } else {
-      const pass = prompt('Введите секретный ключ администратора (Master Key от JSONBin):');
-      if (pass && pass.trim()) {
-        adminKey = pass.trim();
+      const pass = prompt('Введите секретный Master Key от JSONBin:');
+      if (!pass || !pass.trim()) return;
+
+      const candidateKey = pass.trim();
+
+      // Мгновенная защита от простых строк ("1", "admin" и т.д.)
+      if (!candidateKey.startsWith('$2a$') || candidateKey.length < 50) {
+        alert('Доступ запрещен: введен неверный Master Key! Ключ JSONBin должен начинаться с $2a$ и содержать полную секретную строку.');
+        return;
+      }
+
+      const statusEl = document.getElementById('sync-status');
+      const prevStatus = statusEl.textContent;
+      statusEl.textContent = '🔑 Проверка ключа...';
+
+      try {
+        const testRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': candidateKey
+          },
+          body: JSON.stringify({ players, matches })
+        });
+
+        if (!testRes.ok) {
+          throw new Error('Код ответа от JSONBin: ' + testRes.status);
+        }
+
+        adminKey = candidateKey;
         sessionStorage.setItem('dota_admin_key', adminKey);
         updateAdminUI();
         renderTable();
+        renderHistory();
+        statusEl.textContent = '🟢 Админ онлайн';
+        alert('Авторизация успешна! Права администратора активированы.');
+      } catch (err) {
+        console.error('Ошибка проверки ключа:', err);
+        statusEl.textContent = prevStatus;
+        alert('Доступ запрещен: сервер отклонил введенный Master Key!');
       }
     }
   }
 
-  // Загрузка данных из облака
   async function loadData() {
     const statusEl = document.getElementById('sync-status');
     statusEl.textContent = '⏳ Синхронизация...';
-
-    if (!BIN_ID || BIN_ID.includes('...')) {
-      statusEl.textContent = '💾 Локальный режим';
-      try {
-        const local = localStorage.getItem('dota2_roster_data');
-        players = local ? JSON.parse(local) : JSON.parse(JSON.stringify(DEFAULT_ROSTER));
-      } catch(e) {
-        players = JSON.parse(JSON.stringify(DEFAULT_ROSTER));
-      }
-      renderTable();
-      return;
-    }
 
     try {
       const headers = {};
       if (READ_KEY) headers['X-Access-Key'] = READ_KEY;
       
       const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers });
-      if (!res.ok) throw new Error('Ошибка сети ' + res.status);
+      if (!res.ok) throw new Error('Ошибка ' + res.status);
       const data = await res.json();
       
-      if (Array.isArray(data.record) && data.record.length > 0) {
+      if (Array.isArray(data.record)) {
         players = data.record;
+        matches = [];
+      } else if (data.record && typeof data.record === 'object') {
+        players = data.record.players || DEFAULT_ROSTER;
+        matches = data.record.matches || [];
       } else {
         players = JSON.parse(JSON.stringify(DEFAULT_ROSTER));
+        matches = [];
       }
       statusEl.textContent = '🟢 Облако онлайн';
     } catch(err) {
-      console.warn('Облако недоступно, переключение на локальный резерв:', err);
-      statusEl.textContent = '⚠️ Офлайн режим';
-      const local = localStorage.getItem('dota2_roster_data');
-      players = local ? JSON.parse(local) : JSON.parse(JSON.stringify(DEFAULT_ROSTER));
+      console.warn('Облако недоступно, локальный режим:', err);
+      statusEl.textContent = '⚠️ Локальный режим';
+      try {
+        const localP = localStorage.getItem('dota2_roster_data');
+        const localM = localStorage.getItem('dota2_matches_data');
+        players = localP ? JSON.parse(localP) : JSON.parse(JSON.stringify(DEFAULT_ROSTER));
+        matches = localM ? JSON.parse(localM) : [];
+      } catch(e) {
+        players = JSON.parse(JSON.stringify(DEFAULT_ROSTER));
+        matches = [];
+      }
     }
+    document.getElementById('badge-history-count').textContent = matches.length;
     renderTable();
   }
 
-  // Синхронизация изменений в облако
   async function syncCloud() {
     localStorage.setItem('dota2_roster_data', JSON.stringify(players));
+    localStorage.setItem('dota2_matches_data', JSON.stringify(matches));
+    document.getElementById('badge-history-count').textContent = matches.length;
+
     const statusEl = document.getElementById('sync-status');
-
-    if (!BIN_ID || BIN_ID.includes('...')) return;
-
-    if (!isAdmin()) {
-      alert('У вас нет прав администратора для сохранения изменений в общее облако.');
-      return;
-    }
+    if (!isAdmin()) return;
 
     statusEl.textContent = '🟡 Сохранение...';
     try {
+      const payload = { players, matches };
       const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'X-Master-Key': adminKey
         },
-        body: JSON.stringify(players)
+        body: JSON.stringify(payload)
       });
-
-      if (!res.ok) throw new Error('Код ошибки ' + res.status);
+      if (!res.ok) throw new Error('Код ' + res.status);
       statusEl.textContent = '🟢 Сохранено';
     } catch(err) {
-      console.error('Ошибка сохранения в облако:', err);
+      console.error(err);
       statusEl.textContent = '🔴 Ошибка ключа!';
-      alert('Ошибка доступа к облаку! Проверьте правильность введенного Master Key.');
+      alert('Не удалось синхронизировать с облаком. Проверьте правильность Master Key.');
     }
   }
 
@@ -891,7 +1460,6 @@
 
     players.forEach(p => {
       if (p.selected) selectedCount++;
-
       const matchesPos = (activePos === 'all') || p.roles.includes(parseInt(activePos, 10));
       const matchesSearch = !query || 
         p.name.toLowerCase().includes(query) || 
@@ -901,21 +1469,16 @@
 
       visibleCount++;
       totalMmr += p.mmr;
-
       const rank = getRankInfo(p.mmr);
       const row = document.createElement('tr');
       if (p.selected) row.classList.add('row-selected');
 
       const roleBadges = p.roles.map(r => `<span class="pos-badge pos-${r}">Поз. ${r}</span>`).join(' ');
-
-      const heroBadges = p.heroes.map(h => {
-        const slug = getHeroSlug(h);
-        return `
-          <span class="hero-badge" data-hero="${h}">
-            <img src="https://wsrv.nl/?url=https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/${slug}.png" onerror="this.src='https://wsrv.nl/?url=https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/pudge.png'">
-          </span>
-        `;
-      }).join('');
+      const heroBadges = p.heroes.map(h => `
+        <span class="hero-badge" data-hero="${h}">
+          <img src="${getHeroImg(h)}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
+        </span>
+      `).join('');
 
       const actionButtons = isAdmin() ? `
         <td class="action-col">
@@ -944,6 +1507,7 @@
       tbody.appendChild(row);
     });
 
+    document.getElementById('badge-roster-count').textContent = players.length;
     document.getElementById('stat-selected').textContent = `${selectedCount} / ${players.length}`;
     document.getElementById('stat-count').textContent = visibleCount;
     document.getElementById('stat-avg').textContent = visibleCount > 0 ? Math.round(totalMmr / visibleCount).toLocaleString('ru-RU') : '0';
@@ -952,46 +1516,37 @@
 
   function togglePlayerCheck(id, isChecked) {
     const p = players.find(x => x.id === id);
-    if (p) {
-      p.selected = isChecked;
-      renderTable();
-    }
+    if (p) { p.selected = isChecked; renderTable(); }
   }
-
   function toggleSelectAll(master) {
     players.forEach(p => p.selected = master.checked);
     renderTable();
   }
-
   function selectRandom10() {
     players.forEach(p => p.selected = false);
-    const shuffled = [...players].sort(() => 0.5 - Math.random());
-    shuffled.slice(0, 10).forEach(p => p.selected = true);
+    [...players].sort(() => 0.5 - Math.random()).slice(0, 10).forEach(p => p.selected = true);
     renderTable();
   }
-
   function setPosFilter(pos, btn) {
     activePos = pos;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     renderTable();
   }
-
   function sortTable(type) {
     sortDirection[type] = -sortDirection[type];
-    players.sort((a, b) => {
-      if (type === 'mmr') return (a.mmr - b.mmr) * sortDirection[type];
-      if (type === 'name') return a.name.localeCompare(b.name) * sortDirection[type];
-    });
+    players.sort((a, b) => type === 'mmr' ? (a.mmr - b.mmr) * sortDirection[type] : a.name.localeCompare(b.name) * sortDirection[type]);
     renderTable();
   }
 
+  // --- УПРАВЛЕНИЕ ИГРОКОМ И ЕГО ПУЛОМ ---
   function openAddModal() {
     document.getElementById('modal-title').textContent = 'Добавить нового игрока';
     document.getElementById('edit-player-id').value = '';
     document.getElementById('form-name').value = '';
     document.getElementById('form-mmr').value = '';
-    document.getElementById('form-heroes').value = '';
+    currentFormPool = [];
+    renderPlayerFormPool();
     document.querySelectorAll('input[name="edit-role"]').forEach(c => c.checked = false);
     document.getElementById('player-modal').style.display = 'flex';
   }
@@ -999,57 +1554,59 @@
   function openEditModal(id) {
     const p = players.find(x => x.id === id);
     if (!p) return;
-
     document.getElementById('modal-title').textContent = `Редактировать: ${p.name}`;
     document.getElementById('edit-player-id').value = p.id;
     document.getElementById('form-name').value = p.name;
     document.getElementById('form-mmr').value = p.mmr;
-    document.getElementById('form-heroes').value = p.heroes.join(', ');
-
-    document.querySelectorAll('input[name="edit-role"]').forEach(c => {
-      c.checked = p.roles.includes(parseInt(c.value, 10));
-    });
-
+    currentFormPool = [...p.heroes];
+    renderPlayerFormPool();
+    document.querySelectorAll('input[name="edit-role"]').forEach(c => c.checked = p.roles.includes(parseInt(c.value, 10)));
     document.getElementById('player-modal').style.display = 'flex';
   }
 
-  function closeModal() {
-    document.getElementById('player-modal').style.display = 'none';
+  function closeModal() { document.getElementById('player-modal').style.display = 'none'; }
+
+  function renderPlayerFormPool() {
+    const container = document.getElementById('player-form-pool-chips');
+    container.innerHTML = '';
+    if (currentFormPool.length === 0) {
+      container.innerHTML = '<span style="color:#6b7280; font-size:12px;">Пул пуст. Нажмите «➕ Выбрать из сетки».</span>';
+      return;
+    }
+    currentFormPool.forEach((h, index) => {
+      const chip = document.createElement('div');
+      chip.className = 'pool-chip';
+      chip.innerHTML = `
+        <img src="${getHeroImg(h)}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
+        <span>${h}</span>
+        <span class="pool-chip-del" title="Убрать из пула" onclick="removeHeroFromPlayerPool(${index})">✕</span>
+      `;
+      container.appendChild(chip);
+    });
+  }
+
+  function removeHeroFromPlayerPool(index) {
+    currentFormPool.splice(index, 1);
+    renderPlayerFormPool();
   }
 
   function savePlayer() {
     const id = document.getElementById('edit-player-id').value;
     const name = document.getElementById('form-name').value.trim();
     const mmr = parseInt(document.getElementById('form-mmr').value, 10);
-    const heroesRaw = document.getElementById('form-heroes').value;
+    const roles = Array.from(document.querySelectorAll('input[name="edit-role"]:checked')).map(c => parseInt(c.value, 10));
 
-    if (!name) { alert('Введите никнейм!'); return; }
-    if (isNaN(mmr) || mmr < 0) { alert('Введите корректный MMR!'); return; }
-
-    const checkedRoles = Array.from(document.querySelectorAll('input[name="edit-role"]:checked')).map(c => parseInt(c.value, 10));
-    if (checkedRoles.length === 0) { alert('Выберите хотя бы одну позицию!'); return; }
-
-    const heroes = heroesRaw.split(',').map(h => h.trim()).filter(h => h.length > 0);
+    if (!name || isNaN(mmr) || roles.length === 0) {
+      alert('Заполните имя, корректный MMR и выберите хотя бы одну роль!');
+      return;
+    }
 
     if (id) {
       const p = players.find(x => x.id === id);
-      if (p) {
-        p.name = name;
-        p.mmr = mmr;
-        p.roles = checkedRoles;
-        p.heroes = heroes;
-      }
+      if (p) { p.name = name; p.mmr = mmr; p.roles = roles; p.heroes = currentFormPool; }
     } else {
-      players.unshift({
-        id: Date.now().toString(),
-        name: name,
-        mmr: mmr,
-        roles: checkedRoles,
-        heroes: heroes,
-        selected: true
-      });
+      players.unshift({ id: Date.now().toString(), name, mmr, roles, heroes: currentFormPool, selected: true });
     }
-
     closeModal();
     renderTable();
     syncCloud();
@@ -1057,8 +1614,7 @@
 
   function deletePlayer(id) {
     const p = players.find(x => x.id === id);
-    if (!p) return;
-    if (confirm(`Удалить игрока "${p.name}"?`)) {
+    if (p && confirm(`Удалить игрока "${p.name}"?`)) {
       players = players.filter(x => x.id !== id);
       renderTable();
       syncCloud();
@@ -1074,7 +1630,7 @@
     }
   }
 
-  // --- БАЛАНСИРОВЩИК 5x5 ---
+  // --- БАЛАНСИРОВКА 5x5 ---
   function generatePermutations(arr) {
     if (arr.length <= 1) return [arr];
     let res = [];
@@ -1087,17 +1643,13 @@
   const PRECOMPUTED_PERMS = generatePermutations([0, 1, 2, 3, 4]);
 
   const ROLE_NAMES = {
-    1: 'Поз. 1 (Carry)',
-    2: 'Поз. 2 (Mid)',
-    3: 'Поз. 3 (Offlane)',
-    4: 'Поз. 4 (Support)',
-    5: 'Поз. 5 (Hard Sup)'
+    1: 'Поз. 1 (Carry)', 2: 'Поз. 2 (Mid)', 3: 'Поз. 3 (Offlane)',
+    4: 'Поз. 4 (Support)', 5: 'Поз. 5 (Hard Sup)'
   };
 
   function assignBestRoles(teamPlayers) {
     let bestAssignment = null;
     let minPenalty = 999999;
-
     for (let i = 0; i < PRECOMPUTED_PERMS.length; i++) {
       const order = PRECOMPUTED_PERMS[i];
       let penalty = 0;
@@ -1107,7 +1659,11 @@
       }
       if (penalty < minPenalty) {
         minPenalty = penalty;
-        bestAssignment = order.map((idx, pPos) => ({ ...teamPlayers[idx], assignedPos: pPos + 1 }));
+        bestAssignment = order.map((idx, pPos) => ({
+          ...teamPlayers[idx],
+          assignedPos: pPos + 1,
+          pickedHero: teamPlayers[idx].heroes[0] || 'Pudge'
+        }));
         if (penalty === 0) break;
       }
     }
@@ -1117,14 +1673,14 @@
   function generateLobby() {
     const selected = players.filter(p => p.selected);
     if (selected.length < 10) {
-      alert(`Нужно минимум 10 отмеченных игроков! Сейчас выбрано: ${selected.length}.`);
+      alert(`Выберите минимум 10 игроков! Сейчас выбрано: ${selected.length}.`);
       return;
     }
 
     let bestMatch = null;
     let minScore = 99999999;
 
-    function evaluateTenPlayers(ten) {
+    function evalTen(ten) {
       function getCombos(start, combo) {
         if (combo.length === 5) {
           const teamA = combo;
@@ -1132,129 +1688,394 @@
           const mmrA = teamA.reduce((s, p) => s + p.mmr, 0);
           const mmrB = teamB.reduce((s, p) => s + p.mmr, 0);
           const diff = Math.abs(mmrA - mmrB);
-
-          const rolesA = assignBestRoles(teamA);
-          const rolesB = assignBestRoles(teamB);
-          const score = (diff * 1.5) + rolesA.penalty + rolesB.penalty;
+          const rA = assignBestRoles(teamA);
+          const rB = assignBestRoles(teamB);
+          const score = (diff * 1.5) + rA.penalty + rB.penalty;
 
           if (score < minScore) {
             minScore = score;
-            const bench = selected.filter(p => !ten.includes(p));
             bestMatch = {
-              radiant: rolesA.assigned,
-              dire: rolesB.assigned,
+              radiant: rA.assigned,
+              dire: rB.assigned,
               radiantMmr: mmrA,
               direMmr: mmrB,
               diff: diff,
-              bench: bench
+              bench: selected.filter(p => !ten.includes(p))
             };
           }
           return;
         }
-        for (let i = start; i < ten.length; i++) {
-          getCombos(i + 1, combo.concat([ten[i]]));
-        }
+        for (let i = start; i < ten.length; i++) getCombos(i + 1, combo.concat([ten[i]]));
       }
       getCombos(0, []);
     }
 
-    if (selected.length === 10) {
-      evaluateTenPlayers(selected);
-    } else {
-      const iterations = Math.min(300, selected.length * 20);
-      for (let it = 0; it < iterations; it++) {
-        const shuffled = [...selected].sort(() => 0.5 - Math.random());
-        evaluateTenPlayers(shuffled.slice(0, 10));
+    if (selected.length === 10) evalTen(selected);
+    else {
+      for (let it = 0; it < Math.min(300, selected.length * 20); it++) {
+        evalTen([...selected].sort(() => 0.5 - Math.random()).slice(0, 10));
       }
     }
 
-    renderLobby(bestMatch);
+    currentLobbyData = bestMatch;
+    document.getElementById('badge-lobby-active').style.display = 'inline-block';
+    renderLobby();
+    switchTab('lobby');
   }
 
-  function renderLobby(match) {
-    currentLobbyData = match;
-    const lobbyView = document.getElementById('lobby-view');
-    lobbyView.style.display = 'block';
+  function renderLobby() {
+    if (!currentLobbyData) return;
+    const m = currentLobbyData;
 
-    document.getElementById('radiant-avg').textContent = `Avg: ${Math.round(match.radiantMmr / 5)} MMR`;
-    document.getElementById('dire-avg').textContent = `Avg: ${Math.round(match.direMmr / 5)} MMR`;
-    document.getElementById('lobby-diff').textContent = `Разница: ${match.diff} MMR`;
+    document.getElementById('radiant-avg').textContent = `Avg: ${Math.round(m.radiantMmr / 5)} MMR`;
+    document.getElementById('dire-avg').textContent = `Avg: ${Math.round(m.direMmr / 5)} MMR`;
+    document.getElementById('lobby-diff').textContent = `Разница: ${m.diff} MMR`;
 
     const radContainer = document.getElementById('radiant-roster');
     const direContainer = document.getElementById('dire-roster');
     radContainer.innerHTML = '';
     direContainer.innerHTML = '';
 
-    function createRow(p) {
-      const rank = getRankInfo(p.mmr);
-      const row = document.createElement('div');
-      row.className = 'lobby-player-row';
-      row.innerHTML = `
-        <div class="lobby-player-left">
-          <span class="pos-badge pos-${p.assignedPos}">${ROLE_NAMES[p.assignedPos]}</span>
-          <span class="player-name">${p.name}</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span class="mmr-badge">${p.mmr}</span>
-          <img src="https://wsrv.nl/?url=https://www.opendota.com/assets/images/dota2/rank_icons/rank_icon_${rank.medal}.png" style="width: 26px; height: 26px; object-fit: contain;">
-        </div>
-      `;
-      return row;
-    }
-
-    match.radiant.forEach(p => radContainer.appendChild(createRow(p)));
-    match.dire.forEach(p => direContainer.appendChild(createRow(p)));
+    m.radiant.forEach((p, idx) => radContainer.appendChild(createLobbyPlayerRow(p, 'radiant', idx)));
+    m.dire.forEach((p, idx) => direContainer.appendChild(createLobbyPlayerRow(p, 'dire', idx)));
 
     const benchPanel = document.getElementById('bench-panel');
     const benchContainer = document.getElementById('bench-roster');
     benchContainer.innerHTML = '';
-
-    if (match.bench && match.bench.length > 0) {
+    if (m.bench && m.bench.length > 0) {
       benchPanel.style.display = 'block';
-      document.getElementById('bench-count').textContent = `(${match.bench.length})`;
-      match.bench.forEach(p => {
+      document.getElementById('bench-count').textContent = `(${m.bench.length})`;
+      m.bench.forEach(p => {
         const b = document.createElement('div');
         b.className = 'bench-badge';
-        b.innerHTML = `
-          <span style="font-weight: 700; color: #f3f4f6;">${p.name}</span>
-          <span style="color: #fbbf24; font-family: monospace; font-size: 11.5px;">${p.mmr} MMR</span>
-        `;
+        b.innerHTML = `<span style="font-weight:700;">${p.name}</span> <span style="color:#fbbf24; font-family:monospace;">${p.mmr} MMR</span>`;
         benchContainer.appendChild(b);
       });
     } else {
       benchPanel.style.display = 'none';
     }
 
-    lobbyView.scrollIntoView({ behavior: 'smooth' });
+    updateAdminUI();
   }
 
-  function closeLobby() {
-    document.getElementById('lobby-view').style.display = 'none';
+  function createLobbyPlayerRow(p, team, idx) {
+    const row = document.createElement('div');
+    row.className = 'lobby-player-row';
+
+    row.innerHTML = `
+      <div class="lobby-left">
+        <span class="pos-badge pos-${p.assignedPos}">${ROLE_NAMES[p.assignedPos]}</span>
+        <span class="player-name">${p.name}</span>
+        <span class="mmr-badge">${p.mmr}</span>
+      </div>
+      <div>
+        <button class="hero-pick-btn" onclick="openHeroSelectModalForLobby('${team}', ${idx})">
+          <img src="${getHeroImg(p.pickedHero)}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
+          <span>${p.pickedHero}</span>
+          <span style="color:#9ca3af; font-size:10px;">▼</span>
+        </button>
+      </div>
+    `;
+    return row;
+  }
+
+  // --- СЕТКА ВЫБОРА ГЕРОЕВ С АТРИБУТАМИ ---
+  function setGridAttrFilter(attr, btn) {
+    activeGridAttr = attr;
+    document.querySelectorAll('.attr-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderHeroGrid();
+  }
+
+  function openHeroSelectModalForLobby(team, playerIndex) {
+    heroSelectMode = 'lobbyPick';
+    const player = currentLobbyData[team][playerIndex];
+    heroSelectContext = { team, playerIndex, player };
+
+    document.getElementById('hero-modal-title').textContent = `Выбор героя для ${player.name} (${ROLE_NAMES[player.assignedPos]})`;
+    document.getElementById('hero-grid-multi-actions').style.display = 'none';
+    resetGridFilters();
+    document.getElementById('hero-select-modal').style.display = 'flex';
+  }
+
+  function openHeroGridForPlayerPool() {
+    heroSelectMode = 'playerPool';
+    const pName = document.getElementById('form-name').value || 'игрока';
+    document.getElementById('hero-modal-title').textContent = `Формирование пула героев: ${pName}`;
+    document.getElementById('hero-grid-multi-actions').style.display = 'flex';
+    updateMultiSelectedCounter();
+    resetGridFilters();
+    document.getElementById('hero-select-modal').style.display = 'flex';
+  }
+
+  function resetGridFilters() {
+    activeGridAttr = 'all';
+    document.querySelectorAll('.attr-btn').forEach(b => b.classList.remove('active'));
+    const allBtn = document.querySelector('.attr-btn.all');
+    if (allBtn) allBtn.classList.add('active');
+    document.getElementById('hero-grid-filter').value = '';
+    renderHeroGrid();
+  }
+
+  function closeHeroSelectModal() {
+    document.getElementById('hero-select-modal').style.display = 'none';
+  }
+
+  function updateMultiSelectedCounter() {
+    document.getElementById('hero-grid-selected-counter').textContent = `Выбрано героев: ${currentFormPool.length}`;
+  }
+
+  function applyMultiHeroSelect() {
+    renderPlayerFormPool();
+    closeHeroSelectModal();
+  }
+
+  function renderHeroGrid() {
+    const container = document.getElementById('hero-grid-cards');
+    const query = document.getElementById('hero-grid-filter').value.toLowerCase().trim();
+    container.innerHTML = '';
+
+    let heroList = [...DOTA2_HEROES_CATALOG];
+
+    if (activeGridAttr !== 'all') {
+      heroList = heroList.filter(h => h.attr === activeGridAttr);
+    }
+
+    if (query) {
+      heroList = heroList.filter(h => h.name.toLowerCase().includes(query));
+    }
+
+    if (heroSelectMode === 'lobbyPick' && heroSelectContext.player) {
+      const sigs = (heroSelectContext.player.heroes || []).map(h => h.toLowerCase().trim());
+      heroList.sort((a, b) => {
+        const aSig = sigs.includes(a.name.toLowerCase());
+        const bSig = sigs.includes(b.name.toLowerCase());
+        if (aSig && !bSig) return -1;
+        if (!aSig && bSig) return 1;
+        return a.name.localeCompare(b.name);
+      });
+    } else {
+      heroList.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    heroList.forEach(hero => {
+      const card = document.createElement('div');
+      card.className = 'hero-card';
+
+      if (heroSelectMode === 'lobbyPick' && heroSelectContext.player) {
+        const isSig = (heroSelectContext.player.heroes || []).some(h => h.toLowerCase() === hero.name.toLowerCase());
+        if (isSig) card.classList.add('is-signature');
+      } else if (heroSelectMode === 'playerPool') {
+        const isSelected = currentFormPool.includes(hero.name);
+        if (isSelected) card.classList.add('is-selected');
+      }
+
+      card.innerHTML = `
+        <img src="${getHeroImg(hero.name)}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
+        <span class="hero-card-name">${hero.name}</span>
+      `;
+
+      card.onclick = () => {
+        if (heroSelectMode === 'lobbyPick') {
+          currentLobbyData[heroSelectContext.team][heroSelectContext.playerIndex].pickedHero = hero.name;
+          closeHeroSelectModal();
+          renderLobby();
+        } else if (heroSelectMode === 'playerPool') {
+          const idx = currentFormPool.indexOf(hero.name);
+          if (idx > -1) {
+            currentFormPool.splice(idx, 1);
+            card.classList.remove('is-selected');
+          } else {
+            currentFormPool.push(hero.name);
+            card.classList.add('is-selected');
+          }
+          updateMultiSelectedCounter();
+        }
+      };
+
+      container.appendChild(card);
+    });
   }
 
   function copyLobbyToDiscord() {
     if (!currentLobbyData) return;
     const m = currentLobbyData;
-    let text = `⚔️ **DOTA 2 CUSTOM LOBBY 5v5**\n\n`;
+    let text = `⚔️ **DOTA 2 CUSTOM LOBBY 5v5 & DRAFT**\n\n`;
     text += `🟢 **THE RADIANT** (Avg: ${Math.round(m.radiantMmr / 5)} MMR)\n`;
     m.radiant.forEach(p => {
-      text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** [${p.mmr} MMR]\n`;
+      text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** — 🛡️ **${p.pickedHero}** [${p.mmr} MMR]\n`;
     });
+
     text += `\n🔴 **THE DIRE** (Avg: ${Math.round(m.direMmr / 5)} MMR)\n`;
     m.dire.forEach(p => {
-      text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** [${p.mmr} MMR]\n`;
+      text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** — 🛡️ **${p.pickedHero}** [${p.mmr} MMR]\n`;
     });
     text += `\n⚖️ Разница по командам: **${m.diff} MMR**\n`;
 
     if (m.bench && m.bench.length > 0) {
-      text += `\n🛋️ **НА ЗАМЕНЕ (${m.bench.length}):**\n`;
-      m.bench.forEach(p => {
-        text += `• ${p.name} [${p.mmr} MMR]\n`;
-      });
+      text += `\n🛋️ **НА ЗАМЕНЕ:** ${m.bench.map(p => p.name).join(', ')}\n`;
     }
 
-    navigator.clipboard.writeText(text).then(() => {
-      alert('Состав лобби и запасные скопированы в буфер обмена!');
+    navigator.clipboard.writeText(text).then(() => alert('Состав и драфт скопированы в буфер обмена!'));
+  }
+
+  // --- ИСТОРИЯ МАТЧЕЙ ---
+  function openFinishMatchModal() {
+    if (!isAdmin()) {
+      alert('Только администратор может завершить матч и сохранить его в историю!');
+      return;
+    }
+    if (!currentLobbyData) {
+      alert('Сначала сгенерируйте лобби 5x5!');
+      return;
+    }
+    document.getElementById('finish-match-modal').style.display = 'flex';
+  }
+
+  function closeFinishMatchModal() {
+    document.getElementById('finish-match-modal').style.display = 'none';
+  }
+
+  function confirmFinishMatch(winner) {
+    if (!isAdmin()) {
+      alert('Ошибка: права администратора не обнаружены.');
+      return;
+    }
+
+    const matchRecord = {
+      id: Date.now().toString(),
+      date: new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+      winner: winner,
+      diff: currentLobbyData.diff,
+      radiantAvg: Math.round(currentLobbyData.radiantMmr / 5),
+      direAvg: Math.round(currentLobbyData.direMmr / 5),
+      radiant: currentLobbyData.radiant.map(p => ({ name: p.name, pos: p.assignedPos, hero: p.pickedHero, mmr: p.mmr })),
+      dire: currentLobbyData.dire.map(p => ({ name: p.name, pos: p.assignedPos, hero: p.pickedHero, mmr: p.mmr }))
+    };
+
+    matches.unshift(matchRecord);
+    closeFinishMatchModal();
+    syncCloud();
+    switchTab('history');
+  }
+
+  function renderHistory() {
+    const container = document.getElementById('history-container');
+    container.innerHTML = '';
+
+    if (matches.length === 0) {
+      container.innerHTML = '<div style="padding: 30px; text-align: center; color: #6b7280;">Пока нет сыгранных матчей.</div>';
+      return;
+    }
+
+    matches.forEach(m => {
+      const card = document.createElement('div');
+      card.className = 'match-card';
+      const isRad = m.winner === 'Radiant';
+
+      const renderPlayerLines = (teamArr) => teamArr.map(p => `
+        <div class="match-player-line">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <img src="${getHeroImg(p.hero)}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'" style="width:24px; height:14px; border-radius:2px;">
+            <span style="font-weight:700;">${p.name}</span>
+            <span style="color:#94a3b8; font-size:11px;">(Поз. ${p.pos})</span>
+          </div>
+          <span style="font-family:monospace; color:#fbbf24; font-size:11.5px;">${p.mmr}</span>
+        </div>
+      `).join('');
+
+      card.innerHTML = `
+        <div class="match-card-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="winner-tag ${isRad ? 'winner-radiant' : 'winner-dire'}">Победа ${m.winner}</span>
+            <span style="color:#94a3b8; font-size:12.5px;">📅 ${m.date}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:12px; color:#cbd5e1; font-family:monospace;">Разница: ${m.diff} MMR</span>
+            ${isAdmin() ? `<button class="btn-icon del" title="Удалить запись матча (только для админа)" onclick="deleteMatch('${m.id}')">🗑️</button>` : ''}
+          </div>
+        </div>
+        <div class="match-teams-grid">
+          <div class="match-team-col">
+            <div style="font-size:12px; font-weight:800; color:#4ade80; margin-bottom:6px; display:flex; justify-content:space-between;">
+              <span>🟢 RADIANT</span>
+              <span style="font-family:monospace;">Avg: ${m.radiantAvg}</span>
+            </div>
+            ${renderPlayerLines(m.radiant)}
+          </div>
+          <div class="match-team-col">
+            <div style="font-size:12px; font-weight:800; color:#f87171; margin-bottom:6px; display:flex; justify-content:space-between;">
+              <span>🔴 DIRE</span>
+              <span style="font-family:monospace;">Avg: ${m.direAvg}</span>
+            </div>
+            ${renderPlayerLines(m.dire)}
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function deleteMatch(id) {
+    if (!isAdmin()) {
+      alert('Удаление матчей доступно исключительно администратору!');
+      return;
+    }
+    if (confirm('Вы уверены, что хотите удалить этот матч из истории?')) {
+      matches = matches.filter(m => m.id !== id);
+      syncCloud();
+      renderHistory();
+      renderStats();
+    }
+  }
+
+  function renderStats() {
+    const tbody = document.getElementById('stats-table-body');
+    tbody.innerHTML = '';
+
+    const statsMap = {};
+    players.forEach(p => {
+      statsMap[p.name] = { name: p.name, matches: 0, wins: 0, losses: 0, winrate: 0 };
+    });
+
+    matches.forEach(m => {
+      const radWon = m.winner === 'Radiant';
+      m.radiant.forEach(p => {
+        if (!statsMap[p.name]) statsMap[p.name] = { name: p.name, matches: 0, wins: 0, losses: 0, winrate: 0 };
+        statsMap[p.name].matches++;
+        if (radWon) statsMap[p.name].wins++; else statsMap[p.name].losses++;
+      });
+      m.dire.forEach(p => {
+        if (!statsMap[p.name]) statsMap[p.name] = { name: p.name, matches: 0, wins: 0, losses: 0, winrate: 0 };
+        statsMap[p.name].matches++;
+        if (!radWon) statsMap[p.name].wins++; else statsMap[p.name].losses++;
+      });
+    });
+
+    const statList = Object.values(statsMap).map(s => {
+      s.winrate = s.matches > 0 ? Math.round((s.wins / s.matches) * 100) : 0;
+      return s;
+    });
+
+    statList.sort((a, b) => b.winrate - a.winrate || b.matches - a.matches);
+
+    statList.forEach((s, idx) => {
+      const row = document.createElement('tr');
+      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`;
+      row.innerHTML = `
+        <td style="text-align:center; font-weight:700; color:#fcd34d;">${medal}</td>
+        <td class="player-name">${s.name}</td>
+        <td style="text-align:center; font-weight:700;">${s.matches}</td>
+        <td style="text-align:center; color:#4ade80; font-weight:700;">${s.wins}</td>
+        <td style="text-align:center; color:#f87171; font-weight:700;">${s.losses}</td>
+        <td>
+          <div class="winrate-bar-bg">
+            <div class="winrate-bar-fill" style="width: ${s.winrate}%;"></div>
+          </div>
+          <span style="font-family:monospace; font-weight:800; color:#f3f4f6;">${s.winrate}%</span>
+        </td>
+      `;
+      tbody.appendChild(row);
     });
   }
 
@@ -1264,7 +2085,6 @@
     const originalText = btn.innerHTML;
     btn.innerHTML = '<span>⏳</span> ...';
     btn.disabled = true;
-
     document.body.classList.add('exporting');
 
     try {
@@ -1275,14 +2095,13 @@
         backgroundColor: '#0b0d11',
         imageTimeout: 15000
       });
-
       const link = document.createElement('a');
       link.download = 'dota2-team-roster.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch (err) {
       console.error(err);
-      alert('Для скриншота используйте Win + Shift + S.');
+      alert('Для снимка используйте Win + Shift + S.');
     } finally {
       document.body.classList.remove('exporting');
       btn.innerHTML = originalText;
