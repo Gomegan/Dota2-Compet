@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Dota 2 Team Manager & Matchmaker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --bg-main: #0b0d11;
+    --card-bg: #14171f;
+    --border-color: #242a38;
+    --accent-red: #b91c1c;
+    --accent-blue: #2563eb;
+  }
+  body {
+    background: var(--bg-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 14px;
+    margin: 0;
+  }
+  .app-container {
+    max-width: 1240px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Панель управления */
+  .controls-panel {
+    background: #171b24;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px 18px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .filter-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .filter-btn {
+    background: #202634;
+    border: 1px solid #333c4d;
+    color: #9ca3af;
+    padding: 6px 11px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .filter-btn:hover { background: #2d364a; color: #fff; }
+  .filter-btn.active {
+    background: var(--accent-red);
+    border-color: #ef4444;
+    color: #fff;
+  }
+  .search-box {
+    background: #101218;
+    border: 1px solid #333c4d;
+    color: #fff;
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-size: 13.5px;
+    min-width: 170px;
+    outline: none;
+  }
+  .search-box:focus { border-color: #60a5fa; }
+
+  .action-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn {
+    border: none;
+    color: #fff;
+    padding: 7px 13px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.1s, opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-add { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+  .btn-lobby { background: linear-gradient(135deg, #d97706, #b45309); }
+  .btn-random10 { background: #374151; }
+  .btn-export { background: linear-gradient(135deg, #10b981, #059669); }
+  .btn-reset { background: #1f2937; color: #9ca3af; border: 1px solid #374151; }
+  .btn-admin { background: #4b5563; border: 1px solid #6b7280; }
+  .btn-admin.active { background: #059669; border-color: #10b981; }
+
+  /* Карточка состава */
+  #roster-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+    overflow: hidden;
+    width: 100%;
+  }
+  .header-widget {
+    background: linear-gradient(90deg, #881337, #1e1b4b, #11141c);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    border-bottom: 1px solid #2d3446;
+  }
+  .header-title-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header-title {
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .sync-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid #374151;
+    color: #9ca3af;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .stats-badges { display: flex; gap: 10px; }
+  .stat-card {
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 5px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .stat-val {
+    font-size: 15px;
+    font-weight: 800;
+    color: #fcd34d;
+    font-family: monospace;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  th {
+    background: #0f1218;
+    text-align: left;
+    padding: 10px 12px;
+    color: #9ca3af;
+    font-weight: 700;
+    border-bottom: 2px solid var(--border-color);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    user-select: none;
+  }
+  th.sortable { cursor: pointer; }
+  th.sortable:hover { color: #f3f4f6; background: #151922; }
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #1e2430;
+    vertical-align: middle;
+  }
+  tr:hover { background: #1a1f2b; }
+  tr.row-selected { background: rgba(59, 130, 246, 0.08); }
+
+  .custom-check {
+    width: 16px;
+    height: 16px;
+    accent-color: #ef4444;
+    cursor: pointer;
+  }
+  .player-name {
+    font-weight: 700;
+    color: #f9fafb;
+    font-size: 14px;
+  }
+  .rank-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 700;
+    font-size: 12.5px;
+  }
+  .rank-icon {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+  }
+  .rank-immortal { color: #fbbf24; filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.4)); }
+  .rank-divine   { color: #c084fc; filter: drop-shadow(0 0 6px rgba(192, 132, 252, 0.4)); }
+  .rank-ancient  { color: #2dd4bf; filter: drop-shadow(0 0 5px rgba(45, 212, 191, 0.3)); }
+  .rank-legend   { color: #4ade80; }
+  .rank-archon   { color: #60a5fa; }
+  .rank-crusader { color: #a88262; }
+  .rank-guardian { color: #94a3b8; }
+
+  .mmr-badge {
+    background: #202634;
+    color: #fbbf24;
+    padding: 3px 7px;
+    border-radius: 4px;
+    font-weight: 800;
+    font-family: monospace;
+    font-size: 12.5px;
+    border: 1px solid #333c4d;
+  }
+  .pos-badge {
+    display: inline-block;
+    padding: 3px 7px;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    margin: 1px;
+  }
+  .pos-1 { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+  .pos-2 { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); }
+  .pos-3 { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); }
+  .pos-4 { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+  .pos-5 { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+  .hero-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+  }
+  .hero-badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  .hero-badge img {
+    width: 36px;
+    height: 20px;
+    border-radius: 3px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: block;
+    transition: transform 0.12s ease;
+  }
+  .hero-badge:hover img {
+    transform: scale(1.2);
+    border-color: #60a5fa;
+    z-index: 10;
+  }
+  .hero-badge::after {
+    content: attr(data-hero);
+    position: absolute;
+    bottom: calc(100% + 5px);
+    left: 50%;
+    transform: translateX(-50%) translateY(3px);
+    background: #090b0e;
+    color: #f3f4f6;
+    padding: 3px 7px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+    border: 1px solid #374151;
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    z-index: 100;
+  }
+  .hero-badge:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .row-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+  .btn-icon {
+    background: #1f2430;
+    border: 1px solid #333c4d;
+    color: #9ca3af;
+    border-radius: 4px;
+    padding: 4px 7px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.15s ease;
+  }
+  .btn-icon:hover { background: #374151; color: #fff; }
+  .btn-icon.del:hover { background: #991b1b; color: #fff; border-color: #ef4444; }
+
+  /* Скрытие чекбоксов и кнопок действий при экспорте в PNG */
+  .exporting .action-col,
+  .exporting .check-col {
+    display: none !important;
+  }
+  .exporting tr.row-selected {
+    background: transparent !important;
+  }
+
+  /* Модальное окно */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.75);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+  .modal-window {
+    background: #161922;
+    border: 1px solid #374151;
+    border-radius: 12px;
+    max-width: 520px;
+    width: 90%;
+    padding: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #2d3446;
+    padding-bottom: 12px;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+  }
+  .form-input, .form-textarea {
+    background: #0f1218;
+    border: 1px solid #333c4d;
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+  }
+  .form-input:focus, .form-textarea:focus { border-color: #3b82f6; }
+  .role-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .role-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    background: #11141c;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid #2d3446;
+  }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  /* Блок матча 5x5 */
+  #lobby-view {
+    display: none;
+    background: #12151d;
+    border: 1px solid #333c4d;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+  }
+  .lobby-header {
+    background: linear-gradient(90deg, #14532d, #1c1917, #7f1d1d);
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #374151;
+  }
+  .lobby-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .match-diff {
+    font-family: ui-monospace, monospace;
+    font-size: 13.5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fbbf24;
+    font-weight: 700;
+  }
+  .teams-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 16px;
+  }
+  @media (max-width: 860px) {
+    .teams-container { grid-template-columns: 1fr; }
+  }
+  .team-panel {
+    background: #171b24;
+    border-radius: 8px;
+    border: 1px solid #283040;
+    overflow: hidden;
+  }
+  .team-bar {
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 800;
+    font-size: 15px;
+    text-transform: uppercase;
+  }
+  .team-bar.radiant {
+    background: linear-gradient(90deg, rgba(34, 197, 94, 0.2), transparent);
+    color: #4ade80;
+    border-bottom: 2px solid #22c55e;
+  }
+  .team-bar.dire {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), transparent);
+    color: #f87171;
+    border-bottom: 2px solid #ef4444;
+  }
+  .team-avg {
+    font-family: monospace;
+    font-size: 13px;
+    color: #cbd5e1;
+  }
+  .lobby-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .lobby-player-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid #212735;
+    font-size: 13px;
+  }
+  .lobby-player-row:last-child { border-bottom: none; }
+  .lobby-player-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 170px;
+  }
+  .bench-panel {
+    background: #141720;
+    border-top: 1px solid #283040;
+    padding: 14px 18px;
+  }
+  .bench-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .bench-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .bench-badge {
+    background: #1e2433;
+    border: 1px solid #333c4d;
+    border-radius: 6px;
+    padding: 4px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Панель инструментов -->
+  <div class="controls-panel">
+    <div class="filter-group">
+      <button class="filter-btn active" onclick="setPosFilter('all', this)">Все</button>
+      <button class="filter-btn" onclick="setPosFilter('1', this)">Carry</button>
+      <button class="filter-btn" onclick="setPosFilter('2', this)">Mid</button>
+      <button class="filter-btn" onclick="setPosFilter('3', this)">Offlane</button>
+      <button class="filter-btn" onclick="setPosFilter('4', this)">Support</button>
+      <button class="filter-btn" onclick="setPosFilter('5', this)">Hard Sup</button>
+    </div>
+
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <input type="text" id="search-input" class="search-box" placeholder="Поиск по нику или герою..." oninput="renderTable()">
+      
+      <div class="action-btns">
+        <button id="admin-toggle-btn" class="btn btn-admin" onclick="toggleAdminLogin()">🔑 Админ</button>
+        <button id="btn-add-player" class="btn btn-add" style="display: none;" onclick="openAddModal()">➕ Игрок</button>
+        <button class="btn btn-random10" onclick="selectRandom10()">🎲 Выбрать 10</button>
+        <button class="btn btn-lobby" onclick="generateLobby()">⚔️ Собрать 5x5</button>
+        <button id="btn-export" class="btn btn-export" onclick="exportToPNG()">📸 Скачать</button>
+        <button id="btn-reset-roster" class="btn btn-reset" style="display: none;" onclick="resetToDefault()" title="Восстановить исходный список из 18 игроков">🔄</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Блок лобби 5x5 -->
+  <div id="lobby-view">
+    <div class="lobby-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 16px; font-weight: 800; letter-spacing: 0.5px;">⚔️ БАЛАНСНОЕ ЛОББИ 5x5</span>
+        <button class="btn btn-random10" style="padding: 4px 8px; font-size: 11px;" onclick="copyLobbyToDiscord()">📋 Копировать для Discord</button>
+      </div>
+      <div class="lobby-meta">
+        <span id="lobby-diff" class="match-diff">Разница: 0 MMR</span>
+        <button style="background: none; border: none; color: #9ca3af; font-size: 18px; cursor: pointer;" onclick="closeLobby()">✕</button>
+      </div>
+    </div>
+    
+    <div class="teams-container">
+      <div class="team-panel">
+        <div class="team-bar radiant">
+          <span>🟢 The Radiant</span>
+          <span class="team-avg" id="radiant-avg">Avg: 0 MMR</span>
+        </div>
+        <div class="lobby-list" id="radiant-roster"></div>
+      </div>
+
+      <div class="team-panel">
+        <div class="team-bar dire">
+          <span>🔴 The Dire</span>
+          <span class="team-avg" id="dire-avg">Avg: 0 MMR</span>
+        </div>
+        <div class="lobby-list" id="dire-roster"></div>
+      </div>
+    </div>
+
+    <div id="bench-panel" class="bench-panel" style="display: none;">
+      <div class="bench-title">
+        <span>🛋️ На замене / Следующая игра:</span>
+        <span id="bench-count" style="color: #60a5fa;">(0)</span>
+      </div>
+      <div class="bench-list" id="bench-roster"></div>
+    </div>
+  </div>
+
+  <!-- Карточка таблицы -->
+  <div id="roster-card">
+    <div class="header-widget">
+      <div class="header-title-box">
+        <span class="header-title">Состав игроков Dota 2</span>
+        <span id="sync-status" class="sync-badge">⚪ Проверка...</span>
+      </div>
+      <div class="stats-badges">
+        <div class="stat-card">
+          <span class="stat-label">Выбрано</span>
+          <span class="stat-val" id="stat-selected" style="color: #60a5fa;">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Игроков</span>
+          <span class="stat-val" id="stat-count">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Средний MMR</span>
+          <span class="stat-val" id="stat-avg">0</span>
+        </div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 32px; text-align: center;" class="check-col"><input type="checkbox" id="check-all" onchange="toggleSelectAll(this)" title="Выбрать всех"></th>
+          <th style="width: 36px; text-align: center;">#</th>
+          <th style="width: 140px;" class="sortable" onclick="sortTable('name')">Игрок ⬍</th>
+          <th style="width: 130px;">Звание</th>
+          <th style="width: 95px;" class="sortable" onclick="sortTable('mmr')">MMR ⬍</th>
+          <th style="width: 155px;">Позиция</th>
+          <th>Пул героев</th>
+          <th id="th-actions" style="width: 80px; text-align: right; display: none;" class="action-col">Действия</th>
+        </tr>
+      </thead>
+      <tbody id="roster-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Модальное окно добавления/редактирования -->
+<div id="player-modal" class="modal-overlay">
+  <div class="modal-window">
+    <div class="modal-header">
+      <span id="modal-title">Редактировать игрока</span>
+      <button style="background: none; border: none; color: #9ca3af; font-size: 18px; cursor: pointer;" onclick="closeModal()">✕</button>
+    </div>
+
+    <input type="hidden" id="edit-player-id">
+
+    <div class="form-group">
+      <label class="form-label">Никнейм игрока</label>
+      <input type="text" id="form-name" class="form-input" placeholder="Например: Miracle-">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">MMR рейтинг</label>
+      <input type="number" id="form-mmr" class="form-input" placeholder="Например: 4500" step="10">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Игровые роли (позиции)</label>
+      <div class="role-checkboxes">
+        <label class="role-label"><input type="checkbox" name="edit-role" value="1"> 1 - Carry</label>
+        <label class="role-label"><input type="checkbox" name="edit-role" value="2"> 2 - Mid</label>
+        <label class="role-label"><input type="checkbox" name="edit-role" value="3"> 3 - Offlane</label>
+        <label class="role-label"><input type="checkbox" name="edit-role" value="4"> 4 - Support</label>
+        <label class="role-label"><input type="checkbox" name="edit-role" value="5"> 5 - Hard Sup</label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Пул персонажей (через запятую)</label>
+      <textarea id="form-heroes" class="form-textarea" rows="3" placeholder="Axe, Shadow Fiend, Invoker, Pudge..."></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-reset" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-add" onclick="savePlayer()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ==========================================
+  // НАСТРОЙКИ ОБЛАКА JSONBIN.IO (БЕСПЛАТНО)
+  // ==========================================
+  const BIN_ID = "6aa1b60dffd5d16053f30a87"; // Вставьте сюда полученный Bin ID
+  const READ_KEY = "";          // Оставьте пустым если Bin публичный, или вставьте Access Key
+  // ==========================================
+
+  const DEFAULT_ROSTER = [
+    { id: "1", name: "Varker32", mmr: 6800, roles: [3], heroes: ["Primal Beast", "Night Stalker", "Axe", "Doom", "Sand King", "Dark Seer", "Enigma", "Slardar", "Pudge", "Dawnbreaker"], selected: true },
+    { id: "2", name: "Shimmy", mmr: 6800, roles: [5], heroes: ["Bane", "Tusk", "Ringmaster", "Shadow Demon", "Grimstroke", "Ancient Apparition"], selected: true },
+    { id: "3", name: "K1zaz", mmr: 6400, roles: [3], heroes: ["Lycan", "Nature's Prophet", "Brewmaster", "Tidehunter", "Beastmaster", "Batrider", "Enigma", "Dragon Knight"], selected: true },
+    { id: "4", name: "nonta", mmr: 5600, roles: [2], heroes: ["Invoker", "Shadow Fiend", "Leshrac", "Outworld Destroyer", "Ember Spirit", "Lone Druid", "Necrophos", "Arc Warden", "Nature's Prophet"], selected: true },
+    { id: "5", name: "Arabius", mmr: 5400, roles: [2], heroes: ["Templar Assassin", "Shadow Fiend", "Huskar", "Arc Warden", "Outworld Destroyer", "Ember Spirit", "Void Spirit"], selected: true },
+    { id: "6", name: "Tutik", mmr: 4600, roles: [1], heroes: ["Shadow Fiend", "Drow Ranger", "Phantom Lancer", "Medusa", "Necrophos", "Lifestealer", "Ursa"], selected: true },
+    { id: "7", name: "Sumnir", mmr: 4000, roles: [1], heroes: ["Faceless Void", "Anti-Mage", "Lifestealer", "Ursa"], selected: true },
+    { id: "8", name: "Polosofast", mmr: 4000, roles: [3], heroes: ["Brewmaster", "Dark Seer", "Necrophos"], selected: true },
+    { id: "9", name: "Kiberborsh", mmr: 3500, roles: [3, 4], heroes: ["Ringmaster"], selected: true },
+    { id: "10", name: "Gomegan", mmr: 2900, roles: [4, 5], heroes: ["Clockwerk", "Warlock", "Ancient Apparition", "Ringmaster", "Hoodwink", "Jakiro"], selected: true },
+    { id: "11", name: "Ap", mmr: 2600, roles: [1, 4], heroes: ["Pudge", "Phantom Assassin", "Lion", "Shadow Fiend"], selected: true },
+    { id: "12", name: "DeniumC", mmr: 2400, roles: [2], heroes: ["Tinker"], selected: true },
+    { id: "13", name: "Watcher", mmr: 2000, roles: [1], heroes: ["Naga Siren", "Juggernaut", "Terrorblade", "Templar Assassin"], selected: true },
+    { id: "14", name: "Mkka", mmr: 1500, roles: [1, 3, 5], heroes: ["Anti-Mage", "Tidehunter", "Dazzle"], selected: true },
+    { id: "15", name: "Maramirk", mmr: 1400, roles: [3], heroes: ["Axe", "Timbersaw", "Centaur Warrunner"], selected: true },
+    { id: "16", name: "Zvzelya", mmr: 1000, roles: [1, 2, 3, 4, 5], heroes: ["Spirit Breaker", "Ogre Magi", "Shadow Fiend", "Ursa", "Spectre", "Wraith King"], selected: true },
+    { id: "17", name: "Vistu", mmr: 1000, roles: [4], heroes: ["Zeus", "Bane", "Undying"], selected: true },
+    { id: "18", name: "Roman", mmr: 900, roles: [3], heroes: ["Dawnbreaker"], selected: true }
+  ];
+
+  const HERO_MAP = {
+    "primal beast": "primal_beast", "night stalker": "night_stalker", "axe": "axe",
+    "doom": "doom_bringer", "sand king": "sand_king", "dark seer": "dark_seer",
+    "enigma": "enigma", "slardar": "slardar", "pudge": "pudge", "dawnbreaker": "dawnbreaker",
+    "bane": "bane", "tusk": "tusk", "ringmaster": "ringmaster", "shadow demon": "shadow_demon",
+    "grimstroke": "grimstroke", "ancient apparition": "ancient_apparition", "aa": "ancient_apparition",
+    "lycan": "lycan", "nature prophet": "furion", "nature's prophet": "furion", "np": "furion", "furion": "furion",
+    "brewmaster": "brewmaster", "tidehunter": "tidehunter", "beastmaster": "beastmaster", "beast master": "beastmaster",
+    "batrider": "batrider", "dragon knight": "dragon_knight", "dk": "dragon_knight",
+    "invoker": "invoker", "shadow fiend": "nevermore", "sf": "nevermore", "leshrac": "leshrac", "leshrak": "leshrac",
+    "outworld destroyer": "obsidian_destroyer", "od": "obsidian_destroyer", "ember spirit": "ember_spirit", "ember": "ember_spirit",
+    "lone druid": "lone_druid", "ld": "lone_druid", "necrophos": "necrolyte", "necrofos": "necrolyte", "necro": "necrolyte",
+    "arc warden": "arc_warden", "arc": "arc_warden", "templar assassin": "templar_assassin", "ta": "templar_assassin",
+    "huskar": "huskar", "void spirit": "void_spirit", "drow ranger": "drow_ranger", "drow": "drow_ranger",
+    "phantom lancer": "phantom_lancer", "pl": "phantom_lancer", "medusa": "medusa", "dusa": "medusa",
+    "lifestealer": "life_stealer", "naix": "life_stealer", "ursa": "ursa", "faceless void": "faceless_void", "void": "faceless_void",
+    "anti-mage": "antimage", "anti mage": "antimage", "am": "antimage", "clockwerk": "rattletrap", "clock": "rattletrap",
+    "warlock": "warlock", "hoodwink": "hoodwink", "jakiro": "jakiro", "phantom assassin": "phantom_assassin", "pa": "phantom_assassin",
+    "lion": "lion", "tinker": "tinker", "naga siren": "naga_siren", "naga": "naga_siren", "juggernaut": "juggernaut", "jugg": "juggernaut",
+    "terrorblade": "terrorblade", "tb": "terrorblade", "dazzle": "dazzle", "timbersaw": "shredder", "timber": "shredder",
+    "centaur warrunner": "centaur", "centaur": "centaur", "centauwr": "centaur",
+    "spirit breaker": "spirit_breaker", "sb": "spirit_breaker", "bara": "spirit_breaker",
+    "ogre magi": "ogre_magi", "ogre mage": "ogre_magi", "ogre": "ogre_magi", "spectre": "spectre",
+    "wraith king": "skeleton_king", "wk": "skeleton_king", "skeleton king": "skeleton_king",
+    "zeus": "zuus", "undying": "undying", "largo": "slardar"
+  };
+
+  function getHeroSlug(name) {
+    const clean = name.toLowerCase().trim();
+    if (HERO_MAP[clean]) return HERO_MAP[clean];
+    return clean.replace(/['\s-]+/g, '_');
+  }
+
+  function getRankInfo(mmr) {
+    if (mmr >= 5600) return { name: "Титан", medal: 8, class: "rank-immortal" };
+    if (mmr >= 4700) return { name: "Божество", medal: 7, class: "rank-divine" };
+    if (mmr >= 3800) return { name: "Властелин", medal: 6, class: "rank-ancient" };
+    if (mmr >= 3000) return { name: "Легенда", medal: 5, class: "rank-legend" };
+    if (mmr >= 2200) return { name: "Герой", medal: 4, class: "rank-archon" };
+    if (mmr >= 1540) return { name: "Рыцарь", medal: 3, class: "rank-crusader" };
+    return { name: "Страж", medal: 2, class: "rank-guardian" };
+  }
+
+  let players = [];
+  let adminKey = sessionStorage.getItem('dota_admin_key') || '';
+  let activePos = 'all';
+  let sortDirection = { mmr: -1, name: 1 };
+  let currentLobbyData = null;
+
+  function isAdmin() {
+    return Boolean(adminKey);
+  }
+
+  function updateAdminUI() {
+    const btn = document.getElementById('admin-toggle-btn');
+    const addBtn = document.getElementById('btn-add-player');
+    const resetBtn = document.getElementById('btn-reset-roster');
+    const thActions = document.getElementById('th-actions');
+
+    if (isAdmin()) {
+      btn.textContent = '🔓 Выйти (Админ)';
+      btn.classList.add('active');
+      addBtn.style.display = 'inline-flex';
+      resetBtn.style.display = 'inline-flex';
+      thActions.style.display = '';
+    } else {
+      btn.textContent = '🔑 Админ';
+      btn.classList.remove('active');
+      addBtn.style.display = 'none';
+      resetBtn.style.display = 'none';
+      thActions.style.display = 'none';
+    }
+  }
+
+  function toggleAdminLogin() {
+    if (isAdmin()) {
+      if (confirm('Выйти из режима администратора?')) {
+        adminKey = '';
+        sessionStorage.removeItem('dota_admin_key');
+        updateAdminUI();
+        renderTable();
+      }
+    } else {
+      const pass = prompt('Введите секретный ключ администратора (Master Key от JSONBin):');
+      if (pass && pass.trim()) {
+        adminKey = pass.trim();
+        sessionStorage.setItem('dota_admin_key', adminKey);
+        updateAdminUI();
+        renderTable();
+      }
+    }
+  }
+
+  // Загрузка данных из облака
+  async function loadData() {
+    const statusEl = document.getElementById('sync-status');
+    statusEl.textContent = '⏳ Синхронизация...';
+
+    if (!BIN_ID || BIN_ID.includes('...')) {
+      statusEl.textContent = '💾 Локальный режим';
+      try {
+        const local = localStorage.getItem('dota2_roster_data');
+        players = local ? JSON.parse(local) : JSON.parse(JSON.stringify(DEFAULT_ROSTER));
+      } catch(e) {
+        players = JSON.parse(JSON.stringify(DEFAULT_ROSTER));
+      }
+      renderTable();
+      return;
+    }
+
+    try {
+      const headers = {};
+      if (READ_KEY) headers['X-Access-Key'] = READ_KEY;
+      
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers });
+      if (!res.ok) throw new Error('Ошибка сети ' + res.status);
+      const data = await res.json();
+      
+      if (Array.isArray(data.record) && data.record.length > 0) {
+        players = data.record;
+      } else {
+        players = JSON.parse(JSON.stringify(DEFAULT_ROSTER));
+      }
+      statusEl.textContent = '🟢 Облако онлайн';
+    } catch(err) {
+      console.warn('Облако недоступно, переключение на локальный резерв:', err);
+      statusEl.textContent = '⚠️ Офлайн режим';
+      const local = localStorage.getItem('dota2_roster_data');
+      players = local ? JSON.parse(local) : JSON.parse(JSON.stringify(DEFAULT_ROSTER));
+    }
+    renderTable();
+  }
+
+  // Синхронизация изменений в облако
+  async function syncCloud() {
+    localStorage.setItem('dota2_roster_data', JSON.stringify(players));
+    const statusEl = document.getElementById('sync-status');
+
+    if (!BIN_ID || BIN_ID.includes('...')) return;
+
+    if (!isAdmin()) {
+      alert('У вас нет прав администратора для сохранения изменений в общее облако.');
+      return;
+    }
+
+    statusEl.textContent = '🟡 Сохранение...';
+    try {
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': adminKey
+        },
+        body: JSON.stringify(players)
+      });
+
+      if (!res.ok) throw new Error('Код ошибки ' + res.status);
+      statusEl.textContent = '🟢 Сохранено';
+    } catch(err) {
+      console.error('Ошибка сохранения в облако:', err);
+      statusEl.textContent = '🔴 Ошибка ключа!';
+      alert('Ошибка доступа к облаку! Проверьте правильность введенного Master Key.');
+    }
+  }
+
+  function renderTable() {
+    updateAdminUI();
+    const tbody = document.getElementById('roster-body');
+    const query = document.getElementById('search-input').value.toLowerCase().trim();
+    tbody.innerHTML = '';
+
+    let visibleCount = 0;
+    let selectedCount = 0;
+    let totalMmr = 0;
+
+    players.forEach(p => {
+      if (p.selected) selectedCount++;
+
+      const matchesPos = (activePos === 'all') || p.roles.includes(parseInt(activePos, 10));
+      const matchesSearch = !query || 
+        p.name.toLowerCase().includes(query) || 
+        p.heroes.some(h => h.toLowerCase().includes(query));
+
+      if (!matchesPos || !matchesSearch) return;
+
+      visibleCount++;
+      totalMmr += p.mmr;
+
+      const rank = getRankInfo(p.mmr);
+      const row = document.createElement('tr');
+      if (p.selected) row.classList.add('row-selected');
+
+      const roleBadges = p.roles.map(r => `<span class="pos-badge pos-${r}">Поз. ${r}</span>`).join(' ');
+
+      const heroBadges = p.heroes.map(h => {
+        const slug = getHeroSlug(h);
+        return `
+          <span class="hero-badge" data-hero="${h}">
+            <img src="https://wsrv.nl/?url=https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/${slug}.png" onerror="this.src='https://wsrv.nl/?url=https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/pudge.png'">
+          </span>
+        `;
+      }).join('');
+
+      const actionButtons = isAdmin() ? `
+        <td class="action-col">
+          <div class="row-actions">
+            <button class="btn-icon" title="Редактировать" onclick="openEditModal('${p.id}')">✏️</button>
+            <button class="btn-icon del" title="Удалить" onclick="deletePlayer('${p.id}')">🗑️</button>
+          </div>
+        </td>
+      ` : '';
+
+      row.innerHTML = `
+        <td style="text-align: center;" class="check-col"><input type="checkbox" class="custom-check" ${p.selected ? 'checked' : ''} onchange="togglePlayerCheck('${p.id}', this.checked)"></td>
+        <td style="text-align: center; color: #6b7280;">${visibleCount}</td>
+        <td class="player-name">${p.name}</td>
+        <td>
+          <div class="rank-cell ${rank.class}">
+            <img class="rank-icon" src="https://wsrv.nl/?url=https://www.opendota.com/assets/images/dota2/rank_icons/rank_icon_${rank.medal}.png">
+            <span>${rank.name}</span>
+          </div>
+        </td>
+        <td><span class="mmr-badge">${p.mmr}</span></td>
+        <td>${roleBadges}</td>
+        <td><div class="hero-list">${heroBadges}</div></td>
+        ${actionButtons}
+      `;
+      tbody.appendChild(row);
+    });
+
+    document.getElementById('stat-selected').textContent = `${selectedCount} / ${players.length}`;
+    document.getElementById('stat-count').textContent = visibleCount;
+    document.getElementById('stat-avg').textContent = visibleCount > 0 ? Math.round(totalMmr / visibleCount).toLocaleString('ru-RU') : '0';
+    document.getElementById('check-all').checked = (players.length > 0 && selectedCount === players.length);
+  }
+
+  function togglePlayerCheck(id, isChecked) {
+    const p = players.find(x => x.id === id);
+    if (p) {
+      p.selected = isChecked;
+      renderTable();
+    }
+  }
+
+  function toggleSelectAll(master) {
+    players.forEach(p => p.selected = master.checked);
+    renderTable();
+  }
+
+  function selectRandom10() {
+    players.forEach(p => p.selected = false);
+    const shuffled = [...players].sort(() => 0.5 - Math.random());
+    shuffled.slice(0, 10).forEach(p => p.selected = true);
+    renderTable();
+  }
+
+  function setPosFilter(pos, btn) {
+    activePos = pos;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTable();
+  }
+
+  function sortTable(type) {
+    sortDirection[type] = -sortDirection[type];
+    players.sort((a, b) => {
+      if (type === 'mmr') return (a.mmr - b.mmr) * sortDirection[type];
+      if (type === 'name') return a.name.localeCompare(b.name) * sortDirection[type];
+    });
+    renderTable();
+  }
+
+  function openAddModal() {
+    document.getElementById('modal-title').textContent = 'Добавить нового игрока';
+    document.getElementById('edit-player-id').value = '';
+    document.getElementById('form-name').value = '';
+    document.getElementById('form-mmr').value = '';
+    document.getElementById('form-heroes').value = '';
+    document.querySelectorAll('input[name="edit-role"]').forEach(c => c.checked = false);
+    document.getElementById('player-modal').style.display = 'flex';
+  }
+
+  function openEditModal(id) {
+    const p = players.find(x => x.id === id);
+    if (!p) return;
+
+    document.getElementById('modal-title').textContent = `Редактировать: ${p.name}`;
+    document.getElementById('edit-player-id').value = p.id;
+    document.getElementById('form-name').value = p.name;
+    document.getElementById('form-mmr').value = p.mmr;
+    document.getElementById('form-heroes').value = p.heroes.join(', ');
+
+    document.querySelectorAll('input[name="edit-role"]').forEach(c => {
+      c.checked = p.roles.includes(parseInt(c.value, 10));
+    });
+
+    document.getElementById('player-modal').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('player-modal').style.display = 'none';
+  }
+
+  function savePlayer() {
+    const id = document.getElementById('edit-player-id').value;
+    const name = document.getElementById('form-name').value.trim();
+    const mmr = parseInt(document.getElementById('form-mmr').value, 10);
+    const heroesRaw = document.getElementById('form-heroes').value;
+
+    if (!name) { alert('Введите никнейм!'); return; }
+    if (isNaN(mmr) || mmr < 0) { alert('Введите корректный MMR!'); return; }
+
+    const checkedRoles = Array.from(document.querySelectorAll('input[name="edit-role"]:checked')).map(c => parseInt(c.value, 10));
+    if (checkedRoles.length === 0) { alert('Выберите хотя бы одну позицию!'); return; }
+
+    const heroes = heroesRaw.split(',').map(h => h.trim()).filter(h => h.length > 0);
+
+    if (id) {
+      const p = players.find(x => x.id === id);
+      if (p) {
+        p.name = name;
+        p.mmr = mmr;
+        p.roles = checkedRoles;
+        p.heroes = heroes;
+      }
+    } else {
+      players.unshift({
+        id: Date.now().toString(),
+        name: name,
+        mmr: mmr,
+        roles: checkedRoles,
+        heroes: heroes,
+        selected: true
+      });
+    }
+
+    closeModal();
+    renderTable();
+    syncCloud();
+  }
+
+  function deletePlayer(id) {
+    const p = players.find(x => x.id === id);
+    if (!p) return;
+    if (confirm(`Удалить игрока "${p.name}"?`)) {
+      players = players.filter(x => x.id !== id);
+      renderTable();
+      syncCloud();
+    }
+  }
+
+  function resetToDefault() {
+    if (confirm('Сбросить состав до первоначального?')) {
+      players = JSON.parse(JSON.stringify(DEFAULT_ROSTER));
+      renderTable();
+      closeLobby();
+      syncCloud();
+    }
+  }
+
+  // --- БАЛАНСИРОВЩИК 5x5 ---
+  function generatePermutations(arr) {
+    if (arr.length <= 1) return [arr];
+    let res = [];
+    for (let i = 0; i < arr.length; i++) {
+      const rest = generatePermutations(arr.slice(0, i).concat(arr.slice(i + 1)));
+      for (let r of rest) res.push([arr[i], ...r]);
+    }
+    return res;
+  }
+  const PRECOMPUTED_PERMS = generatePermutations([0, 1, 2, 3, 4]);
+
+  const ROLE_NAMES = {
+    1: 'Поз. 1 (Carry)',
+    2: 'Поз. 2 (Mid)',
+    3: 'Поз. 3 (Offlane)',
+    4: 'Поз. 4 (Support)',
+    5: 'Поз. 5 (Hard Sup)'
+  };
+
+  function assignBestRoles(teamPlayers) {
+    let bestAssignment = null;
+    let minPenalty = 999999;
+
+    for (let i = 0; i < PRECOMPUTED_PERMS.length; i++) {
+      const order = PRECOMPUTED_PERMS[i];
+      let penalty = 0;
+      for (let pos = 1; pos <= 5; pos++) {
+        const player = teamPlayers[order[pos - 1]];
+        if (!player.roles.includes(pos)) penalty += 150;
+      }
+      if (penalty < minPenalty) {
+        minPenalty = penalty;
+        bestAssignment = order.map((idx, pPos) => ({ ...teamPlayers[idx], assignedPos: pPos + 1 }));
+        if (penalty === 0) break;
+      }
+    }
+    return { assigned: bestAssignment, penalty: minPenalty };
+  }
+
+  function generateLobby() {
+    const selected = players.filter(p => p.selected);
+    if (selected.length < 10) {
+      alert(`Нужно минимум 10 отмеченных игроков! Сейчас выбрано: ${selected.length}.`);
+      return;
+    }
+
+    let bestMatch = null;
+    let minScore = 99999999;
+
+    function evaluateTenPlayers(ten) {
+      function getCombos(start, combo) {
+        if (combo.length === 5) {
+          const teamA = combo;
+          const teamB = ten.filter(p => !teamA.includes(p));
+          const mmrA = teamA.reduce((s, p) => s + p.mmr, 0);
+          const mmrB = teamB.reduce((s, p) => s + p.mmr, 0);
+          const diff = Math.abs(mmrA - mmrB);
+
+          const rolesA = assignBestRoles(teamA);
+          const rolesB = assignBestRoles(teamB);
+          const score = (diff * 1.5) + rolesA.penalty + rolesB.penalty;
+
+          if (score < minScore) {
+            minScore = score;
+            const bench = selected.filter(p => !ten.includes(p));
+            bestMatch = {
+              radiant: rolesA.assigned,
+              dire: rolesB.assigned,
+              radiantMmr: mmrA,
+              direMmr: mmrB,
+              diff: diff,
+              bench: bench
+            };
+          }
+          return;
+        }
+        for (let i = start; i < ten.length; i++) {
+          getCombos(i + 1, combo.concat([ten[i]]));
+        }
+      }
+      getCombos(0, []);
+    }
+
+    if (selected.length === 10) {
+      evaluateTenPlayers(selected);
+    } else {
+      const iterations = Math.min(300, selected.length * 20);
+      for (let it = 0; it < iterations; it++) {
+        const shuffled = [...selected].sort(() => 0.5 - Math.random());
+        evaluateTenPlayers(shuffled.slice(0, 10));
+      }
+    }
+
+    renderLobby(bestMatch);
+  }
+
+  function renderLobby(match) {
+    currentLobbyData = match;
+    const lobbyView = document.getElementById('lobby-view');
+    lobbyView.style.display = 'block';
+
+    document.getElementById('radiant-avg').textContent = `Avg: ${Math.round(match.radiantMmr / 5)} MMR`;
+    document.getElementById('dire-avg').textContent = `Avg: ${Math.round(match.direMmr / 5)} MMR`;
+    document.getElementById('lobby-diff').textContent = `Разница: ${match.diff} MMR`;
+
+    const radContainer = document.getElementById('radiant-roster');
+    const direContainer = document.getElementById('dire-roster');
+    radContainer.innerHTML = '';
+    direContainer.innerHTML = '';
+
+    function createRow(p) {
+      const rank = getRankInfo(p.mmr);
+      const row = document.createElement('div');
+      row.className = 'lobby-player-row';
+      row.innerHTML = `
+        <div class="lobby-player-left">
+          <span class="pos-badge pos-${p.assignedPos}">${ROLE_NAMES[p.assignedPos]}</span>
+          <span class="player-name">${p.name}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="mmr-badge">${p.mmr}</span>
+          <img src="https://wsrv.nl/?url=https://www.opendota.com/assets/images/dota2/rank_icons/rank_icon_${rank.medal}.png" style="width: 26px; height: 26px; object-fit: contain;">
+        </div>
+      `;
+      return row;
+    }
+
+    match.radiant.forEach(p => radContainer.appendChild(createRow(p)));
+    match.dire.forEach(p => direContainer.appendChild(createRow(p)));
+
+    const benchPanel = document.getElementById('bench-panel');
+    const benchContainer = document.getElementById('bench-roster');
+    benchContainer.innerHTML = '';
+
+    if (match.bench && match.bench.length > 0) {
+      benchPanel.style.display = 'block';
+      document.getElementById('bench-count').textContent = `(${match.bench.length})`;
+      match.bench.forEach(p => {
+        const b = document.createElement('div');
+        b.className = 'bench-badge';
+        b.innerHTML = `
+          <span style="font-weight: 700; color: #f3f4f6;">${p.name}</span>
+          <span style="color: #fbbf24; font-family: monospace; font-size: 11.5px;">${p.mmr} MMR</span>
+        `;
+        benchContainer.appendChild(b);
+      });
+    } else {
+      benchPanel.style.display = 'none';
+    }
+
+    lobbyView.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function closeLobby() {
+    document.getElementById('lobby-view').style.display = 'none';
+  }
+
+  function copyLobbyToDiscord() {
+    if (!currentLobbyData) return;
+    const m = currentLobbyData;
+    let text = `⚔️ **DOTA 2 CUSTOM LOBBY 5v5**\n\n`;
+    text += `🟢 **THE RADIANT** (Avg: ${Math.round(m.radiantMmr / 5)} MMR)\n`;
+    m.radiant.forEach(p => {
+      text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** [${p.mmr} MMR]\n`;
+    });
+    text += `\n🔴 **THE DIRE** (Avg: ${Math.round(m.direMmr / 5)} MMR)\n`;
+    m.dire.forEach(p => {
+      text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** [${p.mmr} MMR]\n`;
+    });
+    text += `\n⚖️ Разница по командам: **${m.diff} MMR**\n`;
+
+    if (m.bench && m.bench.length > 0) {
+      text += `\n🛋️ **НА ЗАМЕНЕ (${m.bench.length}):**\n`;
+      m.bench.forEach(p => {
+        text += `• ${p.name} [${p.mmr} MMR]\n`;
+      });
+    }
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Состав лобби и запасные скопированы в буфер обмена!');
+    });
+  }
+
+  async function exportToPNG() {
+    const target = document.getElementById('roster-card');
+    const btn = document.getElementById('btn-export');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span>⏳</span> ...';
+    btn.disabled = true;
+
+    document.body.classList.add('exporting');
+
+    try {
+      const canvas = await html2canvas(target, {
+        useCORS: true,
+        allowTaint: false,
+        scale: 2,
+        backgroundColor: '#0b0d11',
+        imageTimeout: 15000
+      });
+
+      const link = document.createElement('a');
+      link.download = 'dota2-team-roster.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error(err);
+      alert('Для скриншота используйте Win + Shift + S.');
+    } finally {
+      document.body.classList.remove('exporting');
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  }
+
+  loadData();
+</script>
+</body>
+</html>
