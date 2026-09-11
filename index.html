@@ -247,7 +247,7 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 13.5px;
-    min-width: 680px;
+    min-width: 720px;
   }
   th {
     background: #0f1218;
@@ -281,7 +281,18 @@
     font-weight: 700;
     color: #f9fafb;
     font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
   }
+  .steam-link {
+    color: #60a5fa;
+    text-decoration: none;
+    font-size: 11px;
+    opacity: 0.8;
+    transition: opacity 0.15s;
+  }
+  .steam-link:hover { opacity: 1; text-decoration: underline; }
 
   /* Свечение рангов */
   .rank-cell {
@@ -394,6 +405,21 @@
     align-items: center;
     gap: 3px;
     cursor: help;
+  }
+
+  .pool-stat-pill {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    color: #fcd34d;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: help;
+    white-space: nowrap;
   }
 
   .row-actions {
@@ -785,6 +811,17 @@
     right: -4px;
     font-size: 11px;
   }
+  .hero-card.is-top-stat {
+    border: 1.5px solid #22c55e !important;
+    background: rgba(34, 197, 94, 0.12) !important;
+  }
+  .hero-card.is-top-stat::after {
+    content: "👑";
+    position: absolute;
+    top: -6px;
+    right: -4px;
+    font-size: 12px;
+  }
   .hero-card.is-selected {
     border: 1.5px solid #10b981 !important;
     background: rgba(16, 185, 129, 0.15) !important;
@@ -911,7 +948,7 @@
 
   /* Статистика */
   .winrate-bar-bg {
-    width: 90px;
+    width: 80px;
     height: 7px;
     background: #374151;
     border-radius: 4px;
@@ -1058,9 +1095,8 @@
           <button id="admin-toggle-btn" class="btn btn-admin" onclick="toggleAdminLogin()">🔑 Админ</button>
           <button id="btn-add-player" class="btn btn-add" style="display: none;" onclick="openAddModal()">➕ Игрок</button>
           <button class="btn btn-random10" onclick="selectRandom10()">🎲 Выбрать 10</button>
-          <!-- ДВА ВАРИАНТА ПОДБОРА ЛОББИ -->
-          <button class="btn btn-lobby" onclick="generateLobby('standard')" title="Стандартный подбор по общему MMR">⚔️ Собрать 5x5</button>
-          <button class="btn btn-lobby-core" onclick="generateLobby('core')" title="Подбор с приоритетом равных кор-позиций и пула героев">👑 Баланс по корам</button>
+          <button class="btn btn-lobby" onclick="generateLobby('standard')" title="Стандартный подбор по общему MMR с защитой от повторения тиммейтов">⚔️ Собрать 5x5</button>
+          <button class="btn btn-lobby-core" onclick="generateLobby('core')" title="Подбор с приоритетом равных кор-позиций, пула героев и защитой от повторения тиммейтов">👑 Баланс по корам</button>
           <button class="btn btn-manual" onclick="initManualLobby()" title="Собрать лобби вручную">🛠️ Вручную</button>
           <button id="btn-backup-json" class="btn btn-random10" style="display: none;" onclick="exportBackupJSON()" title="Скачать бэкап базы (.json)">💾 Бэкап</button>
           <button id="btn-import-json" class="btn btn-reset" style="display: none;" onclick="document.getElementById('file-import-input').click()" title="Загрузить базу из файла">📥 Импорт</button>
@@ -1103,7 +1139,7 @@
               <th style="width: 130px;">Звание</th>
               <th style="width: 95px;" class="sortable" onclick="sortTable('mmr')">MMR ⬍</th>
               <th style="width: 155px;">Позиция</th>
-              <th>Пул героев</th>
+              <th>Пул героев и сигнатурка</th>
               <th id="th-actions" style="width: 80px; text-align: right; display: none;" class="action-col">Действия</th>
             </tr>
           </thead>
@@ -1128,7 +1164,6 @@
       </div>
     </div>
 
-    <!-- СНОСКА/УВЕДОМЛЕНИЕ В ЛОББИ О МАЛЕНЬКОМ ПУЛЕ ИГРОКОВ -->
     <div id="lobby-cm-alert" class="lobby-cm-alert" style="display: none;"></div>
     
     <div class="teams-container">
@@ -1149,7 +1184,6 @@
       </div>
     </div>
 
-    <!-- АНАЛИЗ ЛИНИЙ И МАТЧАПОВ С УЧЕТОМ CAPTAINS MODE -->
     <div class="laning-card">
       <div class="laning-card-header">
         <span>📊 Анализ линий и матчапов (с учетом пула и банов Captains Mode)</span>
@@ -1187,18 +1221,19 @@
   <div id="section-stats" class="content-section" style="display: none;">
     <div class="header-widget">
       <div class="header-title">Таблица лидеров пати</div>
-      <span style="font-size: 12px; color: #94a3b8;">Рейтинг формируется по завершенным играм</span>
+      <span style="font-size: 12px; color: #94a3b8;">Рейтинг и результативность героев формируются по завершенным играм</span>
     </div>
     <div class="table-responsive">
       <table>
         <thead>
           <tr>
-            <th style="width: 50px; text-align: center;">Место</th>
-            <th>Игрок</th>
-            <th style="width: 100px; text-align: center;">Игр</th>
-            <th style="width: 100px; text-align: center;">Побед (W)</th>
-            <th style="width: 100px; text-align: center;">Поражений (L)</th>
-            <th style="width: 180px;">Винрейт (%)</th>
+            <th style="width: 48px; text-align: center;">Место</th>
+            <th style="width: 150px;">Игрок</th>
+            <th style="width: 75px; text-align: center;">Игр</th>
+            <th style="width: 75px; text-align: center;">Побед (W)</th>
+            <th style="width: 75px; text-align: center;">Поражений (L)</th>
+            <th style="width: 150px;">Винрейт (%)</th>
+            <th style="min-width: 180px;">Сигнатурный герой (из матчей)</th>
           </tr>
         </thead>
         <tbody id="stats-table-body"></tbody>
@@ -1245,13 +1280,29 @@
       <button style="background: none; border: none; color: #9ca3af; font-size: 18px; cursor: pointer;" onclick="closeModal()">✕</button>
     </div>
     <input type="hidden" id="edit-player-id">
+    
+    <!-- Интеграция OpenDota / Steam -->
+    <div class="form-group" style="background: #11141c; border: 1px solid #283042; padding: 10px; border-radius: 8px;">
+      <label class="form-label" style="display: flex; justify-content: space-between;">
+        <span>🌐 Интеграция OpenDota / Steam ID</span>
+        <span style="font-size: 10.5px; color: #60a5fa; text-transform: none;">Автозаполнение</span>
+      </label>
+      <div style="display: flex; gap: 8px; margin-top: 4px;">
+        <input type="text" id="form-steam-id" class="form-input" placeholder="Dota ID32, Steam64 или ссылка OpenDota/Dotabuff">
+        <button type="button" class="btn btn-add" id="btn-fetch-opendota" onclick="fetchOpenDotaData()" style="white-space: nowrap; flex-shrink: 0;" title="Загрузить имя, MMR и последних героев из OpenDota">
+          ⚡ Загрузить
+        </button>
+      </div>
+      <div id="opendota-status" style="font-size: 11px; min-height: 16px; margin-top: 4px;"></div>
+    </div>
+
     <div class="form-group">
       <label class="form-label">Никнейм игрока</label>
-      <input type="text" id="form-name" class="form-input" placeholder="Например: Miracle-">
+      <input type="text" id="form-name" class="form-input" placeholder="Например: Miracle-" maxlength="32">
     </div>
     <div class="form-group">
-      <label class="form-label">MMR рейтинг</label>
-      <input type="number" id="form-mmr" class="form-input" placeholder="Например: 4500" step="10">
+      <label class="form-label">MMR рейтинг (0 - 20000)</label>
+      <input type="number" id="form-mmr" class="form-input" placeholder="Например: 4500" step="10" min="0" max="20000">
     </div>
     <div class="form-group">
       <label class="form-label">Игровые роли</label>
@@ -1307,6 +1358,23 @@
 
   const LARGO_IMG_URL = "https://liquipedia.net/commons/images/7/78/Largo_icon_dota2_gameasset.png";
   const LARGO_IMG_PROXY = "https://wsrv.nl/?url=https://liquipedia.net/commons/images/7/78/Largo_icon_dota2_gameasset.png";
+
+  function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function generateId() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+  }
 
   const DOTA2_HEROES_CATALOG = [
     // 🔴 СИЛА (36)
@@ -1445,6 +1513,36 @@
     { name: "Windranger", slug: "windrunner", attr: "uni" }
   ];
 
+  // Маппинг числовых ID героев Dota 2 (OpenDota) на имена
+  const DOTA2_HERO_ID_MAP = {
+    1: "Anti-Mage", 2: "Axe", 3: "Bane", 4: "Bloodseeker", 5: "Crystal Maiden",
+    6: "Drow Ranger", 7: "Earthshaker", 8: "Juggernaut", 9: "Mirana", 10: "Morphling",
+    11: "Shadow Fiend", 12: "Phantom Lancer", 13: "Puck", 14: "Pudge", 15: "Razor",
+    16: "Sand King", 17: "Storm Spirit", 18: "Sven", 19: "Tiny", 20: "Vengeful Spirit",
+    21: "Windranger", 22: "Zeus", 23: "Kunkka", 25: "Lina", 26: "Lion",
+    27: "Shadow Shaman", 28: "Slardar", 29: "Tidehunter", 30: "Witch Doctor", 31: "Lich",
+    32: "Riki", 33: "Enigma", 34: "Tinker", 35: "Sniper", 36: "Necrophos",
+    37: "Warlock", 38: "Beastmaster", 39: "Queen of Pain", 40: "Venomancer", 41: "Faceless Void",
+    42: "Wraith King", 43: "Death Prophet", 44: "Phantom Assassin", 45: "Pugna", 46: "Templar Assassin",
+    47: "Viper", 48: "Luna", 49: "Dragon Knight", 50: "Dazzle", 51: "Clockwerk",
+    52: "Leshrac", 53: "Nature's Prophet", 54: "Lifestealer", 55: "Dark Seer", 56: "Clinkz",
+    57: "Omniknight", 58: "Enchantress", 59: "Huskar", 60: "Night Stalker", 61: "Broodmother",
+    62: "Bounty Hunter", 63: "Weaver", 64: "Jakiro", 65: "Batrider", 66: "Chen",
+    67: "Spectre", 68: "Ancient Apparition", 69: "Doom", 70: "Ursa", 71: "Spirit Breaker",
+    72: "Gyrocopter", 73: "Alchemist", 74: "Invoker", 75: "Silencer", 76: "Outworld Destroyer",
+    77: "Lycan", 78: "Brewmaster", 79: "Shadow Demon", 80: "Lone Druid", 81: "Chaos Knight",
+    82: "Meepo", 83: "Treant Protector", 84: "Ogre Magi", 85: "Undying", 86: "Rubick",
+    87: "Disruptor", 88: "Nyx Assassin", 89: "Naga Siren", 90: "Keeper of the Light", 91: "Io",
+    92: "Visage", 93: "Slark", 94: "Medusa", 95: "Troll Warlord", 96: "Centaur Warrunner",
+    97: "Magnus", 98: "Timbersaw", 99: "Bristleback", 100: "Tusk", 101: "Skywrath Mage",
+    102: "Abaddon", 103: "Elder Titan", 104: "Legion Commander", 105: "Techies", 106: "Ember Spirit",
+    107: "Earth Spirit", 108: "Underlord", 109: "Terrorblade", 110: "Phoenix", 111: "Oracle",
+    112: "Winter Wyvern", 113: "Arc Warden", 114: "Monkey King", 119: "Dark Willow", 120: "Pangolier",
+    121: "Grimstroke", 123: "Hoodwink", 126: "Void Spirit", 128: "Snapfire", 129: "Mars",
+    131: "Ringmaster", 135: "Dawnbreaker", 136: "Marci", 137: "Primal Beast", 138: "Muerta",
+    145: "Kez"
+  };
+
   const HERO_MAP = {};
   DOTA2_HEROES_CATALOG.forEach(h => { HERO_MAP[h.name.toLowerCase()] = h.slug; });
   HERO_MAP["sf"] = "nevermore";
@@ -1460,14 +1558,14 @@
   function getHeroSlug(name) {
     const clean = (name || '').toLowerCase().trim();
     if (HERO_MAP[clean]) return HERO_MAP[clean];
-    return clean.replace(/['\s-]+/g, '_');
+    return clean.replace(/['\s-]+/g, '_').replace(/[^a-z0-9_]/g, '');
   }
 
   function getHeroImg(name) {
     const clean = (name || '').toLowerCase().trim();
     if (clean === 'largo') return LARGO_IMG_PROXY;
     const slug = getHeroSlug(name);
-    return `https://wsrv.nl/?url=https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/${slug}.png`;
+    return `https://wsrv.nl/?url=https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/${encodeURIComponent(slug)}.png`;
   }
 
   function getRankInfo(mmr) {
@@ -1478,6 +1576,59 @@
     if (mmr >= 2200) return { name: "Герой", medal: 4, class: "rank-archon" };
     if (mmr >= 1540) return { name: "Рыцарь", medal: 3, class: "rank-crusader" };
     return { name: "Страж", medal: 2, class: "rank-guardian" };
+  }
+
+  // Парсинг Dota Account ID из Steam ID32, Steam ID64 или ссылок Dotabuff/OpenDota/Steam
+  function parseDotaAccountId(input) {
+    if (!input) return null;
+    const str = String(input).trim();
+
+    // Ссылки на Dotabuff или OpenDota
+    const urlMatch = str.match(/(?:opendota\.com|dotabuff\.com)\/players\/(\d+)/i);
+    if (urlMatch) return urlMatch[1];
+
+    // Ссылка на профиль Steam Community с 64-битным ID
+    const steamProfMatch = str.match(/steamcommunity\.com\/profiles\/(7656\d+)/i);
+    if (steamProfMatch) {
+      try {
+        return (BigInt(steamProfMatch[1]) - 76561197960265728n).toString();
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // Чистые цифры
+    if (/^\d+$/.test(str)) {
+      if (str.length >= 16 && str.startsWith('7656')) {
+        try {
+          return (BigInt(str) - 76561197960265728n).toString();
+        } catch (e) {
+          return null;
+        }
+      }
+      return str;
+    }
+    return null;
+  }
+
+  // Оценка MMR по рангу OpenDota (rank_tier)
+  function estimateMmrFromRankTier(rankTier, leaderboardRank) {
+    if (!rankTier) return null;
+    const medal = Math.floor(rankTier / 10);
+    const stars = rankTier % 10;
+    if (medal === 8) {
+      if (leaderboardRank && leaderboardRank > 0) {
+        if (leaderboardRank <= 100) return 9600;
+        if (leaderboardRank <= 500) return 8600;
+        if (leaderboardRank <= 1500) return 7600;
+        if (leaderboardRank <= 3000) return 6900;
+        return 6300;
+      }
+      return 5800;
+    }
+    const baseMmr = { 1: 300, 2: 1000, 3: 1800, 4: 2600, 5: 3400, 6: 4200, 7: 5000 };
+    const base = baseMmr[medal] || 1000;
+    return base + Math.max(0, (stars - 1)) * 155;
   }
 
   const DEFAULT_ROSTER = [
@@ -1614,13 +1765,11 @@
       statusEl.textContent = '🔑 Проверка ключа...';
 
       try {
-        const testRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-          method: 'PUT',
+        const testRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+          method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
             'X-Master-Key': candidateKey
-          },
-          body: JSON.stringify({ players, matches })
+          }
         });
 
         if (!testRes.ok) throw new Error();
@@ -1676,6 +1825,7 @@
     }
     document.getElementById('badge-history-count').textContent = matches.length;
     applySort();
+    syncLobbyWithRoster();
     renderTable();
   }
 
@@ -1734,6 +1884,7 @@
             players = parsed.players;
             matches = parsed.matches || [];
             applySort();
+            syncLobbyWithRoster();
             renderTable();
             renderHistory();
             renderStats();
@@ -1751,11 +1902,189 @@
     reader.readAsText(file);
   }
 
+  // --- РАСЧЁТ РЕАЛЬНОЙ СТАТИСТИКИ ПО ГЕРОЯМ ИЗ ИСТОРИИ МАТЧЕЙ ---
+  function calculatePlayerHeroStats() {
+    const stats = {};
+
+    const getPlayerKey = (p) => {
+      if (p.id) return p.id;
+      const found = players.find(x => x.name === p.name);
+      return found ? found.id : p.name;
+    };
+
+    matches.forEach(m => {
+      const radWon = m.winner === 'Radiant';
+
+      const processTeam = (teamArr, won) => {
+        if (!Array.isArray(teamArr)) return;
+        teamArr.forEach(p => {
+          const key = getPlayerKey(p);
+          const hName = p.hero;
+          if (!key || !hName) return;
+
+          if (!stats[key]) stats[key] = {};
+          if (!stats[key][hName]) stats[key][hName] = { matches: 0, wins: 0, losses: 0 };
+
+          stats[key][hName].matches++;
+          if (won) stats[key][hName].wins++;
+          else stats[key][hName].losses++;
+        });
+      };
+
+      processTeam(m.radiant, radWon);
+      processTeam(m.dire, !radWon);
+    });
+
+    const bestHeroMap = {};
+    Object.keys(stats).forEach(pKey => {
+      const heroList = Object.entries(stats[pKey]).map(([name, data]) => ({
+        name,
+        matches: data.matches,
+        wins: data.wins,
+        losses: data.losses,
+        winrate: data.matches > 0 ? Math.round((data.wins / data.matches) * 100) : 0
+      }));
+
+      heroList.sort((a, b) => b.wins - a.wins || b.winrate - a.winrate || b.matches - a.matches);
+      bestHeroMap[pKey] = heroList[0] || null;
+    });
+
+    return { all: stats, best: bestHeroMap };
+  }
+
+  // --- ИСТОРИЯ ПОСЛЕДНИХ ТИММЕЙТОВ ---
+  function getRecentTeammatesHistoryMap(recentMatchesCount = 3) {
+    const pairWeights = {};
+    if (!matches || matches.length === 0) return pairWeights;
+
+    const recent = matches.slice(0, recentMatchesCount);
+    recent.forEach((m, matchIndex) => {
+      const weight = (recentMatchesCount - matchIndex) * 160;
+
+      const processTeam = (teamArr) => {
+        if (!Array.isArray(teamArr)) return;
+        for (let i = 0; i < teamArr.length; i++) {
+          for (let j = i + 1; j < teamArr.length; j++) {
+            const idA = teamArr[i].id || teamArr[i].name;
+            const idB = teamArr[j].id || teamArr[j].name;
+            if (!idA || !idB) continue;
+            const key = idA < idB ? `${idA}___${idB}` : `${idB}___${idA}`;
+            pairWeights[key] = (pairWeights[key] || 0) + weight;
+          }
+        }
+      };
+
+      processTeam(m.radiant);
+      processTeam(m.dire);
+    });
+
+    return pairWeights;
+  }
+
+  // --- ИНТЕГРАЦИЯ С OPENDOTA API ---
+  async function fetchOpenDotaData() {
+    const steamInput = document.getElementById('form-steam-id');
+    const statusEl = document.getElementById('opendota-status');
+    const rawVal = steamInput.value.trim();
+
+    const accountId = parseDotaAccountId(rawVal);
+    if (!accountId) {
+      statusEl.innerHTML = '<span style="color:#ef4444;">⚠️ Введите корректный Dota ID (число) или ссылку на профиль Steam/OpenDota/Dotabuff!</span>';
+      return;
+    }
+
+    const btn = document.getElementById('btn-fetch-opendota');
+    const origBtnText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Поиск...';
+    statusEl.innerHTML = '<span style="color:#60a5fa;">⏳ Запрос данных игрока из OpenDota...</span>';
+
+    try {
+      // 1. Профиль игрока и ранг/MMR
+      const pRes = await fetch(`https://api.opendota.com/api/players/${accountId}`);
+      if (!pRes.ok) throw new Error('Player not found');
+      const pData = await pRes.json();
+
+      if (!pData || !pData.profile) {
+        statusEl.innerHTML = '<span style="color:#f59e0b;">⚠️ Профиль не найден или аккаунт скрыт в настройках приватности Dota 2.</span>';
+        btn.disabled = false;
+        btn.innerHTML = origBtnText;
+        return;
+      }
+
+      // Заполняем никнейм
+      const currentNameInput = document.getElementById('form-name');
+      if (pData.profile.personaname) {
+        currentNameInput.value = pData.profile.personaname;
+      }
+
+      // Определяем актуальный MMR
+      let detectedMmr = pData.mmr_estimate?.estimate || pData.competitive_rank;
+      if (!detectedMmr && pData.rank_tier) {
+        detectedMmr = estimateMmrFromRankTier(pData.rank_tier, pData.leaderboard_rank);
+      }
+      if (detectedMmr) {
+        document.getElementById('form-mmr').value = Math.max(0, Math.min(20000, Math.round(detectedMmr)));
+      }
+
+      // 2. Последние сыгранные матчи (последние 20 игр)
+      statusEl.innerHTML = '<span style="color:#60a5fa;">⏳ Загрузка недавних героев игрока...</span>';
+      const mRes = await fetch(`https://api.opendota.com/api/players/${accountId}/recentMatches`);
+      let recentHeroes = [];
+
+      if (mRes.ok) {
+        const recentMatches = await mRes.json();
+        if (Array.isArray(recentMatches) && recentMatches.length > 0) {
+          const heroCounts = {};
+          recentMatches.forEach(m => {
+            if (m.hero_id && DOTA2_HERO_ID_MAP[m.hero_id]) {
+              const hName = DOTA2_HERO_ID_MAP[m.hero_id];
+              heroCounts[hName] = (heroCounts[hName] || 0) + 1;
+            }
+          });
+          recentHeroes = Object.keys(heroCounts).sort((a, b) => heroCounts[b] - heroCounts[a]);
+        }
+      }
+
+      // Фолбэк на топ сыгранных героев, если recentMatches пуст
+      if (recentHeroes.length === 0) {
+        const hRes = await fetch(`https://api.opendota.com/api/players/${accountId}/heroes`);
+        if (hRes.ok) {
+          const allHeroes = await hRes.json();
+          if (Array.isArray(allHeroes)) {
+            recentHeroes = allHeroes
+              .filter(h => h.games > 0 && DOTA2_HERO_ID_MAP[h.hero_id])
+              .sort((a, b) => b.games - a.games)
+              .slice(0, 8)
+              .map(h => DOTA2_HERO_ID_MAP[h.hero_id]);
+          }
+        }
+      }
+
+      if (recentHeroes.length > 0) {
+        currentFormPool = recentHeroes.slice(0, 10);
+        renderPlayerFormPool();
+      }
+
+      steamInput.value = accountId;
+      const rankInfo = pData.rank_tier ? getRankInfo(estimateMmrFromRankTier(pData.rank_tier, pData.leaderboard_rank) || 3000) : null;
+      const rankText = rankInfo ? ` (${rankInfo.name})` : '';
+      statusEl.innerHTML = `<span style="color:#4ade80;">✅ Успешно: <b>${escapeHtml(pData.profile.personaname)}</b>, MMR: ~${detectedMmr || '?'}${rankText}, пула: ${recentHeroes.length} гер.</span>`;
+    } catch (err) {
+      statusEl.innerHTML = '<span style="color:#ef4444;">❌ Ошибка загрузки из OpenDota. Проверьте ID или соединение с сетью.</span>';
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = origBtnText;
+    }
+  }
+
   function renderTable() {
     updateAdminUI();
     const tbody = document.getElementById('roster-body');
     const query = document.getElementById('search-input').value.toLowerCase().trim();
     tbody.innerHTML = '';
+
+    const { best: bestHeroMap } = calculatePlayerHeroStats();
 
     let visibleCount = 0;
     let selectedCount = 0;
@@ -1778,8 +2107,8 @@
 
       const roleBadges = p.roles.map(r => `<span class="pos-badge pos-${r}">Поз. ${r}</span>`).join(' ');
       const heroBadges = p.heroes.map(h => `
-        <span class="hero-badge" data-hero="${h}">
-          <img src="${getHeroImg(h)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
+        <span class="hero-badge" data-hero="${escapeHtml(h)}">
+          <img src="${escapeHtml(getHeroImg(h))}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
         </span>
       `).join('');
 
@@ -1788,28 +2117,37 @@
         ? `<span class="pool-warning-pill" title="Узкий пул: ${poolLen} гер. (риск бана в Captains Mode)">⚠️ ${poolLen} гер.</span>` 
         : '';
 
+      const bestH = bestHeroMap[p.id] || bestHeroMap[p.name];
+      const bestHeroPill = (bestH && bestH.wins > 0)
+        ? `<span class="pool-stat-pill" title="Чаще всего побеждает на: ${escapeHtml(bestH.name)} (${bestH.wins}W - ${bestH.losses}L, ${bestH.winrate}%)">🏆 ${escapeHtml(bestH.name)} (${bestH.wins}W)</span>`
+        : '';
+
+      const steamBadge = p.steamId 
+        ? `<a class="steam-link" href="https://www.opendota.com/players/${escapeHtml(p.steamId)}" target="_blank" title="Профиль игрока на OpenDota (ID: ${escapeHtml(p.steamId)})">📊</a>` 
+        : '';
+
       const actionButtons = isAdmin() ? `
         <td class="action-col">
           <div class="row-actions">
-            <button class="btn-icon" title="Редактировать" onclick="openEditModal('${p.id}')">✏️</button>
-            <button class="btn-icon del" title="Удалить" onclick="deletePlayer('${p.id}')">🗑️</button>
+            <button class="btn-icon" title="Редактировать" onclick="openEditModal('${escapeHtml(p.id)}')">✏️</button>
+            <button class="btn-icon del" title="Удалить" onclick="deletePlayer('${escapeHtml(p.id)}')">🗑️</button>
           </div>
         </td>
       ` : '';
 
       row.innerHTML = `
-        <td style="text-align: center;" class="check-col"><input type="checkbox" class="custom-check" ${p.selected ? 'checked' : ''} onchange="togglePlayerCheck('${p.id}', this.checked)"></td>
+        <td style="text-align: center;" class="check-col"><input type="checkbox" class="custom-check" ${p.selected ? 'checked' : ''} onchange="togglePlayerCheck('${escapeHtml(p.id)}', this.checked)"></td>
         <td style="text-align: center; color: #6b7280;">${visibleCount}</td>
-        <td class="player-name">${p.name}</td>
+        <td class="player-name">${escapeHtml(p.name)} ${steamBadge}</td>
         <td>
           <div class="rank-cell ${rank.class}">
             <img class="rank-icon" src="https://wsrv.nl/?url=https://www.opendota.com/assets/images/dota2/rank_icons/rank_icon_${rank.medal}.png" loading="lazy">
-            <span>${rank.name}</span>
+            <span>${escapeHtml(rank.name)}</span>
           </div>
         </td>
         <td><span class="mmr-badge">${p.mmr}</span></td>
         <td>${roleBadges}</td>
-        <td><div class="hero-list">${heroBadges} ${smallPoolPill}</div></td>
+        <td><div class="hero-list">${heroBadges} ${smallPoolPill} ${bestHeroPill}</div></td>
         ${actionButtons}
       `;
       tbody.appendChild(row);
@@ -1848,6 +2186,8 @@
     document.getElementById('edit-player-id').value = '';
     document.getElementById('form-name').value = '';
     document.getElementById('form-mmr').value = '';
+    document.getElementById('form-steam-id').value = '';
+    document.getElementById('opendota-status').textContent = '';
     currentFormPool = [];
     renderPlayerFormPool();
     document.querySelectorAll('input[name="edit-role"]').forEach(c => c.checked = false);
@@ -1861,6 +2201,8 @@
     document.getElementById('edit-player-id').value = p.id;
     document.getElementById('form-name').value = p.name;
     document.getElementById('form-mmr').value = p.mmr;
+    document.getElementById('form-steam-id').value = p.steamId || '';
+    document.getElementById('opendota-status').textContent = '';
     currentFormPool = [...p.heroes];
     renderPlayerFormPool();
     document.querySelectorAll('input[name="edit-role"]').forEach(c => c.checked = p.roles.includes(parseInt(c.value, 10)));
@@ -1873,15 +2215,15 @@
     const container = document.getElementById('player-form-pool-chips');
     container.innerHTML = '';
     if (currentFormPool.length === 0) {
-      container.innerHTML = '<span style="color:#6b7280; font-size:12px;">Пул пуст. Нажмите «➕ Выбрать из сетки».</span>';
+      container.innerHTML = '<span style="color:#6b7280; font-size:12px;">Пул пуст. Нажмите «➕ Выбрать из сетки» или «⚡ Загрузить» из OpenDota.</span>';
       return;
     }
     currentFormPool.forEach((h, index) => {
       const chip = document.createElement('div');
       chip.className = 'pool-chip';
       chip.innerHTML = `
-        <img src="${getHeroImg(h)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
-        <span>${h}</span>
+        <img src="${escapeHtml(getHeroImg(h))}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
+        <span>${escapeHtml(h)}</span>
         <span class="pool-chip-del" title="Убрать из пула" onclick="removeHeroFromPlayerPool(${index})">✕</span>
       `;
       container.appendChild(chip);
@@ -1897,22 +2239,39 @@
     const id = document.getElementById('edit-player-id').value;
     const name = document.getElementById('form-name').value.trim();
     const mmr = parseInt(document.getElementById('form-mmr').value, 10);
+    const steamRaw = document.getElementById('form-steam-id').value.trim();
+    const steamId = parseDotaAccountId(steamRaw) || steamRaw;
     const roles = Array.from(document.querySelectorAll('input[name="edit-role"]:checked')).map(c => parseInt(c.value, 10));
 
-    if (!name || isNaN(mmr) || roles.length === 0) {
-      alert('Заполните имя, корректный MMR и выберите хотя бы одну роль!');
+    if (!name || isNaN(mmr) || mmr < 0 || mmr > 20000 || roles.length === 0) {
+      alert('Укажите корректный никнейм, MMR от 0 до 20 000 и выберите хотя бы одну роль!');
       return;
     }
 
     if (id) {
       const p = players.find(x => x.id === id);
-      if (p) { p.name = name; p.mmr = mmr; p.roles = roles; p.heroes = currentFormPool; }
+      if (p) {
+        p.name = name;
+        p.mmr = mmr;
+        p.roles = roles;
+        p.heroes = currentFormPool;
+        p.steamId = steamId;
+      }
     } else {
-      players.unshift({ id: Date.now().toString(), name, mmr, roles, heroes: currentFormPool, selected: true });
+      players.unshift({
+        id: generateId(),
+        name,
+        mmr,
+        roles,
+        heroes: currentFormPool,
+        selected: true,
+        steamId: steamId
+      });
     }
 
     applySort();
     closeModal();
+    syncLobbyWithRoster();
     renderTable();
     syncCloud();
   }
@@ -1922,6 +2281,7 @@
     if (p && confirm(`Удалить игрока "${p.name}"?`)) {
       players = players.filter(x => x.id !== id);
       applySort();
+      syncLobbyWithRoster();
       renderTable();
       syncCloud();
     }
@@ -1932,12 +2292,37 @@
       players = JSON.parse(JSON.stringify(DEFAULT_ROSTER));
       applySort();
       renderTable();
-      closeLobby();
+      currentLobbyData = null;
+      document.getElementById('badge-lobby-active').style.display = 'none';
       syncCloud();
     }
   }
 
-  // --- ЛОГИКА БАЛАНСИРОВКИ ЛОББИ: СТАНДАРТ ИЛИ ПРИОРИТЕТ КОРОВ С УЧЕТОМ ПУЛА ---
+  // --- СИНХРОНИЗАЦИЯ ЛОББИ С АКТУАЛЬНЫМ СОСТАВОМ ---
+  function syncLobbyWithRoster() {
+    if (!currentLobbyData) return;
+
+    const updatePlayerData = (p) => {
+      const live = players.find(x => x.id === p.id);
+      if (live) {
+        p.name = live.name;
+        p.mmr = live.mmr;
+        p.heroes = live.heroes;
+        p.roles = live.roles;
+        p.steamId = live.steamId;
+      }
+      return p;
+    };
+
+    currentLobbyData.radiant = currentLobbyData.radiant.map(updatePlayerData);
+    currentLobbyData.dire = currentLobbyData.dire.map(updatePlayerData);
+    if (currentLobbyData.bench) {
+      currentLobbyData.bench = currentLobbyData.bench.map(updatePlayerData);
+    }
+    recalculateLobbyStats();
+  }
+
+  // --- ЛОГИКА БАЛАНСИРОВКИ ЛОББИ ---
   function generatePermutations(arr) {
     if (arr.length <= 1) return [arr];
     let res = [];
@@ -1963,7 +2348,6 @@
     let bestAssignment = null;
     let minPenalty = 999999;
     
-    // В режиме "Коры" штраф за чужую роль на керри и миде значительно жестче
     const rolePenaltyWeights = mode === 'core' 
       ? [0, 1200, 1200, 500, 200, 150] 
       : [0, 200, 200, 200, 200, 200];
@@ -1977,12 +2361,11 @@
           penalty += rolePenaltyWeights[pos];
         }
 
-        // В режиме "Коры" накладываем штраф, если у игрока на кор-слотах 1, 2 или 3 узкий пул
         if (mode === 'core') {
           const poolLen = (player.heroes && Array.isArray(player.heroes)) ? player.heroes.length : 0;
           if (pos === 1 || pos === 2) {
-            if (poolLen === 0) penalty += 700;      // Полное отсутствие пула героев
-            else if (poolLen === 1) penalty += 500; // 100% бан единственного героя
+            if (poolLen === 0) penalty += 700;
+            else if (poolLen === 1) penalty += 500;
             else if (poolLen === 2) penalty += 250;
             else if (poolLen === 3) penalty += 100;
           } else if (pos === 3) {
@@ -2009,14 +2392,13 @@
     return { assigned: bestAssignment, penalty: minPenalty };
   }
 
-  // Расчет эффективного рейтинга кора с учетом пула персонажей
   function getCoreEffectiveRating(player, pos) {
     if (!player) return 0;
     const poolSize = (player.heroes && Array.isArray(player.heroes)) ? player.heroes.length : 0;
     let poolWeight = 0;
     if (pos === 1 || pos === 2) {
-      if (poolSize === 0) poolWeight = -800;      // Без пула в CM играть невозможно
-      else if (poolSize === 1) poolWeight = -500; // Единственный герой улетает в бан
+      if (poolSize === 0) poolWeight = -800;
+      else if (poolSize === 1) poolWeight = -500;
       else if (poolSize === 2) poolWeight = -250;
       else if (poolSize === 3) poolWeight = -100;
       else if (poolSize >= 6) poolWeight = 150;
@@ -2033,6 +2415,23 @@
     let bestMatch = null;
     let minScore = 99999999;
 
+    const teammatePairWeights = getRecentTeammatesHistoryMap(3);
+
+    function getTeamRecentPairPenalty(team) {
+      let penalty = 0;
+      for (let i = 0; i < team.length; i++) {
+        for (let j = i + 1; j < team.length; j++) {
+          const idA = team[i].id || team[i].name;
+          const idB = team[j].id || team[j].name;
+          const key = idA < idB ? `${idA}___${idB}` : `${idB}___${idA}`;
+          if (teammatePairWeights[key]) {
+            penalty += teammatePairWeights[key];
+          }
+        }
+      }
+      return penalty;
+    }
+
     function evalTen(ten) {
       function getCombos(start, combo) {
         if (combo.length === 5) {
@@ -2044,7 +2443,6 @@
 
           let coreDistributionPenalty = 0;
 
-          // В режиме "Коры": не допускаем скопления всех керри или мидеров в одной команде
           if (mode === 'core') {
             const carriesInTen = ten.filter(p => p.roles && p.roles.includes(1)).length;
             const carriesInA = teamA.filter(p => p.roles && p.roles.includes(1)).length;
@@ -2061,6 +2459,7 @@
 
           const rA = assignBestRoles(teamA, mode);
           const rB = assignBestRoles(teamB, mode);
+          const teammatePenalty = getTeamRecentPairPenalty(teamA) + getTeamRecentPairPenalty(teamB);
 
           let score = 0;
           if (mode === 'core') {
@@ -2082,9 +2481,9 @@
             const midDiff = Math.abs(effMidA - effMidB);
             const offDiff = Math.abs(effOffA - effOffB);
 
-            score = (diff * 1.0) + (midDiff * 2.2) + (carryDiff * 1.8) + (offDiff * 1.1) + rA.penalty + rB.penalty + coreDistributionPenalty;
+            score = (diff * 1.0) + (midDiff * 2.2) + (carryDiff * 1.8) + (offDiff * 1.1) + rA.penalty + rB.penalty + coreDistributionPenalty + teammatePenalty;
           } else {
-            score = (diff * 1.5) + rA.penalty + rB.penalty;
+            score = (diff * 1.5) + rA.penalty + rB.penalty + teammatePenalty;
           }
 
           if (score < minScore) {
@@ -2183,18 +2582,21 @@
     }
   }
 
-  // --- АНАЛИЗ ЛИНИЙ И МАТЧАПОВ С УЧЕТОМ CAPTAINS MODE ---
+  // --- АНАЛИЗ ЛИНИЙ И МАТЧАПОВ ---
   function getBanRiskNotice(player, roleTitle) {
     if (!player) return '';
     const pool = player.heroes || [];
+    const pName = escapeHtml(player.name);
+    const rTitle = escapeHtml(roleTitle);
+
     if (pool.length === 0) {
-      return `<div class="cm-ban-warning">⚠️ <b>${player.name}</b> (${roleTitle}): нет пула (0 гер.) — критический риск бана в CM!</div>`;
+      return `<div class="cm-ban-warning">⚠️ <b>${pName}</b> (${rTitle}): нет пула (0 гер.) — критический риск бана в CM!</div>`;
     }
     if (pool.length === 1) {
-      return `<div class="cm-ban-warning">⚠️ <b>${player.name}</b> (${roleTitle}): всего 1 герой (<b>${pool[0]}</b>) — 100% бан в CM!</div>`;
+      return `<div class="cm-ban-warning">⚠️ <b>${pName}</b> (${rTitle}): всего 1 герой (<b>${escapeHtml(pool[0])}</b>) — 100% бан в CM!</div>`;
     }
     if (pool.length === 2) {
-      return `<div class="cm-ban-warning">⚠️ <b>${player.name}</b> (${roleTitle}): пул из 2 героев (<b>${pool.join(', ')}</b>) — уязвим к банам в CM!</div>`;
+      return `<div class="cm-ban-warning">⚠️ <b>${pName}</b> (${rTitle}): пул из 2 героев (<b>${pool.map(escapeHtml).join(', ')}</b>) — уязвим к банам в CM!</div>`;
     }
     return '';
   }
@@ -2247,9 +2649,9 @@
           <span style="color:#f59e0b;">Mid (1x1)</span>
         </div>
         <div class="lane-vs">
-          <span style="color:#4ade80; font-weight:700;">${radMid.name} (${radMid.mmr})</span>
+          <span style="color:#4ade80; font-weight:700;">${escapeHtml(radMid.name)} (${radMid.mmr})</span>
           <span style="color:#64748b;">vs</span>
-          <span style="color:#f87171; font-weight:700;">${direMid.name} (${direMid.mmr})</span>
+          <span style="color:#f87171; font-weight:700;">${escapeHtml(direMid.name)} (${direMid.mmr})</span>
         </div>
         ${getBanRiskNotice(radMid, "Mid")}
         ${getBanRiskNotice(direMid, "Mid")}
@@ -2545,6 +2947,9 @@
 
   function renderLobby() {
     if (!currentLobbyData) return;
+
+    syncLobbyWithRoster();
+
     const m = currentLobbyData;
 
     sortTeamByPositions(m.radiant);
@@ -2552,14 +2957,13 @@
 
     recalculateLobbyStats();
 
-    // Сноска в лобби: находим игроков с узким пулом (0, 1 или 2 героя)
     const smallPoolPlayers = [...m.radiant, ...m.dire].filter(p => !p.heroes || p.heroes.length <= 2);
     const alertBox = document.getElementById('lobby-cm-alert');
     if (smallPoolPlayers.length > 0) {
       const namesList = smallPoolPlayers.map(p => {
         const count = (p.heroes && Array.isArray(p.heroes)) ? p.heroes.length : 0;
-        const heroesStr = count > 0 ? `: ${p.heroes.join(', ')}` : ' (нет сигнатурок)';
-        return `<b>${p.name}</b> (${count} гер.${heroesStr})`;
+        const heroesStr = count > 0 ? `: ${p.heroes.map(escapeHtml).join(', ')}` : ' (нет сигнатурок)';
+        return `<b>${escapeHtml(p.name)}</b> (${count} гер.${heroesStr})`;
       }).join('; ');
       alertBox.style.display = 'flex';
       alertBox.innerHTML = `<span>⚠️ <b>Сноска для Captains Mode:</b> у игроков с узким пулом [${namesList}] высокий риск банов на первой стадии драфта!</span>`;
@@ -2591,7 +2995,6 @@
       direContainer.appendChild(emptyNotice);
     }
 
-    // Панель замены
     const benchPanel = document.getElementById('bench-panel');
     const benchContainer = document.getElementById('bench-roster');
     const benchSelect = document.getElementById('bench-add-select');
@@ -2633,7 +3036,7 @@
 
         b.innerHTML = `
           <span class="drag-handle">⠿</span>
-          <span style="font-weight:700;">${p.name}</span>
+          <span style="font-weight:700;">${escapeHtml(p.name)}</span>
           <span style="color:#fbbf24; font-family:monospace; font-size:11.5px;">${p.mmr}</span>
           ${warningPill}
           <button class="lobby-btn-mini" style="color:#4ade80; border-color:#166534;" onclick="addBenchToTeam(${idx}, 'radiant')" title="Перевести в Radiant">🟢 Rad</button>
@@ -2677,7 +3080,7 @@
           <option value="4" ${p.assignedPos == 4 ? 'selected' : ''}>Поз. 4</option>
           <option value="5" ${p.assignedPos == 5 ? 'selected' : ''}>Поз. 5</option>
         </select>
-        <span class="player-name">${p.name}</span>
+        <span class="player-name">${escapeHtml(p.name)}</span>
         <span class="mmr-badge">${p.mmr}</span>
         ${smallPoolPill}
       </div>
@@ -2685,8 +3088,8 @@
         <button class="lobby-btn-mini" onclick="switchPlayerTeam('${team}', ${idx})" title="Обменять с игроком противоположной команды">⇄ ${team === 'radiant' ? 'Dire' : 'Rad'}</button>
         <button class="lobby-btn-mini" onclick="sendPlayerToBench('${team}', ${idx})" title="Отправить на скамейку запасных">🛋️</button>
         <button class="hero-pick-btn" onclick="openHeroSelectModalForLobby('${team}', ${idx})" title="Выбрать героя для текущей карты">
-          <img src="${getHeroImg(p.pickedHero)}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
-          <span>${p.pickedHero || 'Pudge'}</span>
+          <img src="${escapeHtml(getHeroImg(p.pickedHero))}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
+          <span>${escapeHtml(p.pickedHero || 'Pudge')}</span>
           <span style="color:#9ca3af; font-size:10px;">▼</span>
         </button>
       </div>
@@ -2750,6 +3153,14 @@
     const query = document.getElementById('hero-grid-filter').value.toLowerCase().trim();
     container.innerHTML = '';
 
+    const { best: bestHeroMap } = calculatePlayerHeroStats();
+    let topStatHeroName = null;
+
+    if (heroSelectMode === 'lobbyPick' && heroSelectContext.player) {
+      const bH = bestHeroMap[heroSelectContext.player.id] || bestHeroMap[heroSelectContext.player.name];
+      if (bH && bH.wins > 0) topStatHeroName = bH.name.toLowerCase();
+    }
+
     let heroList = [...DOTA2_HEROES_CATALOG];
     if (activeGridAttr !== 'all') heroList = heroList.filter(h => h.attr === activeGridAttr);
     if (query) heroList = heroList.filter(h => h.name.toLowerCase().includes(query));
@@ -2757,6 +3168,11 @@
     if (heroSelectMode === 'lobbyPick' && heroSelectContext.player) {
       const sigs = (heroSelectContext.player.heroes || []).map(h => h.toLowerCase().trim());
       heroList.sort((a, b) => {
+        const aTop = topStatHeroName && a.name.toLowerCase() === topStatHeroName;
+        const bTop = topStatHeroName && b.name.toLowerCase() === topStatHeroName;
+        if (aTop && !bTop) return -1;
+        if (!aTop && bTop) return 1;
+
         const aSig = sigs.includes(a.name.toLowerCase());
         const bSig = sigs.includes(b.name.toLowerCase());
         if (aSig && !bSig) return -1;
@@ -2771,17 +3187,24 @@
       const card = document.createElement('div');
       card.className = 'hero-card';
 
+      const isTopStat = topStatHeroName && (hero.name.toLowerCase() === topStatHeroName);
+
       if (heroSelectMode === 'lobbyPick' && heroSelectContext.player) {
-        const isSig = (heroSelectContext.player.heroes || []).some(h => h.toLowerCase() === hero.name.toLowerCase());
-        if (isSig) card.classList.add('is-signature');
+        if (isTopStat) {
+          card.classList.add('is-top-stat');
+          card.title = 'Самый побеждающий герой этого игрока из истории матчей!';
+        } else {
+          const isSig = (heroSelectContext.player.heroes || []).some(h => h.toLowerCase() === hero.name.toLowerCase());
+          if (isSig) card.classList.add('is-signature');
+        }
       } else if (heroSelectMode === 'playerPool') {
         const isSelected = currentFormPool.includes(hero.name);
         if (isSelected) card.classList.add('is-selected');
       }
 
       card.innerHTML = `
-        <img src="${getHeroImg(hero.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
-        <span class="hero-card-name">${hero.name}</span>
+        <img src="${escapeHtml(getHeroImg(hero.name))}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
+        <span class="hero-card-name">${escapeHtml(hero.name)}</span>
       `;
 
       card.onclick = () => {
@@ -2806,7 +3229,7 @@
     });
   }
 
-  // --- КОПИРОВАНИЕ ДЛЯ DISCORD (ТОЛЬКО ПОЗИЦИЯ, ИГРОК И MMR) ---
+  // --- КОПИРОВАНИЕ ДЛЯ DISCORD ---
   function copyLobbyToDiscord() {
     if (!currentLobbyData) return;
     const m = currentLobbyData;
@@ -2832,7 +3255,7 @@
       });
     }
 
-    navigator.clipboard.writeText(text).then(() => alert('Составы команд (позиция, ник и MMR) скопированы для Discord!'));
+    navigator.clipboard.writeText(text).then(() => alert('Составы команд скопированы для Discord!'));
   }
 
   // --- ИСТОРИЯ МАТЧЕЙ ---
@@ -2856,14 +3279,14 @@
     if (!isAdmin()) return;
 
     const matchRecord = {
-      id: Date.now().toString(),
+      id: generateId(),
       date: new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
       winner: winner,
       diff: currentLobbyData.diff,
       radiantAvg: Math.round(currentLobbyData.radiantMmr / (currentLobbyData.radiant.length || 1)),
       direAvg: Math.round(currentLobbyData.direMmr / (currentLobbyData.dire.length || 1)),
-      radiant: currentLobbyData.radiant.map(p => ({ name: p.name, pos: p.assignedPos, hero: p.pickedHero, mmr: p.mmr })),
-      dire: currentLobbyData.dire.map(p => ({ name: p.name, pos: p.assignedPos, hero: p.pickedHero, mmr: p.mmr }))
+      radiant: currentLobbyData.radiant.map(p => ({ id: p.id, name: p.name, pos: p.assignedPos, hero: p.pickedHero, mmr: p.mmr })),
+      dire: currentLobbyData.dire.map(p => ({ id: p.id, name: p.name, pos: p.assignedPos, hero: p.pickedHero, mmr: p.mmr }))
     };
 
     matches.unshift(matchRecord);
@@ -2886,26 +3309,30 @@
       card.className = 'match-card';
       const isRad = m.winner === 'Radiant';
 
-      const renderPlayerLines = (teamArr) => teamArr.map(p => `
-        <div class="match-player-line">
-          <div style="display:flex; align-items:center; gap:6px;">
-            <img src="${getHeroImg(p.hero)}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'" style="width:24px; height:14px; border-radius:2px;">
-            <span style="font-weight:700;">${p.name}</span>
-            <span style="color:#94a3b8; font-size:11px;">(Поз. ${p.pos})</span>
+      const renderPlayerLines = (teamArr) => teamArr.map(p => {
+        const live = players.find(x => x.id === p.id);
+        const displayName = live ? live.name : p.name;
+        return `
+          <div class="match-player-line">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <img src="${escapeHtml(getHeroImg(p.hero))}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'" style="width:24px; height:14px; border-radius:2px;">
+              <span style="font-weight:700;">${escapeHtml(displayName)}</span>
+              <span style="color:#94a3b8; font-size:11px;">(Поз. ${p.pos})</span>
+            </div>
+            <span style="font-family:monospace; color:#fbbf24; font-size:12px;">${p.mmr} MMR</span>
           </div>
-          <span style="font-family:monospace; color:#fbbf24; font-size:12px;">${p.mmr} MMR</span>
-        </div>
-      `).join('');
+        `;
+      }).join('');
 
       card.innerHTML = `
         <div class="match-card-header">
           <div style="display:flex; align-items:center; gap:10px;">
-            <span class="winner-tag ${isRad ? 'winner-radiant' : 'winner-dire'}">Победа ${m.winner}</span>
-            <span style="color:#94a3b8; font-size:12.5px;">📅 ${m.date}</span>
+            <span class="winner-tag ${isRad ? 'winner-radiant' : 'winner-dire'}">Победа ${escapeHtml(m.winner)}</span>
+            <span style="color:#94a3b8; font-size:12.5px;">📅 ${escapeHtml(m.date)}</span>
           </div>
           <div style="display:flex; align-items:center; gap:10px;">
             <span style="font-size:12px; color:#cbd5e1; font-family:monospace;">Разница: ${m.diff} MMR</span>
-            ${isAdmin() ? `<button class="btn-icon del" title="Удалить запись" onclick="deleteMatch('${m.id}')">🗑️</button>` : ''}
+            ${isAdmin() ? `<button class="btn-icon del" title="Удалить запись" onclick="deleteMatch('${escapeHtml(m.id)}')">🗑️</button>` : ''}
           </div>
         </div>
         <div class="match-teams-grid">
@@ -2942,30 +3369,46 @@
     }
   }
 
+  // --- СТАТИСТИКА И ЛИДЕРБОРД С СИГНАТУРНЫМИ ГЕРОЯМИ ---
   function renderStats() {
     const tbody = document.getElementById('stats-table-body');
     tbody.innerHTML = '';
 
     const statsMap = {};
     players.forEach(p => {
-      statsMap[p.name] = { name: p.name, matches: 0, wins: 0, losses: 0, winrate: 0 };
+      statsMap[p.id] = { id: p.id, name: p.name, matches: 0, wins: 0, losses: 0, winrate: 0 };
     });
+
+    const getPlayerKey = (p) => {
+      if (p.id) return p.id;
+      const found = players.find(x => x.name === p.name);
+      return found ? found.id : p.name;
+    };
 
     matches.forEach(m => {
       const radWon = m.winner === 'Radiant';
-      m.radiant.forEach(p => {
-        if (!statsMap[p.name]) statsMap[p.name] = { name: p.name, matches: 0, wins: 0, losses: 0, winrate: 0 };
-        statsMap[p.name].matches++;
-        if (radWon) statsMap[p.name].wins++; else statsMap[p.name].losses++;
-      });
-      m.dire.forEach(p => {
-        if (!statsMap[p.name]) statsMap[p.name] = { name: p.name, matches: 0, wins: 0, losses: 0, winrate: 0 };
-        statsMap[p.name].matches++;
-        if (!radWon) statsMap[p.name].wins++; else statsMap[p.name].losses++;
-      });
+
+      const processTeam = (teamArr, isWinner) => {
+        teamArr.forEach(p => {
+          const key = getPlayerKey(p);
+          if (!statsMap[key]) {
+            statsMap[key] = { id: p.id || key, name: p.name, matches: 0, wins: 0, losses: 0, winrate: 0 };
+          }
+          statsMap[key].matches++;
+          if (isWinner) statsMap[key].wins++;
+          else statsMap[key].losses++;
+        });
+      };
+
+      processTeam(m.radiant, radWon);
+      processTeam(m.dire, !radWon);
     });
 
+    const { best: bestHeroMap } = calculatePlayerHeroStats();
+
     const statList = Object.values(statsMap).map(s => {
+      const live = players.find(p => p.id === s.id);
+      if (live) s.name = live.name;
       s.winrate = s.matches > 0 ? Math.round((s.wins / s.matches) * 100) : 0;
       return s;
     });
@@ -2975,9 +3418,36 @@
     statList.forEach((s, idx) => {
       const row = document.createElement('tr');
       const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`;
+
+      const bestHero = bestHeroMap[s.id] || bestHeroMap[s.name];
+      let bestHeroHtml = `<span style="color:#64748b; font-size:12px;">—</span>`;
+
+      if (bestHero && bestHero.wins > 0) {
+        bestHeroHtml = `
+          <div style="display:inline-flex; align-items:center; gap:8px;">
+            <img src="${escapeHtml(getHeroImg(bestHero.name))}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'" style="width:30px; height:17px; border-radius:3px; object-fit:cover; border:1px solid rgba(255,255,255,0.15);">
+            <div style="display:flex; flex-direction:column; line-height:1.2;">
+              <span style="font-weight:700; font-size:12.5px; color:#f3f4f6;">${escapeHtml(bestHero.name)}</span>
+              <span style="font-size:11px; font-family:monospace;">
+                <span style="color:#4ade80; font-weight:700;">${bestHero.wins}W</span> - 
+                <span style="color:#f87171;">${bestHero.losses}L</span> 
+                <span style="color:#fbbf24; font-weight:700;">(${bestHero.winrate}%)</span>
+              </span>
+            </div>
+          </div>
+        `;
+      } else if (bestHero && bestHero.matches > 0) {
+        bestHeroHtml = `
+          <div style="display:inline-flex; align-items:center; gap:8px;">
+            <img src="${escapeHtml(getHeroImg(bestHero.name))}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'" style="width:30px; height:17px; border-radius:3px; object-fit:cover; border:1px solid rgba(255,255,255,0.15);">
+            <span style="font-size:12px; color:#94a3b8;">${escapeHtml(bestHero.name)} (0W - ${bestHero.losses}L)</span>
+          </div>
+        `;
+      }
+
       row.innerHTML = `
         <td style="text-align:center; font-weight:700; color:#fcd34d;">${medal}</td>
-        <td class="player-name">${s.name}</td>
+        <td class="player-name">${escapeHtml(s.name)}</td>
         <td style="text-align:center; font-weight:700;">${s.matches}</td>
         <td style="text-align:center; color:#4ade80; font-weight:700;">${s.wins}</td>
         <td style="text-align:center; color:#f87171; font-weight:700;">${s.losses}</td>
@@ -2987,6 +3457,7 @@
           </div>
           <span style="font-family:monospace; font-weight:800; color:#f3f4f6;">${s.winrate}%</span>
         </td>
+        <td>${bestHeroHtml}</td>
       `;
       tbody.appendChild(row);
     });
