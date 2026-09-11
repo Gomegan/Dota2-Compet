@@ -1058,6 +1058,7 @@
           <button id="admin-toggle-btn" class="btn btn-admin" onclick="toggleAdminLogin()">🔑 Админ</button>
           <button id="btn-add-player" class="btn btn-add" style="display: none;" onclick="openAddModal()">➕ Игрок</button>
           <button class="btn btn-random10" onclick="selectRandom10()">🎲 Выбрать 10</button>
+          <!-- ДВА ВАРИАНТА ПОДБОРА ЛОББИ -->
           <button class="btn btn-lobby" onclick="generateLobby('standard')" title="Стандартный подбор по общему MMR">⚔️ Собрать 5x5</button>
           <button class="btn btn-lobby-core" onclick="generateLobby('core')" title="Подбор с приоритетом равных кор-позиций и пула героев">👑 Баланс по корам</button>
           <button class="btn btn-manual" onclick="initManualLobby()" title="Собрать лобби вручную">🛠️ Вручную</button>
@@ -1782,8 +1783,9 @@
         </span>
       `).join('');
 
-      const smallPoolPill = (p.heroes && p.heroes.length <= 2) 
-        ? `<span class="pool-warning-pill" title="Узкий пул: ${p.heroes.length} гер. (риск бана в Captains Mode)">⚠️ ${p.heroes.length} гер.</span>` 
+      const poolLen = (p.heroes && Array.isArray(p.heroes)) ? p.heroes.length : 0;
+      const smallPoolPill = (poolLen <= 2) 
+        ? `<span class="pool-warning-pill" title="Узкий пул: ${poolLen} гер. (риск бана в Captains Mode)">⚠️ ${poolLen} гер.</span>` 
         : '';
 
       const actionButtons = isAdmin() ? `
@@ -1961,10 +1963,10 @@
     let bestAssignment = null;
     let minPenalty = 999999;
     
-    // В режиме "Коры" штраф за чужую роль на керри и миде значительно выше
+    // В режиме "Коры" штраф за чужую роль на керри и миде значительно жестче
     const rolePenaltyWeights = mode === 'core' 
-      ? [0, 350, 350, 200, 100, 80] 
-      : [0, 150, 150, 150, 150, 150];
+      ? [0, 1200, 1200, 500, 200, 150] 
+      : [0, 200, 200, 200, 200, 200];
 
     for (let i = 0; i < PRECOMPUTED_PERMS.length; i++) {
       const order = PRECOMPUTED_PERMS[i];
@@ -1975,15 +1977,17 @@
           penalty += rolePenaltyWeights[pos];
         }
 
-        // В режиме "Коры" накладываем штраф, если у игрока на слотах 1, 2 или 3 узкий пул героев
+        // В режиме "Коры" накладываем штраф, если у игрока на кор-слотах 1, 2 или 3 узкий пул
         if (mode === 'core') {
           const poolLen = (player.heroes && Array.isArray(player.heroes)) ? player.heroes.length : 0;
           if (pos === 1 || pos === 2) {
-            if (poolLen === 1) penalty += 450; // Риск бана единственного героя
-            else if (poolLen === 2) penalty += 220;
-            else if (poolLen === 3) penalty += 80;
+            if (poolLen === 0) penalty += 700;      // Полное отсутствие пула героев
+            else if (poolLen === 1) penalty += 500; // 100% бан единственного героя
+            else if (poolLen === 2) penalty += 250;
+            else if (poolLen === 3) penalty += 100;
           } else if (pos === 3) {
-            if (poolLen === 1) penalty += 250;
+            if (poolLen === 0) penalty += 400;
+            else if (poolLen === 1) penalty += 250;
             else if (poolLen === 2) penalty += 120;
           }
         }
@@ -2011,12 +2015,14 @@
     const poolSize = (player.heroes && Array.isArray(player.heroes)) ? player.heroes.length : 0;
     let poolWeight = 0;
     if (pos === 1 || pos === 2) {
-      if (poolSize === 1) poolWeight = -600;      // Единственный герой легко улетает в бан
-      else if (poolSize === 2) poolWeight = -300; // Риск двойного бана
+      if (poolSize === 0) poolWeight = -800;      // Без пула в CM играть невозможно
+      else if (poolSize === 1) poolWeight = -500; // Единственный герой улетает в бан
+      else if (poolSize === 2) poolWeight = -250;
       else if (poolSize === 3) poolWeight = -100;
-      else if (poolSize >= 6) poolWeight = 150;   // Широкий пул дает преимущество
+      else if (poolSize >= 6) poolWeight = 150;
     } else if (pos === 3) {
-      if (poolSize === 1) poolWeight = -350;
+      if (poolSize === 0) poolWeight = -500;
+      else if (poolSize === 1) poolWeight = -350;
       else if (poolSize === 2) poolWeight = -150;
       else if (poolSize >= 5) poolWeight = 100;
     }
@@ -2036,12 +2042,28 @@
           const mmrB = teamB.reduce((s, p) => s + p.mmr, 0);
           const diff = Math.abs(mmrA - mmrB);
 
+          let coreDistributionPenalty = 0;
+
+          // В режиме "Коры": не допускаем скопления всех керри или мидеров в одной команде
+          if (mode === 'core') {
+            const carriesInTen = ten.filter(p => p.roles && p.roles.includes(1)).length;
+            const carriesInA = teamA.filter(p => p.roles && p.roles.includes(1)).length;
+            if (carriesInTen >= 2 && (carriesInA === 0 || carriesInA === carriesInTen)) {
+              coreDistributionPenalty += 4000;
+            }
+
+            const midsInTen = ten.filter(p => p.roles && p.roles.includes(2)).length;
+            const midsInA = teamA.filter(p => p.roles && p.roles.includes(2)).length;
+            if (midsInTen >= 2 && (midsInA === 0 || midsInA === midsInTen)) {
+              coreDistributionPenalty += 4000;
+            }
+          }
+
           const rA = assignBestRoles(teamA, mode);
           const rB = assignBestRoles(teamB, mode);
 
           let score = 0;
           if (mode === 'core') {
-            // Взвешиваем разницу между мидерами, керри и оффлейнерами с учетом пула героев
             const p1A = rA.assigned.find(p => p.assignedPos === 1);
             const p1B = rB.assigned.find(p => p.assignedPos === 1);
             const p2A = rA.assigned.find(p => p.assignedPos === 2);
@@ -2060,9 +2082,8 @@
             const midDiff = Math.abs(effMidA - effMidB);
             const offDiff = Math.abs(effOffA - effOffB);
 
-            score = (diff * 1.0) + (midDiff * 2.2) + (carryDiff * 1.8) + (offDiff * 1.1) + rA.penalty + rB.penalty;
+            score = (diff * 1.0) + (midDiff * 2.2) + (carryDiff * 1.8) + (offDiff * 1.1) + rA.penalty + rB.penalty + coreDistributionPenalty;
           } else {
-            // Стандартный алгоритм
             score = (diff * 1.5) + rA.penalty + rB.penalty;
           }
 
@@ -2166,11 +2187,14 @@
   function getBanRiskNotice(player, roleTitle) {
     if (!player) return '';
     const pool = player.heroes || [];
+    if (pool.length === 0) {
+      return `<div class="cm-ban-warning">⚠️ <b>${player.name}</b> (${roleTitle}): нет пула (0 гер.) — критический риск бана в CM!</div>`;
+    }
     if (pool.length === 1) {
-      return `<div class="cm-ban-warning">⚠️ <b>${player.name}</b> (${roleTitle}) имеет всего 1 героя (<b>${pool[0]}</b>) — 100% бан в CM!</div>`;
+      return `<div class="cm-ban-warning">⚠️ <b>${player.name}</b> (${roleTitle}): всего 1 герой (<b>${pool[0]}</b>) — 100% бан в CM!</div>`;
     }
     if (pool.length === 2) {
-      return `<div class="cm-ban-warning">⚠️ <b>${player.name}</b> (${roleTitle}) имеет пул из 2 героев (<b>${pool.join(', ')}</b>) — уязвим к банам в CM!</div>`;
+      return `<div class="cm-ban-warning">⚠️ <b>${player.name}</b> (${roleTitle}): пул из 2 героев (<b>${pool.join(', ')}</b>) — уязвим к банам в CM!</div>`;
     }
     return '';
   }
@@ -2528,11 +2552,15 @@
 
     recalculateLobbyStats();
 
-    // Сноска в лобби: находим игроков с 1 или 2 героями
-    const smallPoolPlayers = [...m.radiant, ...m.dire].filter(p => p.heroes && p.heroes.length <= 2);
+    // Сноска в лобби: находим игроков с узким пулом (0, 1 или 2 героя)
+    const smallPoolPlayers = [...m.radiant, ...m.dire].filter(p => !p.heroes || p.heroes.length <= 2);
     const alertBox = document.getElementById('lobby-cm-alert');
     if (smallPoolPlayers.length > 0) {
-      const namesList = smallPoolPlayers.map(p => `<b>${p.name}</b> (${p.heroes.length} гер: ${p.heroes.join(', ')})`).join('; ');
+      const namesList = smallPoolPlayers.map(p => {
+        const count = (p.heroes && Array.isArray(p.heroes)) ? p.heroes.length : 0;
+        const heroesStr = count > 0 ? `: ${p.heroes.join(', ')}` : ' (нет сигнатурок)';
+        return `<b>${p.name}</b> (${count} гер.${heroesStr})`;
+      }).join('; ');
       alertBox.style.display = 'flex';
       alertBox.innerHTML = `<span>⚠️ <b>Сноска для Captains Mode:</b> у игроков с узким пулом [${namesList}] высокий риск банов на первой стадии драфта!</span>`;
     } else {
@@ -2600,7 +2628,8 @@
         b.ondragleave = handleItemDragLeave;
         b.ondrop = (e) => handleItemDrop(e, 'bench', idx);
 
-        const warningPill = (p.heroes && p.heroes.length <= 2) ? `<span class="pool-warning-pill">⚠️ ${p.heroes.length} гер.</span>` : '';
+        const bPoolLen = (p.heroes && Array.isArray(p.heroes)) ? p.heroes.length : 0;
+        const warningPill = (bPoolLen <= 2) ? `<span class="pool-warning-pill">⚠️ ${bPoolLen} гер.</span>` : '';
 
         b.innerHTML = `
           <span class="drag-handle">⠿</span>
@@ -2633,8 +2662,9 @@
     row.ondragleave = handleItemDragLeave;
     row.ondrop = (e) => handleItemDrop(e, team, idx);
 
-    const smallPoolPill = (p.heroes && p.heroes.length <= 2) 
-      ? `<span class="pool-warning-pill" title="Узкий пул: всего ${p.heroes.length} гер. — риск бана в Captains Mode!">⚠️ ${p.heroes.length} гер.</span>` 
+    const poolLen = (p.heroes && Array.isArray(p.heroes)) ? p.heroes.length : 0;
+    const smallPoolPill = (poolLen <= 2) 
+      ? `<span class="pool-warning-pill" title="Узкий пул: всего ${poolLen} гер. — риск бана в Captains Mode!">⚠️ ${poolLen} гер.</span>` 
       : '';
 
     row.innerHTML = `
