@@ -1981,7 +1981,7 @@
     return pairWeights;
   }
 
-  // --- ИНТЕГРАЦИЯ С OPENDOTA API ---
+// --- ИНТЕГРАЦИЯ С OPENDOTA API (АНАЛИЗ ЗА ПОСЛЕДНИЕ 6 МЕСЯЦЕВ) ---
   async function fetchOpenDotaData() {
     const steamInput = document.getElementById('form-steam-id');
     const statusEl = document.getElementById('opendota-status');
@@ -1997,28 +1997,28 @@
     const origBtnText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '⏳ Поиск...';
-    statusEl.innerHTML = '<span style="color:#60a5fa;">⏳ Запрос данных игрока из OpenDota...</span>';
+    statusEl.innerHTML = '<span style="color:#60a5fa;">⏳ Запрос профиля и ранга...</span>';
 
     try {
-      // 1. Профиль игрока и ранг/MMR
+      // 1. Запрос профиля, ранга и MMR
       const pRes = await fetch(`https://api.opendota.com/api/players/${accountId}`);
       if (!pRes.ok) throw new Error('Player not found');
       const pData = await pRes.json();
 
       if (!pData || !pData.profile) {
-        statusEl.innerHTML = '<span style="color:#f59e0b;">⚠️ Профиль не найден или аккаунт скрыт в настройках приватности Dota 2.</span>';
+        statusEl.innerHTML = '<span style="color:#f59e0b;">⚠️ Профиль не найден или скрыт настройками приватности Dota 2.</span>';
         btn.disabled = false;
         btn.innerHTML = origBtnText;
         return;
       }
 
-      // Заполняем никнейм
+      // Никнейм
       const currentNameInput = document.getElementById('form-name');
       if (pData.profile.personaname) {
         currentNameInput.value = pData.profile.personaname;
       }
 
-      // Определяем актуальный MMR
+      // Определение MMR
       let detectedMmr = pData.mmr_estimate?.estimate || pData.competitive_rank;
       if (!detectedMmr && pData.rank_tier) {
         detectedMmr = estimateMmrFromRankTier(pData.rank_tier, pData.leaderboard_rank);
@@ -2027,35 +2027,33 @@
         document.getElementById('form-mmr').value = Math.max(0, Math.min(20000, Math.round(detectedMmr)));
       }
 
-      // 2. Последние сыгранные матчи (последние 20 игр)
-      statusEl.innerHTML = '<span style="color:#60a5fa;">⏳ Загрузка недавних героев игрока...</span>';
-      const mRes = await fetch(`https://api.opendota.com/api/players/${accountId}/recentMatches`);
+      // 2. Анализ пула персонажей за последние 180 дней (~6 месяцев)
+      statusEl.innerHTML = '<span style="color:#60a5fa;">⏳ Анализ героев за последние полгода (180 дней)...</span>';
       let recentHeroes = [];
+      let isFallback = false;
 
-      if (mRes.ok) {
-        const recentMatches = await mRes.json();
-        if (Array.isArray(recentMatches) && recentMatches.length > 0) {
-          const heroCounts = {};
-          recentMatches.forEach(m => {
-            if (m.hero_id && DOTA2_HERO_ID_MAP[m.hero_id]) {
-              const hName = DOTA2_HERO_ID_MAP[m.hero_id];
-              heroCounts[hName] = (heroCounts[hName] || 0) + 1;
-            }
-          });
-          recentHeroes = Object.keys(heroCounts).sort((a, b) => heroCounts[b] - heroCounts[a]);
+      const h6mRes = await fetch(`https://api.opendota.com/api/players/${accountId}/heroes?date=180`);
+      if (h6mRes.ok) {
+        const heroes6m = await h6mRes.json();
+        if (Array.isArray(heroes6m)) {
+          recentHeroes = heroes6m
+            .filter(h => h.games > 0 && DOTA2_HERO_ID_MAP[h.hero_id])
+            .sort((a, b) => b.games - a.games || b.win - a.win)
+            .map(h => DOTA2_HERO_ID_MAP[h.hero_id]);
         }
       }
 
-      // Фолбэк на топ сыгранных героев, если recentMatches пуст
+      // Фолбэк: если за последние полгода матчей нет, берём сигнатурки за всё время
       if (recentHeroes.length === 0) {
-        const hRes = await fetch(`https://api.opendota.com/api/players/${accountId}/heroes`);
-        if (hRes.ok) {
-          const allHeroes = await hRes.json();
+        isFallback = true;
+        const hAllRes = await fetch(`https://api.opendota.com/api/players/${accountId}/heroes`);
+        if (hAllRes.ok) {
+          const allHeroes = await hAllRes.json();
           if (Array.isArray(allHeroes)) {
             recentHeroes = allHeroes
               .filter(h => h.games > 0 && DOTA2_HERO_ID_MAP[h.hero_id])
-              .sort((a, b) => b.games - a.games)
-              .slice(0, 8)
+              .sort((a, b) => b.games - a.games || b.win - a.win)
+              .slice(0, 10)
               .map(h => DOTA2_HERO_ID_MAP[h.hero_id]);
           }
         }
@@ -2069,9 +2067,11 @@
       steamInput.value = accountId;
       const rankInfo = pData.rank_tier ? getRankInfo(estimateMmrFromRankTier(pData.rank_tier, pData.leaderboard_rank) || 3000) : null;
       const rankText = rankInfo ? ` (${rankInfo.name})` : '';
-      statusEl.innerHTML = `<span style="color:#4ade80;">✅ Успешно: <b>${escapeHtml(pData.profile.personaname)}</b>, MMR: ~${detectedMmr || '?'}${rankText}, пула: ${recentHeroes.length} гер.</span>`;
+      const periodLabel = isFallback ? 'за всё время (нет игр за 6 мес.)' : 'за последние 6 мес.';
+
+      statusEl.innerHTML = `<span style="color:#4ade80;">✅ <b>${escapeHtml(pData.profile.personaname)}</b>: ~${detectedMmr || '?'}${rankText}, пула: ${recentHeroes.length} гер. [${periodLabel}]</span>`;
     } catch (err) {
-      statusEl.innerHTML = '<span style="color:#ef4444;">❌ Ошибка загрузки из OpenDota. Проверьте ID или соединение с сетью.</span>';
+      statusEl.innerHTML = '<span style="color:#ef4444;">❌ Ошибка получения данных из OpenDota. Проверьте ID или доступ к сети.</span>';
     } finally {
       btn.disabled = false;
       btn.innerHTML = origBtnText;
