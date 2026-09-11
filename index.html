@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Dota 2 Team Manager & Matchmaker</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23b91c1c%22><path d=%22M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z%22/></svg>">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -19,6 +20,7 @@
     --attr-int: #3b82f6;
     --attr-uni: #a855f7;
   }
+  * { box-sizing: border-box; }
   body {
     background: var(--bg-main);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -26,8 +28,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 24px 14px;
+    padding: 20px 12px;
     margin: 0;
+    overflow-x: hidden;
   }
   .app-container {
     max-width: 1260px;
@@ -43,8 +46,13 @@
     gap: 8px;
     border-bottom: 2px solid #242a38;
     padding-bottom: 8px;
-    flex-wrap: wrap;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
   }
+  .nav-tabs::-webkit-scrollbar { height: 4px; }
+  .nav-tabs::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
   .tab-btn {
     background: #171b24;
     border: 1px solid #2d3648;
@@ -57,6 +65,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
     transition: all 0.15s ease;
   }
   .tab-btn:hover { background: #222938; color: #fff; }
@@ -69,7 +78,7 @@
     background: rgba(0,0,0,0.35);
     padding: 2px 7px;
     border-radius: 12px;
-    font-size: 11.5px;
+    font-size: 11px;
   }
 
   /* Панель управления */
@@ -77,7 +86,7 @@
     background: #171b24;
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 12px 18px;
+    padding: 12px 16px;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -108,6 +117,15 @@
     border-color: #ef4444;
     color: #fff;
   }
+
+  .controls-search-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+  }
   .search-box {
     background: #101218;
     border: 1px solid #333c4d;
@@ -117,31 +135,35 @@
     font-size: 13.5px;
     min-width: 170px;
     outline: none;
+    flex: 1 1 180px;
   }
   .search-box:focus { border-color: #60a5fa; }
 
   .action-btns {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
     align-items: center;
   }
   .btn {
     border: none;
     color: #fff;
-    padding: 7px 13px;
+    padding: 7px 12px;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 700;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     transition: transform 0.1s, opacity 0.15s;
+    user-select: none;
   }
   .btn:hover { opacity: 0.9; transform: translateY(-1px); }
   .btn-add { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
   .btn-lobby { background: linear-gradient(135deg, #d97706, #b45309); }
+  .btn-lobby-core { background: linear-gradient(135deg, #e11d48, #be123c); }
   .btn-manual { background: linear-gradient(135deg, #475569, #334155); border: 1px solid #475569; }
   .btn-random10 { background: #374151; }
   .btn-export { background: linear-gradient(135deg, #10b981, #059669); }
@@ -173,11 +195,12 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
   }
   .header-title {
-    font-size: 19px;
+    font-size: 18px;
     font-weight: 800;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
   }
   .sync-badge {
@@ -192,7 +215,7 @@
     gap: 5px;
   }
 
-  .stats-badges { display: flex; gap: 10px; }
+  .stats-badges { display: flex; gap: 8px; }
   .stat-card {
     background: rgba(0, 0, 0, 0.45);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -215,10 +238,16 @@
     font-family: monospace;
   }
 
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
   table {
     width: 100%;
     border-collapse: collapse;
     font-size: 13.5px;
+    min-width: 680px;
   }
   th {
     background: #0f1218;
@@ -254,7 +283,7 @@
     font-size: 14px;
   }
 
-  /* Стили и яркое свечение рангов */
+  /* Свечение рангов */
   .rank-cell {
     display: inline-flex;
     align-items: center;
@@ -353,6 +382,20 @@
     transform: translateX(-50%) translateY(0);
   }
 
+  .pool-warning-pill {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid #ef4444;
+    color: #fca5a5;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    cursor: help;
+  }
+
   .row-actions {
     display: flex;
     gap: 6px;
@@ -373,12 +416,8 @@
 
   /* Чистый экспорт в PNG */
   .exporting .action-col,
-  .exporting .check-col {
-    display: none !important;
-  }
-  .exporting tr.row-selected {
-    background: transparent !important;
-  }
+  .exporting .check-col { display: none !important; }
+  .exporting tr.row-selected { background: transparent !important; }
 
   /* Лобби 5x5 */
   .lobby-header {
@@ -407,9 +446,6 @@
     gap: 14px;
     padding: 16px;
   }
-  @media (max-width: 960px) {
-    .teams-container { grid-template-columns: 1fr; }
-  }
   .team-panel {
     background: #171b24;
     border-radius: 8px;
@@ -436,9 +472,24 @@
     border-bottom: 2px solid #ef4444;
   }
 
+  /* Сноска/уведомление о маленьком пуле в лобби */
+  .lobby-cm-alert {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 12px 16px 0 16px;
+    font-size: 12px;
+    color: #fca5a5;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.4;
+  }
+
   /* Drag-and-Drop стили */
   .lobby-list {
-    min-height: 240px;
+    min-height: 220px;
     transition: background 0.15s ease, border-color 0.15s ease;
   }
   .drop-zone-active {
@@ -446,7 +497,6 @@
     outline: 2px dashed #3b82f6 !important;
     outline-offset: -3px;
   }
-  /* Подсветка конкретного игрока, на которого наведена мышь для замены */
   .drag-over-item {
     outline: 2px solid #f59e0b !important;
     background: rgba(245, 158, 11, 0.16) !important;
@@ -464,28 +514,22 @@
     cursor: grab;
     transition: background 0.15s ease, opacity 0.15s ease, transform 0.12s ease;
   }
-  .lobby-player-row:active {
-    cursor: grabbing;
-  }
-  .lobby-player-row.dragging {
-    opacity: 0.35;
-    background: #2563eb22;
-  }
+  .lobby-player-row:active { cursor: grabbing; }
+  .lobby-player-row.dragging { opacity: 0.35; background: #2563eb22; }
   .lobby-player-row:last-child { border-bottom: none; }
   .lobby-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     min-width: 190px;
+    flex-wrap: wrap;
   }
-
-  /* Элементы управления внутри строки лобби */
   .drag-handle {
     color: #64748b;
-    font-size: 13px;
+    font-size: 14px;
     user-select: none;
     cursor: grab;
-    padding: 0 2px;
+    padding: 2px;
   }
   .pos-select {
     background: #10131c;
@@ -499,12 +543,19 @@
     outline: none;
   }
   .pos-select:focus { border-color: #60a5fa; }
+  .lobby-right-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
   .lobby-btn-mini {
     background: #1e2433;
     border: 1px solid #374151;
     color: #cbd5e1;
     border-radius: 4px;
-    padding: 4px 7px;
+    padding: 4px 8px;
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
@@ -515,7 +566,6 @@
     color: #fff;
     border-color: #60a5fa;
   }
-
   .hero-pick-btn {
     background: #10131a;
     border: 1px solid #374151;
@@ -543,6 +593,81 @@
     border: 1px solid rgba(255,255,255,0.2);
   }
 
+  /* Анализ линий и матчапов */
+  .laning-card {
+    margin: 12px 16px 16px 16px;
+    background: #10131b;
+    border: 1px solid #283040;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .laning-card-header {
+    background: #171b24;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #283040;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .laning-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
+  .lane-col {
+    background: #151923;
+    border: 1px solid #283245;
+    border-radius: 6px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .lane-name {
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #f3f4f6;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #283245;
+    padding-bottom: 4px;
+  }
+  .lane-vs {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+  }
+  .lane-advantage {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 6px;
+    border-radius: 4px;
+    text-align: center;
+    margin-top: 2px;
+  }
+  .adv-rad { background: rgba(34, 197, 94, 0.18); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+  .adv-dire { background: rgba(239, 68, 68, 0.18); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+  .adv-even { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
+
+  .cm-ban-warning {
+    font-size: 10.5px;
+    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 3px 6px;
+    border-radius: 4px;
+    margin-top: 3px;
+    line-height: 1.3;
+  }
+
   .bench-panel {
     background: #141720;
     border-top: 1px solid #283040;
@@ -568,9 +693,7 @@
     flex-wrap: wrap;
     gap: 8px;
     min-height: 44px;
-    padding: 6px;
-    border-radius: 6px;
-    transition: background 0.15s ease;
+    padding: 4px 0;
   }
   .bench-badge {
     background: #1e2433;
@@ -583,7 +706,7 @@
     font-size: 12.5px;
     cursor: grab;
     user-select: none;
-    transition: transform 0.12s ease, opacity 0.12s ease, background 0.15s ease;
+    transition: transform 0.12s ease, opacity 0.12s ease;
   }
   .bench-badge:active { cursor: grabbing; }
   .bench-badge.dragging { opacity: 0.35; transform: scale(0.95); }
@@ -604,11 +727,7 @@
     align-items: center;
     margin-bottom: 10px;
   }
-  .attr-filters {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
-  }
+  .attr-filters { display: flex; gap: 5px; flex-wrap: wrap; }
   .attr-btn {
     background: #1a202c;
     border: 1px solid #333d4d;
@@ -740,7 +859,6 @@
     font-weight: bold;
     padding-left: 2px;
   }
-  .pool-chip-del:hover { color: #f87171; }
 
   /* История матчей */
   .match-card {
@@ -759,6 +877,8 @@
     align-items: center;
     border-bottom: 1px solid #262e3d;
     padding-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
   }
   .winner-tag {
     font-size: 12px;
@@ -774,9 +894,6 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 14px;
-  }
-  @media (max-width: 768px) {
-    .match-teams-grid { grid-template-columns: 1fr; }
   }
   .match-team-col {
     background: #11141c;
@@ -794,7 +911,7 @@
 
   /* Статистика */
   .winrate-bar-bg {
-    width: 100px;
+    width: 90px;
     height: 7px;
     background: #374151;
     border-radius: 4px;
@@ -818,6 +935,7 @@
     align-items: center;
     z-index: 1000;
     backdrop-filter: blur(4px);
+    padding: 10px;
   }
   #hero-select-modal { z-index: 1100; }
   .modal-window {
@@ -825,20 +943,22 @@
     border: 1px solid #374151;
     border-radius: 12px;
     max-width: 520px;
-    width: 90%;
-    padding: 24px;
+    width: 100%;
+    padding: 22px;
     box-shadow: 0 20px 50px rgba(0,0,0,0.8);
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
+    max-height: 90vh;
+    overflow-y: auto;
   }
   .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #2d3446;
-    padding-bottom: 12px;
-    font-size: 18px;
+    padding-bottom: 10px;
+    font-size: 17px;
     font-weight: 700;
   }
   .form-group {
@@ -860,19 +980,20 @@
     color: #fff;
     font-size: 14px;
     outline: none;
+    width: 100%;
   }
   .form-input:focus { border-color: #3b82f6; }
   .role-checkboxes {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     margin-top: 4px;
   }
   .role-label {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 13px;
+    font-size: 12.5px;
     cursor: pointer;
     background: #11141c;
     padding: 5px 10px;
@@ -883,7 +1004,19 @@
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    margin-top: 8px;
+    margin-top: 6px;
+  }
+
+  @media (max-width: 860px) {
+    body { padding: 12px 8px; }
+    .teams-container { grid-template-columns: 1fr; padding: 10px; }
+    .laning-grid { grid-template-columns: 1fr; }
+    .match-teams-grid { grid-template-columns: 1fr; }
+    .controls-panel { flex-direction: column; align-items: stretch; }
+    .filter-group { justify-content: center; width: 100%; }
+    .filter-btn { flex: 1 1 auto; text-align: center; }
+    .controls-search-actions { flex-direction: column; align-items: stretch; width: 100%; }
+    .action-btns .btn { flex: 1 1 calc(50% - 4px); }
   }
 </style>
 </head>
@@ -897,13 +1030,13 @@
       👥 Состав игроков <span id="badge-roster-count" class="badge-counter">0</span>
     </button>
     <button id="tab-btn-lobby" class="tab-btn" onclick="switchTab('lobby')">
-      ⚔️ Лобби и Драфт <span id="badge-lobby-active" class="badge-counter" style="display:none; color:#f59e0b;">●</span>
+      ⚔️ Лобби матча <span id="badge-lobby-active" class="badge-counter" style="display:none; color:#f59e0b;">●</span>
     </button>
     <button id="tab-btn-history" class="tab-btn" onclick="switchTab('history')">
       📜 История матчей <span id="badge-history-count" class="badge-counter">0</span>
     </button>
     <button id="tab-btn-stats" class="tab-btn" onclick="switchTab('stats')">
-      📊 Таблица лидеров (Винрейт)
+      📊 Таблица лидеров
     </button>
   </div>
 
@@ -919,14 +1052,18 @@
         <button class="filter-btn" onclick="setPosFilter('5', this)">Hard Sup</button>
       </div>
 
-      <div style="display: flex; gap: 8px; align-items: center;">
+      <div class="controls-search-actions">
         <input type="text" id="search-input" class="search-box" placeholder="Поиск ника или героя..." oninput="renderTable()">
         <div class="action-btns">
           <button id="admin-toggle-btn" class="btn btn-admin" onclick="toggleAdminLogin()">🔑 Админ</button>
           <button id="btn-add-player" class="btn btn-add" style="display: none;" onclick="openAddModal()">➕ Игрок</button>
           <button class="btn btn-random10" onclick="selectRandom10()">🎲 Выбрать 10</button>
-          <button class="btn btn-lobby" onclick="generateLobby()">⚔️ Собрать 5x5</button>
+          <button class="btn btn-lobby" onclick="generateLobby('standard')" title="Стандартный подбор по общему MMR">⚔️ Собрать 5x5</button>
+          <button class="btn btn-lobby-core" onclick="generateLobby('core')" title="Подбор с приоритетом равных кор-позиций и пула героев">👑 Баланс по корам</button>
           <button class="btn btn-manual" onclick="initManualLobby()" title="Собрать лобби вручную">🛠️ Вручную</button>
+          <button id="btn-backup-json" class="btn btn-random10" style="display: none;" onclick="exportBackupJSON()" title="Скачать бэкап базы (.json)">💾 Бэкап</button>
+          <button id="btn-import-json" class="btn btn-reset" style="display: none;" onclick="document.getElementById('file-import-input').click()" title="Загрузить базу из файла">📥 Импорт</button>
+          <input type="file" id="file-import-input" accept=".json" style="display: none;" onchange="importBackupJSON(event)">
           <button id="btn-export" class="btn btn-export" onclick="exportToPNG()">📸 Скачать</button>
           <button id="btn-reset-roster" class="btn btn-reset" style="display: none;" onclick="resetToDefault()" title="Восстановить исходный список из 18 игроков">🔄</button>
         </div>
@@ -955,30 +1092,33 @@
         </div>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th style="width: 32px; text-align: center;" class="check-col"><input type="checkbox" id="check-all" onchange="toggleSelectAll(this)" title="Выбрать всех"></th>
-            <th style="width: 36px; text-align: center;">#</th>
-            <th style="width: 140px;" class="sortable" onclick="sortTable('name')">Игрок ⬍</th>
-            <th style="width: 130px;">Звание</th>
-            <th style="width: 95px;" class="sortable" onclick="sortTable('mmr')">MMR ⬍</th>
-            <th style="width: 155px;">Позиция</th>
-            <th>Пул героев</th>
-            <th id="th-actions" style="width: 80px; text-align: right; display: none;" class="action-col">Действия</th>
-          </tr>
-        </thead>
-        <tbody id="roster-body"></tbody>
-      </table>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 32px; text-align: center;" class="check-col"><input type="checkbox" id="check-all" onchange="toggleSelectAll(this)" title="Выбрать всех"></th>
+              <th style="width: 36px; text-align: center;">#</th>
+              <th style="width: 140px;" class="sortable" onclick="sortTable('name')">Игрок ⬍</th>
+              <th style="width: 130px;">Звание</th>
+              <th style="width: 95px;" class="sortable" onclick="sortTable('mmr')">MMR ⬍</th>
+              <th style="width: 155px;">Позиция</th>
+              <th>Пул героев</th>
+              <th id="th-actions" style="width: 80px; text-align: right; display: none;" class="action-col">Действия</th>
+            </tr>
+          </thead>
+          <tbody id="roster-body"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <!-- ВКЛАДКА 2: ЛОББИ И ДРАФТ (С ПРИЦЕЛЬНЫМ ПЕРЕТАСКИВАНИЕМ И АВТОСОРТИРОВКОЙ 1-5) -->
+  <!-- ВКЛАДКА 2: ЛОББИ МАТЧА 5x5 -->
   <div id="section-lobby" class="content-section" style="display: none;">
     <div class="lobby-header">
-      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-        <span style="font-size: 16px; font-weight: 800; letter-spacing: 0.5px;">⚔️ ЛОББИ 5x5 И ДРАФТ</span>
-        <button class="btn btn-lobby" style="padding: 4px 9px; font-size: 11.5px;" onclick="autoBalanceCurrentLobby()" title="Автоматически распределить этих 10 игроков по ролям и балансу">⚖️ Автобаланс 10-ки</button>
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <span style="font-size: 16px; font-weight: 800; letter-spacing: 0.5px;">⚔️ ЛОББИ МАТЧА 5x5</span>
+        <button class="btn btn-lobby" style="padding: 4px 8px; font-size: 11px;" onclick="autoBalanceCurrentLobby('standard')" title="Автобаланс текущей 10-ки по общему MMR">⚖️ Стандарт</button>
+        <button class="btn btn-lobby-core" style="padding: 4px 8px; font-size: 11px;" onclick="autoBalanceCurrentLobby('core')" title="Автобаланс текущей 10-ки с приоритетом коров и пула">👑 По корам</button>
         <button class="btn btn-random10" style="padding: 4px 8px; font-size: 11px;" onclick="copyLobbyToDiscord()">📋 Для Discord</button>
       </div>
       <div style="display: flex; align-items: center; gap: 10px;">
@@ -986,6 +1126,9 @@
         <button id="btn-finish-lobby-match" class="btn btn-finish" style="display: none;" onclick="openFinishMatchModal()">🏁 Завершить матч</button>
       </div>
     </div>
+
+    <!-- СНОСКА/УВЕДОМЛЕНИЕ В ЛОББИ О МАЛЕНЬКОМ ПУЛЕ ИГРОКОВ -->
+    <div id="lobby-cm-alert" class="lobby-cm-alert" style="display: none;"></div>
     
     <div class="teams-container">
       <div class="team-panel">
@@ -1005,14 +1148,23 @@
       </div>
     </div>
 
+    <!-- АНАЛИЗ ЛИНИЙ И МАТЧАПОВ С УЧЕТОМ CAPTAINS MODE -->
+    <div class="laning-card">
+      <div class="laning-card-header">
+        <span>📊 Анализ линий и матчапов (с учетом пула и банов Captains Mode)</span>
+        <span style="font-size: 11px; color: #64748b;">Прогноз противостояний</span>
+      </div>
+      <div class="laning-grid" id="laning-grid-content"></div>
+    </div>
+
     <div id="bench-panel" class="bench-panel" style="display: none;">
       <div class="bench-header-box">
         <div class="bench-title">
           <span>🛋️ На замене / Следующая игра:</span>
           <span id="bench-count" style="color: #60a5fa;">(0)</span>
         </div>
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <select id="bench-add-select" class="pos-select" onchange="handleAddPlayerToLobby(this)">
+        <div style="display: flex; align-items: center; gap: 6px; width: 100%; max-width: 280px;">
+          <select id="bench-add-select" class="pos-select" style="width: 100%;" onchange="handleAddPlayerToLobby(this)">
             <option value="">➕ Добавить игрока в замену...</option>
           </select>
         </div>
@@ -1036,24 +1188,26 @@
       <div class="header-title">Таблица лидеров пати</div>
       <span style="font-size: 12px; color: #94a3b8;">Рейтинг формируется по завершенным играм</span>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th style="width: 50px; text-align: center;">Место</th>
-          <th>Игрок</th>
-          <th style="width: 110px; text-align: center;">Игр</th>
-          <th style="width: 110px; text-align: center;">Побед (W)</th>
-          <th style="width: 110px; text-align: center;">Поражений (L)</th>
-          <th style="width: 180px;">Винрейт (%)</th>
-        </tr>
-      </thead>
-      <tbody id="stats-table-body"></tbody>
-    </table>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 50px; text-align: center;">Место</th>
+            <th>Игрок</th>
+            <th style="width: 100px; text-align: center;">Игр</th>
+            <th style="width: 100px; text-align: center;">Побед (W)</th>
+            <th style="width: 100px; text-align: center;">Поражений (L)</th>
+            <th style="width: 180px;">Винрейт (%)</th>
+          </tr>
+        </thead>
+        <tbody id="stats-table-body"></tbody>
+      </table>
+    </div>
   </div>
 
 </div>
 
-<!-- Модальное окно выбора героя -->
+<!-- Сетка выбора героев (В Лобби и Профиле) -->
 <div id="hero-select-modal" class="modal-overlay">
   <div class="modal-window hero-grid-modal">
     <div class="modal-header">
@@ -1070,7 +1224,7 @@
         <button class="attr-btn uni" onclick="setGridAttrFilter('uni', this)">🟣 Универсал</button>
       </div>
 
-      <input type="text" id="hero-grid-filter" class="search-box" style="min-width: 180px;" placeholder="Поиск героя..." oninput="renderHeroGrid()">
+      <input type="text" id="hero-grid-filter" class="search-box" style="width: 100%; margin-top: 6px;" placeholder="Поиск героя..." oninput="renderHeroGrid()">
     </div>
 
     <div class="hero-grid-container" id="hero-grid-cards"></div>
@@ -1112,7 +1266,7 @@
     <div class="form-group">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <label class="form-label">Пул персонажей игрока</label>
-        <button type="button" class="btn btn-add" style="padding: 3px 8px; font-size: 11px;" onclick="openHeroGridForPlayerPool()">➕ Выбрать из сетки</button>
+        <button type="button" class="btn btn-add" style="padding: 4px 8px; font-size: 11px;" onclick="openHeroGridForPlayerPool()">➕ Выбрать из сетки</button>
       </div>
       <div id="player-form-pool-chips" class="player-pool-container"></div>
     </div>
@@ -1124,11 +1278,11 @@
   </div>
 </div>
 
-<!-- Модальное окно завершения матча (только для админа) -->
+<!-- Модальное окно завершения матча (только админ) -->
 <div id="finish-match-modal" class="modal-overlay">
   <div class="modal-window">
     <div class="modal-header">
-      <span>🏁 Завершить матч и записать в историю</span>
+      <span>🏁 Завершить матч</span>
       <button style="background: none; border: none; color: #9ca3af; font-size: 18px; cursor: pointer;" onclick="closeFinishMatchModal()">✕</button>
     </div>
     <p style="font-size: 13.5px; color: #cbd5e1; margin: 0;">Выберите команду-победителя текущей карты:</p>
@@ -1150,11 +1304,9 @@
   const READ_KEY = "";
   // ==========================================
 
-  // Официальный ассет Largo из игры
   const LARGO_IMG_URL = "https://liquipedia.net/commons/images/7/78/Largo_icon_dota2_gameasset.png";
   const LARGO_IMG_PROXY = "https://wsrv.nl/?url=https://liquipedia.net/commons/images/7/78/Largo_icon_dota2_gameasset.png";
 
-  // Полный каталог героев Dota 2 (127 героев строго по сетке Liquipedia)
   const DOTA2_HEROES_CATALOG = [
     // 🔴 СИЛА (36)
     { name: "Alchemist", slug: "alchemist", attr: "str" },
@@ -1293,9 +1445,7 @@
   ];
 
   const HERO_MAP = {};
-  DOTA2_HEROES_CATALOG.forEach(h => {
-    HERO_MAP[h.name.toLowerCase()] = h.slug;
-  });
+  DOTA2_HEROES_CATALOG.forEach(h => { HERO_MAP[h.name.toLowerCase()] = h.slug; });
   HERO_MAP["sf"] = "nevermore";
   HERO_MAP["pa"] = "phantom_assassin";
   HERO_MAP["ta"] = "templar_assassin";
@@ -1314,9 +1464,7 @@
 
   function getHeroImg(name) {
     const clean = (name || '').toLowerCase().trim();
-    if (clean === 'largo') {
-      return LARGO_IMG_PROXY;
-    }
+    if (clean === 'largo') return LARGO_IMG_PROXY;
     const slug = getHeroSlug(name);
     return `https://wsrv.nl/?url=https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/${slug}.png`;
   }
@@ -1357,7 +1505,6 @@
   let adminKey = sessionStorage.getItem('dota_admin_key') || '';
   let activePos = 'all';
 
-  // Состояние сортировки общего списка
   let activeSortType = 'mmr';
   let sortDirection = { mmr: -1, name: 1 };
   let currentLobbyData = null;
@@ -1366,8 +1513,6 @@
   let activeGridAttr = 'all';
   let heroSelectContext = { team: null, playerIndex: null, player: null };
   let currentFormPool = [];
-
-  // Drag-and-Drop глобальный контекст
   let draggedPlayerInfo = null;
 
   function isAdmin() { return Boolean(adminKey); }
@@ -1375,22 +1520,15 @@
   function applySort() {
     if (!activeSortType) return;
     players.sort((a, b) => {
-      if (activeSortType === 'mmr') {
-        return (a.mmr - b.mmr) * sortDirection.mmr;
-      }
-      if (activeSortType === 'name') {
-        return a.name.localeCompare(b.name) * sortDirection.name;
-      }
+      if (activeSortType === 'mmr') return (a.mmr - b.mmr) * sortDirection.mmr;
+      if (activeSortType === 'name') return a.name.localeCompare(b.name) * sortDirection.name;
       return 0;
     });
   }
 
   function sortTable(type) {
-    if (activeSortType === type) {
-      sortDirection[type] = -sortDirection[type];
-    } else {
-      activeSortType = type;
-    }
+    if (activeSortType === type) sortDirection[type] = -sortDirection[type];
+    else activeSortType = type;
     applySort();
     renderTable();
   }
@@ -1425,6 +1563,8 @@
     const btn = document.getElementById('admin-toggle-btn');
     const addBtn = document.getElementById('btn-add-player');
     const resetBtn = document.getElementById('btn-reset-roster');
+    const backupBtn = document.getElementById('btn-backup-json');
+    const importBtn = document.getElementById('btn-import-json');
     const thActions = document.getElementById('th-actions');
     const finishBtn = document.getElementById('btn-finish-lobby-match');
 
@@ -1433,6 +1573,8 @@
       btn.classList.add('active');
       addBtn.style.display = 'inline-flex';
       resetBtn.style.display = 'inline-flex';
+      if (backupBtn) backupBtn.style.display = 'inline-flex';
+      importBtn.style.display = 'inline-flex';
       thActions.style.display = '';
       if (finishBtn) finishBtn.style.display = 'inline-flex';
     } else {
@@ -1440,6 +1582,8 @@
       btn.classList.remove('active');
       addBtn.style.display = 'none';
       resetBtn.style.display = 'none';
+      if (backupBtn) backupBtn.style.display = 'none';
+      importBtn.style.display = 'none';
       thActions.style.display = 'none';
       if (finishBtn) finishBtn.style.display = 'none';
     }
@@ -1459,9 +1603,8 @@
       if (!pass || !pass.trim()) return;
 
       const candidateKey = pass.trim();
-
       if (!candidateKey.startsWith('$2a$') || candidateKey.length < 50) {
-        alert('Доступ запрещен: введен неверный Master Key! Ключ JSONBin должен начинаться с $2a$ и содержать полную секретную строку.');
+        alert('Доступ запрещен: введен неверный Master Key!');
         return;
       }
 
@@ -1479,9 +1622,7 @@
           body: JSON.stringify({ players, matches })
         });
 
-        if (!testRes.ok) {
-          throw new Error('Код ответа от JSONBin: ' + testRes.status);
-        }
+        if (!testRes.ok) throw new Error();
 
         adminKey = candidateKey;
         sessionStorage.setItem('dota_admin_key', adminKey);
@@ -1491,7 +1632,6 @@
         statusEl.textContent = '🟢 Админ онлайн';
         alert('Авторизация успешна! Права администратора активированы.');
       } catch (err) {
-        console.error('Ошибка проверки ключа:', err);
         statusEl.textContent = prevStatus;
         alert('Доступ запрещен: сервер отклонил введенный Master Key!');
       }
@@ -1507,7 +1647,7 @@
       if (READ_KEY) headers['X-Access-Key'] = READ_KEY;
       
       const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers });
-      if (!res.ok) throw new Error('Ошибка ' + res.status);
+      if (!res.ok) throw new Error();
       const data = await res.json();
       
       if (Array.isArray(data.record)) {
@@ -1522,7 +1662,6 @@
       }
       statusEl.textContent = '🟢 Облако онлайн';
     } catch(err) {
-      console.warn('Облако недоступно, локальный режим:', err);
       statusEl.textContent = '⚠️ Локальный режим';
       try {
         const localP = localStorage.getItem('dota2_roster_data');
@@ -1558,13 +1697,57 @@
         },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error('Код ' + res.status);
+      if (!res.ok) throw new Error();
       statusEl.textContent = '🟢 Сохранено';
     } catch(err) {
-      console.error(err);
       statusEl.textContent = '🔴 Ошибка ключа!';
       alert('Не удалось синхронизировать с облаком. Проверьте правильность Master Key.');
     }
+  }
+
+  function exportBackupJSON() {
+    const backupData = { timestamp: new Date().toISOString(), players, matches };
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dota2-manager-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importBackupJSON(event) {
+    if (!isAdmin()) {
+      alert('Импорт базы доступен исключительно администратору!');
+      return;
+    }
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (parsed && Array.isArray(parsed.players)) {
+          if (confirm(`Загрузить из бэкапа ${parsed.players.length} игроков и ${parsed.matches ? parsed.matches.length : 0} матчей?`)) {
+            players = parsed.players;
+            matches = parsed.matches || [];
+            applySort();
+            renderTable();
+            renderHistory();
+            renderStats();
+            syncCloud();
+            alert('База данных успешно восстановлена!');
+          }
+        } else {
+          alert('Неверный формат файла бэкапа.');
+        }
+      } catch(err) {
+        alert('Ошибка чтения JSON файла.');
+      }
+      event.target.value = "";
+    };
+    reader.readAsText(file);
   }
 
   function renderTable() {
@@ -1595,9 +1778,13 @@
       const roleBadges = p.roles.map(r => `<span class="pos-badge pos-${r}">Поз. ${r}</span>`).join(' ');
       const heroBadges = p.heroes.map(h => `
         <span class="hero-badge" data-hero="${h}">
-          <img src="${getHeroImg(h)}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
+          <img src="${getHeroImg(h)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
         </span>
       `).join('');
+
+      const smallPoolPill = (p.heroes && p.heroes.length <= 2) 
+        ? `<span class="pool-warning-pill" title="Узкий пул: ${p.heroes.length} гер. (риск бана в Captains Mode)">⚠️ ${p.heroes.length} гер.</span>` 
+        : '';
 
       const actionButtons = isAdmin() ? `
         <td class="action-col">
@@ -1614,13 +1801,13 @@
         <td class="player-name">${p.name}</td>
         <td>
           <div class="rank-cell ${rank.class}">
-            <img class="rank-icon" src="https://wsrv.nl/?url=https://www.opendota.com/assets/images/dota2/rank_icons/rank_icon_${rank.medal}.png">
+            <img class="rank-icon" src="https://wsrv.nl/?url=https://www.opendota.com/assets/images/dota2/rank_icons/rank_icon_${rank.medal}.png" loading="lazy">
             <span>${rank.name}</span>
           </div>
         </td>
         <td><span class="mmr-badge">${p.mmr}</span></td>
         <td>${roleBadges}</td>
-        <td><div class="hero-list">${heroBadges}</div></td>
+        <td><div class="hero-list">${heroBadges} ${smallPoolPill}</div></td>
         ${actionButtons}
       `;
       tbody.appendChild(row);
@@ -1691,7 +1878,7 @@
       const chip = document.createElement('div');
       chip.className = 'pool-chip';
       chip.innerHTML = `
-        <img src="${getHeroImg(h)}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
+        <img src="${getHeroImg(h)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
         <span>${h}</span>
         <span class="pool-chip-del" title="Убрать из пула" onclick="removeHeroFromPlayerPool(${index})">✕</span>
       `;
@@ -1739,7 +1926,7 @@
   }
 
   function resetToDefault() {
-    if (confirm('Сбросить состав до первоначального?')) {
+    if (confirm('Сбросить состав до исходного?')) {
       players = JSON.parse(JSON.stringify(DEFAULT_ROSTER));
       applySort();
       renderTable();
@@ -1748,7 +1935,7 @@
     }
   }
 
-  // --- ЛОГИКА ЛОББИ: СОРТИРОВКА ПО РОЛЯМ 1-5 И РУЧНАЯ СБОРКА ---
+  // --- ЛОГИКА БАЛАНСИРОВКИ ЛОББИ: СТАНДАРТ ИЛИ ПРИОРИТЕТ КОРОВ С УЧЕТОМ ПУЛА ---
   function generatePermutations(arr) {
     if (arr.length <= 1) return [arr];
     let res = [];
@@ -1765,22 +1952,43 @@
     4: 'Поз. 4 (Support)', 5: 'Поз. 5 (Hard Sup)'
   };
 
-  // Сортировка команды по позиции от 1 до 5
   function sortTeamByPositions(teamArray) {
     if (!Array.isArray(teamArray)) return;
     teamArray.sort((a, b) => (a.assignedPos || 1) - (b.assignedPos || 1));
   }
 
-  function assignBestRoles(teamPlayers) {
+  function assignBestRoles(teamPlayers, mode = 'standard') {
     let bestAssignment = null;
     let minPenalty = 999999;
+    
+    // В режиме "Коры" штраф за чужую роль на керри и миде значительно выше
+    const rolePenaltyWeights = mode === 'core' 
+      ? [0, 350, 350, 200, 100, 80] 
+      : [0, 150, 150, 150, 150, 150];
+
     for (let i = 0; i < PRECOMPUTED_PERMS.length; i++) {
       const order = PRECOMPUTED_PERMS[i];
       let penalty = 0;
       for (let pos = 1; pos <= 5; pos++) {
         const player = teamPlayers[order[pos - 1]];
-        if (!player.roles.includes(pos)) penalty += 150;
+        if (!player.roles.includes(pos)) {
+          penalty += rolePenaltyWeights[pos];
+        }
+
+        // В режиме "Коры" накладываем штраф, если у игрока на слотах 1, 2 или 3 узкий пул героев
+        if (mode === 'core') {
+          const poolLen = (player.heroes && Array.isArray(player.heroes)) ? player.heroes.length : 0;
+          if (pos === 1 || pos === 2) {
+            if (poolLen === 1) penalty += 450; // Риск бана единственного героя
+            else if (poolLen === 2) penalty += 220;
+            else if (poolLen === 3) penalty += 80;
+          } else if (pos === 3) {
+            if (poolLen === 1) penalty += 250;
+            else if (poolLen === 2) penalty += 120;
+          }
+        }
       }
+
       if (penalty < minPenalty) {
         minPenalty = penalty;
         bestAssignment = order.map((idx, pPos) => ({
@@ -1797,14 +2005,25 @@
     return { assigned: bestAssignment, penalty: minPenalty };
   }
 
-  // Автоматический подбор 5x5
-  function generateLobby() {
-    const selected = players.filter(p => p.selected);
-    if (selected.length < 10) {
-      alert(`Выберите минимум 10 игроков! Сейчас выбрано: ${selected.length}.`);
-      return;
+  // Расчет эффективного рейтинга кора с учетом пула персонажей
+  function getCoreEffectiveRating(player, pos) {
+    if (!player) return 0;
+    const poolSize = (player.heroes && Array.isArray(player.heroes)) ? player.heroes.length : 0;
+    let poolWeight = 0;
+    if (pos === 1 || pos === 2) {
+      if (poolSize === 1) poolWeight = -600;      // Единственный герой легко улетает в бан
+      else if (poolSize === 2) poolWeight = -300; // Риск двойного бана
+      else if (poolSize === 3) poolWeight = -100;
+      else if (poolSize >= 6) poolWeight = 150;   // Широкий пул дает преимущество
+    } else if (pos === 3) {
+      if (poolSize === 1) poolWeight = -350;
+      else if (poolSize === 2) poolWeight = -150;
+      else if (poolSize >= 5) poolWeight = 100;
     }
+    return player.mmr + poolWeight;
+  }
 
+  function evaluateBestMatchmaking(selectedPlayers, mode = 'standard') {
     let bestMatch = null;
     let minScore = 99999999;
 
@@ -1816,9 +2035,36 @@
           const mmrA = teamA.reduce((s, p) => s + p.mmr, 0);
           const mmrB = teamB.reduce((s, p) => s + p.mmr, 0);
           const diff = Math.abs(mmrA - mmrB);
-          const rA = assignBestRoles(teamA);
-          const rB = assignBestRoles(teamB);
-          const score = (diff * 1.5) + rA.penalty + rB.penalty;
+
+          const rA = assignBestRoles(teamA, mode);
+          const rB = assignBestRoles(teamB, mode);
+
+          let score = 0;
+          if (mode === 'core') {
+            // Взвешиваем разницу между мидерами, керри и оффлейнерами с учетом пула героев
+            const p1A = rA.assigned.find(p => p.assignedPos === 1);
+            const p1B = rB.assigned.find(p => p.assignedPos === 1);
+            const p2A = rA.assigned.find(p => p.assignedPos === 2);
+            const p2B = rB.assigned.find(p => p.assignedPos === 2);
+            const p3A = rA.assigned.find(p => p.assignedPos === 3);
+            const p3B = rB.assigned.find(p => p.assignedPos === 3);
+
+            const effCarryA = getCoreEffectiveRating(p1A, 1);
+            const effCarryB = getCoreEffectiveRating(p1B, 1);
+            const effMidA = getCoreEffectiveRating(p2A, 2);
+            const effMidB = getCoreEffectiveRating(p2B, 2);
+            const effOffA = getCoreEffectiveRating(p3A, 3);
+            const effOffB = getCoreEffectiveRating(p3B, 3);
+
+            const carryDiff = Math.abs(effCarryA - effCarryB);
+            const midDiff = Math.abs(effMidA - effMidB);
+            const offDiff = Math.abs(effOffA - effOffB);
+
+            score = (diff * 1.0) + (midDiff * 2.2) + (carryDiff * 1.8) + (offDiff * 1.1) + rA.penalty + rB.penalty;
+          } else {
+            // Стандартный алгоритм
+            score = (diff * 1.5) + rA.penalty + rB.penalty;
+          }
 
           if (score < minScore) {
             minScore = score;
@@ -1828,7 +2074,7 @@
               radiantMmr: mmrA,
               direMmr: mmrB,
               diff: diff,
-              bench: selected.filter(p => !ten.includes(p))
+              bench: selectedPlayers.filter(p => !ten.includes(p))
             };
           }
           return;
@@ -1838,23 +2084,30 @@
       getCombos(0, []);
     }
 
-    if (selected.length === 10) evalTen(selected);
+    if (selectedPlayers.length === 10) evalTen(selectedPlayers);
     else {
-      for (let it = 0; it < Math.min(300, selected.length * 20); it++) {
-        evalTen([...selected].sort(() => 0.5 - Math.random()).slice(0, 10));
+      for (let it = 0; it < Math.min(300, selectedPlayers.length * 20); it++) {
+        evalTen([...selectedPlayers].sort(() => 0.5 - Math.random()).slice(0, 10));
       }
     }
+    return bestMatch;
+  }
 
-    sortTeamByPositions(bestMatch.radiant);
-    sortTeamByPositions(bestMatch.dire);
-
-    currentLobbyData = bestMatch;
+  function generateLobby(mode = 'standard') {
+    const selected = players.filter(p => p.selected);
+    if (selected.length < 10) {
+      alert(`Выберите минимум 10 игроков! Сейчас выбрано: ${selected.length}.`);
+      return;
+    }
+    const best = evaluateBestMatchmaking(selected, mode);
+    sortTeamByPositions(best.radiant);
+    sortTeamByPositions(best.dire);
+    currentLobbyData = best;
     document.getElementById('badge-lobby-active').style.display = 'inline-block';
     renderLobby();
     switchTab('lobby');
   }
 
-  // Ручной запуск конструктора лобби
   function initManualLobby() {
     const selected = players.filter(p => p.selected);
     let pool = selected.length >= 10 ? [...selected] : [...players];
@@ -1891,53 +2144,128 @@
     switchTab('lobby');
   }
 
-  // Автоматическая оптимизация текущей десятки внутри лобби
-  function autoBalanceCurrentLobby() {
+  function autoBalanceCurrentLobby(mode = 'standard') {
     if (!currentLobbyData) return;
     const currentTen = [...currentLobbyData.radiant, ...currentLobbyData.dire];
     if (currentTen.length < 10) {
-      alert('Для автобалансировки в командах должно быть суммарно 10 игроков!');
+      alert('В лобби должно быть суммарно 10 игроков!');
       return;
     }
-
-    let bestMatch = null;
-    let minScore = 99999999;
-
-    function getCombos(start, combo) {
-      if (combo.length === 5) {
-        const teamA = combo;
-        const teamB = currentTen.filter(p => !teamA.includes(p));
-        const mmrA = teamA.reduce((s, p) => s + p.mmr, 0);
-        const mmrB = teamB.reduce((s, p) => s + p.mmr, 0);
-        const diff = Math.abs(mmrA - mmrB);
-        const rA = assignBestRoles(teamA);
-        const rB = assignBestRoles(teamB);
-        const score = (diff * 1.5) + rA.penalty + rB.penalty;
-
-        if (score < minScore) {
-          minScore = score;
-          bestMatch = {
-            radiant: rA.assigned,
-            dire: rB.assigned,
-            radiantMmr: mmrA,
-            direMmr: mmrB,
-            diff: diff,
-            bench: currentLobbyData.bench || []
-          };
-        }
-        return;
-      }
-      for (let i = start; i < currentTen.length; i++) getCombos(i + 1, combo.concat([currentTen[i]]));
-    }
-    getCombos(0, []);
-
-    if (bestMatch) {
-      sortTeamByPositions(bestMatch.radiant);
-      sortTeamByPositions(bestMatch.dire);
-      currentLobbyData = bestMatch;
+    const balanced = evaluateBestMatchmaking(currentTen, mode);
+    if (balanced) {
+      sortTeamByPositions(balanced.radiant);
+      sortTeamByPositions(balanced.dire);
+      balanced.bench = currentLobbyData.bench || [];
+      currentLobbyData = balanced;
       recalculateLobbyStats();
       renderLobby();
     }
+  }
+
+  // --- АНАЛИЗ ЛИНИЙ И МАТЧАПОВ С УЧЕТОМ CAPTAINS MODE ---
+  function getBanRiskNotice(player, roleTitle) {
+    if (!player) return '';
+    const pool = player.heroes || [];
+    if (pool.length === 1) {
+      return `<div class="cm-ban-warning">⚠️ <b>${player.name}</b> (${roleTitle}) имеет всего 1 героя (<b>${pool[0]}</b>) — 100% бан в CM!</div>`;
+    }
+    if (pool.length === 2) {
+      return `<div class="cm-ban-warning">⚠️ <b>${player.name}</b> (${roleTitle}) имеет пул из 2 героев (<b>${pool.join(', ')}</b>) — уязвим к банам в CM!</div>`;
+    }
+    return '';
+  }
+
+  function updateLaningAnalysis() {
+    const container = document.getElementById('laning-grid-content');
+    if (!container || !currentLobbyData) return;
+
+    const rad = currentLobbyData.radiant;
+    const dire = currentLobbyData.dire;
+
+    const radMid = rad.find(p => p.assignedPos === 2) || rad[1] || rad[0] || { name: "Не определен", mmr: 0, heroes: [] };
+    const direMid = dire.find(p => p.assignedPos === 2) || dire[1] || dire[0] || { name: "Не определен", mmr: 0, heroes: [] };
+    const rawMidDiff = radMid.mmr - direMid.mmr;
+    const cmMidDiff = getCoreEffectiveRating(radMid, 2) - getCoreEffectiveRating(direMid, 2);
+
+    const radCarry = rad.find(p => p.assignedPos === 1) || rad[0];
+    const radHardSup = rad.find(p => p.assignedPos === 5) || rad[rad.length - 1];
+    const direOff = dire.find(p => p.assignedPos === 3) || dire[2] || dire[0];
+    const direSup = dire.find(p => p.assignedPos === 4) || dire[3] || dire[dire.length - 1];
+
+    const radSafeMmr = Math.round(((radCarry ? radCarry.mmr : 0) + (radHardSup ? radHardSup.mmr : 0)) / 2);
+    const direOffMmr = Math.round(((direOff ? direOff.mmr : 0) + (direSup ? direSup.mmr : 0)) / 2);
+    const cmSafeEff = Math.round((getCoreEffectiveRating(radCarry, 1) + getCoreEffectiveRating(radHardSup, 5)) / 2);
+    const cmOffEff = Math.round((getCoreEffectiveRating(direOff, 3) + getCoreEffectiveRating(direSup, 4)) / 2);
+    const topCmDiff = cmSafeEff - cmOffEff;
+
+    const radOff = rad.find(p => p.assignedPos === 3) || rad[2] || rad[0];
+    const radSup = rad.find(p => p.assignedPos === 4) || rad[3] || rad[rad.length - 1];
+    const direCarry = dire.find(p => p.assignedPos === 1) || dire[0];
+    const direHardSup = dire.find(p => p.assignedPos === 5) || dire[dire.length - 1];
+
+    const radOffMmr = Math.round(((radOff ? radOff.mmr : 0) + (radSup ? radSup.mmr : 0)) / 2);
+    const direSafeMmr = Math.round(((direCarry ? direCarry.mmr : 0) + (direHardSup ? direHardSup.mmr : 0)) / 2);
+    const cmRadOffEff = Math.round((getCoreEffectiveRating(radOff, 3) + getCoreEffectiveRating(radSup, 4)) / 2);
+    const cmDireSafeEff = Math.round((getCoreEffectiveRating(direCarry, 1) + getCoreEffectiveRating(direHardSup, 5)) / 2);
+    const botCmDiff = cmRadOffEff - cmDireSafeEff;
+
+    function renderAdvBadge(cmDiff, rawDiff) {
+      const diffStr = cmDiff > 0 ? `+${cmDiff}` : `${cmDiff}`;
+      if (Math.abs(cmDiff) <= 80) return `<div class="lane-advantage adv-even">⚖️ Равная линия (${diffStr} CM)</div>`;
+      if (cmDiff > 80) return `<div class="lane-advantage adv-rad">🟢 Преимущество Radiant (${diffStr} CM)</div>`;
+      return `<div class="lane-advantage adv-dire">🔴 Преимущество Dire (${diffStr} CM)</div>`;
+    }
+
+    container.innerHTML = `
+      <div class="lane-col">
+        <div class="lane-name">
+          <span>⚔️ Центральная линия</span>
+          <span style="color:#f59e0b;">Mid (1x1)</span>
+        </div>
+        <div class="lane-vs">
+          <span style="color:#4ade80; font-weight:700;">${radMid.name} (${radMid.mmr})</span>
+          <span style="color:#64748b;">vs</span>
+          <span style="color:#f87171; font-weight:700;">${direMid.name} (${direMid.mmr})</span>
+        </div>
+        ${getBanRiskNotice(radMid, "Mid")}
+        ${getBanRiskNotice(direMid, "Mid")}
+        ${renderAdvBadge(cmMidDiff, rawMidDiff)}
+      </div>
+
+      <div class="lane-col">
+        <div class="lane-name">
+          <span>🛡️ Легкая Rad vs Сложная Dire</span>
+          <span style="color:#60a5fa;">Bot / Top</span>
+        </div>
+        <div class="lane-vs">
+          <span style="color:#4ade80; font-weight:700;">Rad: ~${radSafeMmr}</span>
+          <span style="color:#64748b;">vs</span>
+          <span style="color:#f87171; font-weight:700;">Dire: ~${direOffMmr}</span>
+        </div>
+        ${getBanRiskNotice(radCarry, "Carry")}
+        ${getBanRiskNotice(radHardSup, "Hard Sup")}
+        ${getBanRiskNotice(direOff, "Offlane")}
+        ${getBanRiskNotice(direSup, "Support")}
+        ${renderAdvBadge(topCmDiff, radSafeMmr - direOffMmr)}
+      </div>
+
+      <div class="lane-col">
+        <div class="lane-name">
+          <span>⚔️ Сложная Rad vs Легкая Dire</span>
+          <span style="color:#a855f7;">Top / Bot</span>
+        </div>
+        <div class="lane-vs">
+          <span style="color:#4ade80; font-weight:700;">Rad: ~${radOffMmr}</span>
+          <span style="color:#64748b;">vs</span>
+          <span style="color:#f87171; font-weight:700;">Dire: ~${direSafeMmr}</span>
+        </div>
+        ${getBanRiskNotice(radOff, "Offlane")}
+        ${getBanRiskNotice(radSup, "Support")}
+        ${getBanRiskNotice(direCarry, "Carry")}
+        ${getBanRiskNotice(direHardSup, "Hard Sup")}
+        ${renderAdvBadge(botCmDiff, radOffMmr - direSafeMmr)}
+      </div>
+    `;
   }
 
   function recalculateLobbyStats() {
@@ -1951,9 +2279,11 @@
     const radAvg = radCount > 0 ? Math.round(currentLobbyData.radiantMmr / radCount) : 0;
     const direAvg = direCount > 0 ? Math.round(currentLobbyData.direMmr / direCount) : 0;
 
-    document.getElementById('radiant-avg').textContent = `Avg: ${radAvg} MMR (${radCount}/5)`;
-    document.getElementById('dire-avg').textContent = `Avg: ${direAvg} MMR (${direCount}/5)`;
+    document.getElementById('radiant-avg').textContent = `Avg: ${radAvg} (${radCount}/5)`;
+    document.getElementById('dire-avg').textContent = `Avg: ${direAvg} (${direCount}/5)`;
     document.getElementById('lobby-diff').textContent = `Разница: ${currentLobbyData.diff} MMR`;
+
+    updateLaningAnalysis();
   }
 
   function findFreePosForTeam(team) {
@@ -1964,7 +2294,6 @@
     return 1;
   }
 
-  // Перемещение или зеркальный обмен между командами
   function switchPlayerTeam(fromTeam, idx) {
     const toTeam = fromTeam === 'radiant' ? 'dire' : 'radiant';
     if (currentLobbyData[toTeam].length < 5) {
@@ -1988,7 +2317,6 @@
     renderLobby();
   }
 
-  // Отправка игрока на замену
   function sendPlayerToBench(team, idx) {
     const [p] = currentLobbyData[team].splice(idx, 1);
     if (!currentLobbyData.bench) currentLobbyData.bench = [];
@@ -1998,10 +2326,9 @@
     renderLobby();
   }
 
-  // Добавление игрока из запаса в команду
   function addBenchToTeam(benchIdx, targetTeam) {
     if (currentLobbyData[targetTeam].length >= 5) {
-      alert(`В команде ${targetTeam === 'radiant' ? 'Radiant' : 'Dire'} уже есть 5 игроков! Сначала отправьте кого-то на замену (🛋️).`);
+      alert(`В команде уже есть 5 игроков!`);
       return;
     }
     const [p] = currentLobbyData.bench.splice(benchIdx, 1);
@@ -2036,24 +2363,21 @@
     selectEl.value = "";
   }
 
-  // --- DRAG-AND-DROP ОБРАБОТЧИКИ (С ПРИЦЕЛЬНОЙ ЗАМЕНОЙ И ОБМЕНОМ) ---
+  // --- DRAG-AND-DROP ОБРАБОТЧИКИ ---
   function handleDragStart(e, fromZone, idx) {
     draggedPlayerInfo = { fromZone, idx };
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', JSON.stringify({ fromZone, idx }));
-    setTimeout(() => {
-      if (e.target) e.target.classList.add('dragging');
-    }, 10);
+    setTimeout(() => { if (e.target) e.target.classList.add('dragging'); }, 10);
   }
 
-  function handleDragEnd(e) {
+  function handleDragEnd() {
     draggedPlayerInfo = null;
     document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
     document.querySelectorAll('.drop-zone-active').forEach(el => el.classList.remove('drop-zone-active'));
     document.querySelectorAll('.drag-over-item').forEach(el => el.classList.remove('drag-over-item'));
   }
 
-  // 1. Прицеливание мыши на конкретного игрока (Замена)
   function handleItemDragOver(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -2065,11 +2389,8 @@
     }
   }
 
-  function handleItemDragLeave(e) {
-    e.currentTarget.classList.remove('drag-over-item');
-  }
+  function handleItemDragLeave(e) { e.currentTarget.classList.remove('drag-over-item'); }
 
-  // 2. Бросок прямо на конкретного игрока (Прямой обмен / Замена)
   function handleItemDrop(e, targetZone, targetIdx) {
     e.preventDefault();
     e.stopPropagation();
@@ -2078,11 +2399,8 @@
 
     if (!draggedPlayerInfo) return;
     const { fromZone, idx: fromIdx } = draggedPlayerInfo;
-
-    // Бросок на самого себя
     if (fromZone === targetZone && fromIdx === targetIdx) return;
 
-    // А. Внутри одной команды: обмен позициями между игроками (рокировка)
     if (fromZone === targetZone && (fromZone === 'radiant' || fromZone === 'dire')) {
       const pFrom = currentLobbyData[fromZone][fromIdx];
       const pTarget = currentLobbyData[targetZone][targetIdx];
@@ -2095,7 +2413,6 @@
       return;
     }
 
-    // Б. Перетаскивание между разными командами (Radiant <-> Dire): прямой обмен игроками
     if ((fromZone === 'radiant' || fromZone === 'dire') && (targetZone === 'radiant' || targetZone === 'dire')) {
       const pFrom = currentLobbyData[fromZone][fromIdx];
       const pTarget = currentLobbyData[targetZone][targetIdx];
@@ -2113,14 +2430,12 @@
       return;
     }
 
-    // В. Из запаса (Bench) прямо на игрока в команде: точечная замена
     if (fromZone === 'bench' && (targetZone === 'radiant' || targetZone === 'dire')) {
       const [subIn] = currentLobbyData.bench.splice(fromIdx, 1);
       const replaced = currentLobbyData[targetZone][targetIdx];
       subIn.assignedPos = replaced.assignedPos;
       subIn.pickedHero = (subIn.heroes && subIn.heroes[0]) ? subIn.heroes[0] : 'Pudge';
 
-      // Вытесненный игрок отправляется на скамейку
       currentLobbyData.bench.push(replaced);
       currentLobbyData[targetZone][targetIdx] = subIn;
 
@@ -2130,24 +2445,17 @@
       return;
     }
 
-    // Г. Из команды (Radiant/Dire) прямо на игрока в запасе (Bench): обратная замена
     if ((fromZone === 'radiant' || fromZone === 'dire') && targetZone === 'bench') {
       const pFrom = currentLobbyData[fromZone][fromIdx];
       const subIn = currentLobbyData.bench[targetIdx];
-
-      subIn.assignedPos = pFrom.assignedPos;
-      subIn.pickedHero = (subIn.heroes && subIn.heroes[0]) ? subIn.heroes[0] : 'Pudge';
-
       currentLobbyData[fromZone][fromIdx] = subIn;
       currentLobbyData.bench[targetIdx] = pFrom;
-
-      sortTeamByPositions(currentLobbyData[fromZone]);
+      currentLobbyData[fromZone].sort((a,b) => b.mmr - a.mmr);
       recalculateLobbyStats();
       renderLobby();
       return;
     }
 
-    // Д. Внутри скамейки запасных: перестановка
     if (fromZone === 'bench' && targetZone === 'bench') {
       const temp = currentLobbyData.bench[fromIdx];
       currentLobbyData.bench[fromIdx] = currentLobbyData.bench[targetIdx];
@@ -2157,19 +2465,14 @@
     }
   }
 
-  // 3. Бросок на пустое пространство колонки/контейнера
   function handleZoneDragOver(e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     const zoneEl = e.currentTarget;
-    if (!zoneEl.classList.contains('drop-zone-active')) {
-      zoneEl.classList.add('drop-zone-active');
-    }
+    if (!zoneEl.classList.contains('drop-zone-active')) zoneEl.classList.add('drop-zone-active');
   }
 
-  function handleZoneDragLeave(e) {
-    e.currentTarget.classList.remove('drop-zone-active');
-  }
+  function handleZoneDragLeave(e) { e.currentTarget.classList.remove('drop-zone-active'); }
 
   function handleZoneDrop(e, targetZone) {
     e.preventDefault();
@@ -2181,13 +2484,9 @@
     if (fromZone === targetZone) return;
 
     let movedPlayer = null;
-    if (fromZone === 'radiant') {
-      [movedPlayer] = currentLobbyData.radiant.splice(idx, 1);
-    } else if (fromZone === 'dire') {
-      [movedPlayer] = currentLobbyData.dire.splice(idx, 1);
-    } else if (fromZone === 'bench') {
-      [movedPlayer] = currentLobbyData.bench.splice(idx, 1);
-    }
+    if (fromZone === 'radiant') [movedPlayer] = currentLobbyData.radiant.splice(idx, 1);
+    else if (fromZone === 'dire') [movedPlayer] = currentLobbyData.dire.splice(idx, 1);
+    else if (fromZone === 'bench') [movedPlayer] = currentLobbyData.bench.splice(idx, 1);
 
     if (!movedPlayer) return;
 
@@ -2224,11 +2523,21 @@
     if (!currentLobbyData) return;
     const m = currentLobbyData;
 
-    // Строгая сортировка по позициям от 1 до 5 сверху вниз
     sortTeamByPositions(m.radiant);
     sortTeamByPositions(m.dire);
 
     recalculateLobbyStats();
+
+    // Сноска в лобби: находим игроков с 1 или 2 героями
+    const smallPoolPlayers = [...m.radiant, ...m.dire].filter(p => p.heroes && p.heroes.length <= 2);
+    const alertBox = document.getElementById('lobby-cm-alert');
+    if (smallPoolPlayers.length > 0) {
+      const namesList = smallPoolPlayers.map(p => `<b>${p.name}</b> (${p.heroes.length} гер: ${p.heroes.join(', ')})`).join('; ');
+      alertBox.style.display = 'flex';
+      alertBox.innerHTML = `<span>⚠️ <b>Сноска для Captains Mode:</b> у игроков с узким пулом [${namesList}] высокий риск банов на первой стадии драфта!</span>`;
+    } else {
+      alertBox.style.display = 'none';
+    }
 
     const radContainer = document.getElementById('radiant-roster');
     const direContainer = document.getElementById('dire-roster');
@@ -2241,16 +2550,16 @@
     m.radiant.forEach((p, idx) => radContainer.appendChild(createLobbyPlayerRow(p, 'radiant', idx)));
     if (m.radiant.length < 5) {
       const emptyNotice = document.createElement('div');
-      emptyNotice.style.cssText = 'padding: 10px 14px; text-align: center; border: 1px dashed #334155; margin: 8px; border-radius: 6px; color: #94a3b8; font-size: 12px;';
-      emptyNotice.textContent = `Свободно слотов: ${5 - m.radiant.length} (перетащите сюда игрока мышкой)`;
+      emptyNotice.style.cssText = 'padding: 10px 14px; text-align: center; border: 1px dashed #334155; margin: 8px; border-radius: 6px; color: #94a3b8; font-size: 11.5px;';
+      emptyNotice.textContent = `Свободно: ${5 - m.radiant.length} (перетащите сюда игрока)`;
       radContainer.appendChild(emptyNotice);
     }
 
     m.dire.forEach((p, idx) => direContainer.appendChild(createLobbyPlayerRow(p, 'dire', idx)));
     if (m.dire.length < 5) {
       const emptyNotice = document.createElement('div');
-      emptyNotice.style.cssText = 'padding: 10px 14px; text-align: center; border: 1px dashed #334155; margin: 8px; border-radius: 6px; color: #94a3b8; font-size: 12px;';
-      emptyNotice.textContent = `Свободно слотов: ${5 - m.dire.length} (перетащите сюда игрока мышкой)`;
+      emptyNotice.style.cssText = 'padding: 10px 14px; text-align: center; border: 1px dashed #334155; margin: 8px; border-radius: 6px; color: #94a3b8; font-size: 11.5px;';
+      emptyNotice.textContent = `Свободно: ${5 - m.dire.length} (перетащите сюда игрока)`;
       direContainer.appendChild(emptyNotice);
     }
 
@@ -2283,7 +2592,7 @@
         const b = document.createElement('div');
         b.className = 'bench-badge';
         b.draggable = true;
-        b.title = "Перетащите на игрока в команде, чтобы точечно заменить его!";
+        b.title = "Перетащите на игрока в команде для замены!";
         
         b.ondragstart = (e) => handleDragStart(e, 'bench', idx);
         b.ondragend = handleDragEnd;
@@ -2291,10 +2600,13 @@
         b.ondragleave = handleItemDragLeave;
         b.ondrop = (e) => handleItemDrop(e, 'bench', idx);
 
+        const warningPill = (p.heroes && p.heroes.length <= 2) ? `<span class="pool-warning-pill">⚠️ ${p.heroes.length} гер.</span>` : '';
+
         b.innerHTML = `
-          <span class="drag-handle" title="Зажмите для перетаскивания">⠿</span>
+          <span class="drag-handle">⠿</span>
           <span style="font-weight:700;">${p.name}</span>
-          <span style="color:#fbbf24; font-family:monospace;">${p.mmr} MMR</span>
+          <span style="color:#fbbf24; font-family:monospace; font-size:11.5px;">${p.mmr}</span>
+          ${warningPill}
           <button class="lobby-btn-mini" style="color:#4ade80; border-color:#166534;" onclick="addBenchToTeam(${idx}, 'radiant')" title="Перевести в Radiant">🟢 Rad</button>
           <button class="lobby-btn-mini" style="color:#f87171; border-color:#991b1b;" onclick="addBenchToTeam(${idx}, 'dire')" title="Перевести в Dire">🔴 Dire</button>
           <button class="lobby-btn-mini" style="color:#ef4444;" onclick="removeBenchPlayer(${idx})" title="Убрать из лобби">✕</button>
@@ -2313,7 +2625,7 @@
     const row = document.createElement('div');
     row.className = 'lobby-player-row';
     row.draggable = true;
-    row.title = "Зажмите и наведите на другого игрока для замены или обмена местами!";
+    row.title = "Зажмите и перетащите на другого игрока для обмена!";
 
     row.ondragstart = (e) => handleDragStart(e, team, idx);
     row.ondragend = handleDragEnd;
@@ -2321,9 +2633,13 @@
     row.ondragleave = handleItemDragLeave;
     row.ondrop = (e) => handleItemDrop(e, team, idx);
 
+    const smallPoolPill = (p.heroes && p.heroes.length <= 2) 
+      ? `<span class="pool-warning-pill" title="Узкий пул: всего ${p.heroes.length} гер. — риск бана в Captains Mode!">⚠️ ${p.heroes.length} гер.</span>` 
+      : '';
+
     row.innerHTML = `
       <div class="lobby-left">
-        <span class="drag-handle" title="Зажмите и перетащите на игрока для замены">⠿</span>
+        <span class="drag-handle">⠿</span>
         <select class="pos-select" onchange="changePlayerPos('${team}', ${idx}, this.value)" title="Сменить позицию (список автоматически упорядочится от 1 до 5)">
           <option value="1" ${p.assignedPos == 1 ? 'selected' : ''}>Поз. 1</option>
           <option value="2" ${p.assignedPos == 2 ? 'selected' : ''}>Поз. 2</option>
@@ -2333,13 +2649,14 @@
         </select>
         <span class="player-name">${p.name}</span>
         <span class="mmr-badge">${p.mmr}</span>
+        ${smallPoolPill}
       </div>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <button class="lobby-btn-mini" onclick="switchPlayerTeam('${team}', ${idx})" title="Перенести или обменять с игроком противоположной команды">⇄ ${team === 'radiant' ? 'Dire' : 'Rad'}</button>
+      <div class="lobby-right-actions">
+        <button class="lobby-btn-mini" onclick="switchPlayerTeam('${team}', ${idx})" title="Обменять с игроком противоположной команды">⇄ ${team === 'radiant' ? 'Dire' : 'Rad'}</button>
         <button class="lobby-btn-mini" onclick="sendPlayerToBench('${team}', ${idx})" title="Отправить на скамейку запасных">🛋️</button>
-        <button class="hero-pick-btn" onclick="openHeroSelectModalForLobby('${team}', ${idx})">
+        <button class="hero-pick-btn" onclick="openHeroSelectModalForLobby('${team}', ${idx})" title="Выбрать героя для текущей карты">
           <img src="${getHeroImg(p.pickedHero)}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
-          <span>${p.pickedHero}</span>
+          <span>${p.pickedHero || 'Pudge'}</span>
           <span style="color:#9ca3af; font-size:10px;">▼</span>
         </button>
       </div>
@@ -2404,14 +2721,8 @@
     container.innerHTML = '';
 
     let heroList = [...DOTA2_HEROES_CATALOG];
-
-    if (activeGridAttr !== 'all') {
-      heroList = heroList.filter(h => h.attr === activeGridAttr);
-    }
-
-    if (query) {
-      heroList = heroList.filter(h => h.name.toLowerCase().includes(query));
-    }
+    if (activeGridAttr !== 'all') heroList = heroList.filter(h => h.attr === activeGridAttr);
+    if (query) heroList = heroList.filter(h => h.name.toLowerCase().includes(query));
 
     if (heroSelectMode === 'lobbyPick' && heroSelectContext.player) {
       const sigs = (heroSelectContext.player.heroes || []).map(h => h.toLowerCase().trim());
@@ -2439,7 +2750,7 @@
       }
 
       card.innerHTML = `
-        <img src="${getHeroImg(hero.name)}" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
+        <img src="${getHeroImg(hero.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='${LARGO_IMG_URL}'">
         <span class="hero-card-name">${hero.name}</span>
       `;
 
@@ -2465,32 +2776,39 @@
     });
   }
 
+  // --- КОПИРОВАНИЕ ДЛЯ DISCORD (ТОЛЬКО ПОЗИЦИЯ, ИГРОК И MMR) ---
   function copyLobbyToDiscord() {
     if (!currentLobbyData) return;
     const m = currentLobbyData;
-    let text = `⚔️ **DOTA 2 CUSTOM LOBBY 5v5 & DRAFT**\n\n`;
-    text += `🟢 **THE RADIANT** (Avg: ${Math.round(m.radiantMmr / (m.radiant.length || 1))} MMR)\n`;
+    const radCount = m.radiant.length || 1;
+    const direCount = m.dire.length || 1;
+
+    let text = `⚔️ **DOTA 2 CUSTOM LOBBY 5v5**\n\n`;
+    text += `🟢 **THE RADIANT** (Avg: ${Math.round(m.radiantMmr / radCount)} MMR)\n`;
     m.radiant.forEach(p => {
-      text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** — 🛡️ **${p.pickedHero}** [${p.mmr} MMR]\n`;
+      text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** [${p.mmr} MMR]\n`;
     });
 
-    text += `\n🔴 **THE DIRE** (Avg: ${Math.round(m.direMmr / (m.dire.length || 1))} MMR)\n`;
+    text += `\n🔴 **THE DIRE** (Avg: ${Math.round(m.direMmr / direCount)} MMR)\n`;
     m.dire.forEach(p => {
-      text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** — 🛡️ **${p.pickedHero}** [${p.mmr} MMR]\n`;
+      text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** [${p.mmr} MMR]\n`;
     });
     text += `\n⚖️ Разница по командам: **${m.diff} MMR**\n`;
 
     if (m.bench && m.bench.length > 0) {
-      text += `\n🛋️ **НА ЗАМЕНЕ:** ${m.bench.map(p => p.name).join(', ')}\n`;
+      text += `\n🛋️ **НА ЗАМЕНЕ:**\n`;
+      m.bench.forEach(p => {
+        text += `• **${p.name}** [${p.mmr} MMR]\n`;
+      });
     }
 
-    navigator.clipboard.writeText(text).then(() => alert('Состав и драфт скопированы в буфер обмена!'));
+    navigator.clipboard.writeText(text).then(() => alert('Составы команд (позиция, ник и MMR) скопированы для Discord!'));
   }
 
   // --- ИСТОРИЯ МАТЧЕЙ ---
   function openFinishMatchModal() {
     if (!isAdmin()) {
-      alert('Только администратор может завершить матч и сохранить его в историю!');
+      alert('Только администратор может завершить матч!');
       return;
     }
     if (!currentLobbyData) {
@@ -2505,10 +2823,7 @@
   }
 
   function confirmFinishMatch(winner) {
-    if (!isAdmin()) {
-      alert('Ошибка: права администратора не обнаружены.');
-      return;
-    }
+    if (!isAdmin()) return;
 
     const matchRecord = {
       id: Date.now().toString(),
@@ -2548,7 +2863,7 @@
             <span style="font-weight:700;">${p.name}</span>
             <span style="color:#94a3b8; font-size:11px;">(Поз. ${p.pos})</span>
           </div>
-          <span style="font-family:monospace; color:#fbbf24; font-size:11.5px;">${p.mmr}</span>
+          <span style="font-family:monospace; color:#fbbf24; font-size:12px;">${p.mmr} MMR</span>
         </div>
       `).join('');
 
@@ -2560,7 +2875,7 @@
           </div>
           <div style="display:flex; align-items:center; gap:10px;">
             <span style="font-size:12px; color:#cbd5e1; font-family:monospace;">Разница: ${m.diff} MMR</span>
-            ${isAdmin() ? `<button class="btn-icon del" title="Удалить запись матча (только для админа)" onclick="deleteMatch('${m.id}')">🗑️</button>` : ''}
+            ${isAdmin() ? `<button class="btn-icon del" title="Удалить запись" onclick="deleteMatch('${m.id}')">🗑️</button>` : ''}
           </div>
         </div>
         <div class="match-teams-grid">
@@ -2668,7 +2983,6 @@
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch (err) {
-      console.error(err);
       alert('Для снимка используйте Win + Shift + S.');
     } finally {
       document.body.classList.remove('exporting');
