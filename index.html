@@ -1,0 +1,4442 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dota 2 Compet</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23e11d48%22><path d=%22M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z%22/></svg>">
+
+<!-- Премиальная типографика -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Oswald:wght@600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    /* Основные цвета бездны */
+    --bg-abyss: #05070b;
+    --bg-base: #0a0d14;
+    --bg-surface: rgba(13, 17, 26, 0.78);
+    --bg-card: rgba(16, 21, 32, 0.88);
+    --bg-card-solid: #0d121c;
+
+    /* Фракция Света (The Radiant) */
+    --rad-emerald: #10b981;
+    --rad-mint: #34d399;
+    --rad-glow: rgba(16, 185, 129, 0.45);
+    --rad-bg: rgba(16, 185, 129, 0.12);
+    --rad-border: #059669;
+
+    /* Фракция Тьмы (The Dire) */
+    --dire-crimson: #e11d48;
+    --dire-ruby: #be123c;
+    --dire-glow: rgba(225, 29, 72, 0.5);
+    --dire-bg: rgba(225, 29, 72, 0.14);
+    --dire-border: #9f1239;
+
+    /* Золото / Aegis */
+    --aegis-gold: #f59e0b;
+    --aegis-light: #fcd34d;
+    --aegis-glow: rgba(245, 158, 11, 0.45);
+    --aegis-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+
+    /* Мана / Руны */
+    --mana-cyan: #38bdf8;
+    --mana-glow: rgba(56, 189, 248, 0.4);
+
+    /* Атрибуты Dota 2 */
+    --attr-str: #ef4444;
+    --attr-agi: #22c55e;
+    --attr-int: #3b82f6;
+    --attr-uni: #a855f7;
+
+    /* Текст */
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #64748b;
+
+    /* Фэнтезийные граненые формы Dota 2 (радиус 6–9px) */
+    --radius-sm: 5px;
+    --radius-md: 7px;
+    --radius-lg: 9px;
+    --border-dota: 2px solid rgba(255, 255, 255, 0.12);
+
+    /* Chunky UI: тактильные 3D тени */
+    --shadow-btn: 0 4px 0 rgba(0, 0, 0, 0.5);
+    --shadow-btn-active: 0 1px 0 rgba(0, 0, 0, 0.5);
+    --shadow-card: 0 14px 30px rgba(0, 0, 0, 0.7);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  ::selection {
+    background: var(--dire-crimson);
+    color: #fff;
+  }
+
+  body {
+    background-color: var(--bg-abyss);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 12px;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* 1. Живой фон: Противостояние Сил Света и Тьмы */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: -30%;
+    background: 
+      /* Изумрудное сияние Radiant слева */
+      radial-gradient(circle at 15% 25%, rgba(16, 185, 129, 0.15) 0%, transparent 45%),
+      radial-gradient(circle at 25% 70%, rgba(56, 189, 248, 0.1) 0%, transparent 40%),
+      /* Вулканический жар Dire справа */
+      radial-gradient(circle at 85% 25%, rgba(225, 29, 72, 0.18) 0%, transparent 45%),
+      radial-gradient(circle at 75% 75%, rgba(245, 158, 11, 0.12) 0%, transparent 40%);
+    filter: blur(60px);
+    z-index: -2;
+    pointer-events: none;
+    animation: dota-aura-shift 24s ease-in-out infinite alternate;
+  }
+
+  @keyframes dota-aura-shift {
+    0% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+    50% { transform: scale(1.08) rotate(1deg); opacity: 1; }
+    100% { transform: scale(1) rotate(-1deg); opacity: 0.85; }
+  }
+
+  /* Парящие частицы пепла и маны */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      radial-gradient(2px 2px at 80px 120px, rgba(225, 29, 72, 0.5), transparent),
+      radial-gradient(2px 2px at 320px 240px, rgba(245, 158, 11, 0.4), transparent),
+      radial-gradient(3px 3px at 85% 30%, rgba(225, 29, 72, 0.6), transparent),
+      radial-gradient(2px 2px at 15% 45%, rgba(16, 185, 129, 0.5), transparent),
+      radial-gradient(3px 3px at 20% 80%, rgba(56, 189, 248, 0.5), transparent);
+    background-size: 500px 500px;
+    animation: embers-float 18s linear infinite;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  @keyframes embers-float {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-500px); }
+  }
+
+  /* Кастомный Dota скроллбар */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.4); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb { background: #273349; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--dire-crimson); }
+
+  .app-container {
+    max-width: 1380px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* 2. ШАПКА В СТИЛЕ ЭГИДЫ */
+  .top-branding {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, rgba(19, 26, 40, 0.95), rgba(11, 15, 24, 0.95));
+    border: var(--border-dota);
+    border-bottom: 3px solid var(--dire-crimson);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(16px);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .brand-title-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .brand-logo-icon {
+    width: 52px;
+    height: 52px;
+    background: radial-gradient(circle, #2b1118 0%, #0d121c 100%);
+    border: 2px solid var(--dire-crimson);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.5), 0 0 15px var(--dire-glow);
+    animation: dota-float 4s ease-in-out infinite;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .brand-logo-icon:hover { transform: scale(1.08); }
+  .brand-logo-icon svg {
+    width: 32px;
+    height: 32px;
+    fill: #f43f5e;
+    filter: drop-shadow(0 0 6px rgba(244, 63, 94, 0.8));
+  }
+  @keyframes dota-float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-4px); }
+  }
+
+  .brand-text h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    line-height: 1.1;
+  }
+  .brand-text p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--mana-cyan);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+  }
+  .brand-text p::before {
+    content: '●';
+    color: var(--rad-emerald);
+    text-shadow: 0 0 6px var(--rad-emerald);
+  }
+
+  .sync-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    font-weight: 800;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    box-shadow: var(--shadow-btn);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+  }
+
+  /* 3. НАВИГАЦИОННЫЕ ВКЛАДКИ */
+  .nav-tabs {
+    display: flex;
+    gap: 8px;
+    background: rgba(13, 18, 28, 0.7);
+    border: var(--border-dota);
+    border-radius: var(--radius-lg);
+    padding: 6px;
+    backdrop-filter: blur(12px);
+    overflow-x: auto;
+    box-shadow: var(--shadow-card);
+  }
+  .tab-btn {
+    background: rgba(255, 255, 255, 0.04);
+    border: 2px solid transparent;
+    color: var(--text-secondary);
+    padding: 9px 18px;
+    border-radius: var(--radius-md);
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.3);
+    transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .tab-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 rgba(0,0,0,0.35);
+  }
+  .tab-btn:active {
+    transform: translateY(3px);
+    box-shadow: none;
+  }
+  .tab-btn.active {
+    background: linear-gradient(180deg, rgba(37, 99, 235, 0.25), rgba(15, 23, 42, 0.6));
+    border-color: #3b82f6;
+    color: #fff;
+    box-shadow: 0 3px 0 #1d4ed8, 0 0 12px var(--mana-glow);
+    text-shadow: 0 0 6px rgba(59, 130, 246, 0.8);
+  }
+  .badge-counter {
+    background: #000;
+    padding: 2px 7px;
+    border-radius: var(--radius-sm);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 800;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-secondary);
+  }
+  .tab-btn.active .badge-counter {
+    border-color: var(--mana-cyan);
+    color: var(--mana-cyan);
+  }
+
+  /* 4. ПАНЕЛЬ УПРАВЛЕНИЯ */
+  .controls-panel {
+    background: var(--bg-card);
+    border: var(--border-dota);
+    border-radius: var(--radius-lg);
+    padding: 10px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(14px);
+  }
+  .filter-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .filter-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.3);
+    transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .filter-btn:hover {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+  }
+  .filter-btn:active {
+    transform: translateY(3px);
+    box-shadow: none;
+  }
+  .filter-btn.active {
+    background: var(--dire-crimson);
+    border-color: #fb7185;
+    color: #fff;
+    box-shadow: 0 3px 0 var(--dire-ruby), 0 0 10px var(--dire-glow);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+
+  .controls-search-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+  }
+  .search-box {
+    background: rgba(0, 0, 0, 0.45);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    font-size: 13.5px;
+    font-family: 'Inter', sans-serif;
+    min-width: 190px;
+    outline: none;
+    flex: 1 1 200px;
+    transition: all 0.2s;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+  }
+  .search-box:focus {
+    border-color: var(--mana-cyan);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.4), 0 0 10px var(--mana-glow);
+  }
+
+  /* СИСТЕМА ФЭНТЕЗИЙНЫХ CHUNKY КНОПОК */
+  .action-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    border: 2px solid rgba(255, 255, 255, 0.14);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    font-family: 'Oswald', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    user-select: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: var(--shadow-btn);
+    transition: all 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 rgba(0,0,0,0.45);
+  }
+  .btn:active {
+    transform: translateY(4px);
+    box-shadow: var(--shadow-btn-active);
+  }
+
+  .btn-add {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border-color: #60a5fa;
+  }
+  .btn-lobby {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    border-color: #fcd34d;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  }
+  .btn-lobby-core {
+    background: linear-gradient(135deg, #e11d48, #9f1239);
+    border-color: #f43f5e;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  }
+  .btn-manual {
+    background: linear-gradient(135deg, #475569, #334155);
+    border-color: #94a3b8;
+  }
+  .btn-random10 {
+    background: #1e2533;
+    border-color: #334155;
+    color: var(--text-secondary);
+  }
+  .btn-admin {
+    background: #181d28;
+    border-color: #3b4252;
+  }
+  .btn-admin.active {
+    background: #059669;
+    border-color: #34d399;
+    box-shadow: 0 4px 0 #065f46, 0 0 10px var(--rad-glow);
+  }
+  .btn-finish {
+    background: linear-gradient(135deg, #9333ea, #6b21a8);
+    border-color: #c084fc;
+  }
+  .btn-reset {
+    background: #1e2430;
+    border-color: #374151;
+    color: #94a3b8;
+  }
+
+  /* 5. КАРТОЧКА КОНТЕНТА И СТАТИСТИКА */
+  .content-section {
+    background: var(--bg-card);
+    border: var(--border-dota);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(16px);
+    overflow: hidden;
+    width: 100%;
+  }
+  .header-widget {
+    background: linear-gradient(90deg, rgba(159, 18, 57, 0.35), rgba(30, 27, 75, 0.4), rgba(11, 15, 24, 0.8));
+    padding: 12px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+  }
+  .header-title-box { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .header-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+  }
+
+  .stats-badges { display: flex; gap: 8px; }
+  .stat-card {
+    background: rgba(0, 0, 0, 0.45);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-sm);
+    padding: 4px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.25);
+  }
+  .stat-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-family: 'Oswald', sans-serif;
+  }
+  .stat-val {
+    font-size: 15px;
+    font-weight: 800;
+    color: #fcd34d;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* 6. ТАБЛИЦА ИГРОКОВ (Клик по всей строке) */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    padding: 6px;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 4px;
+    font-size: 13.5px;
+    min-width: 780px;
+  }
+  th {
+    background: rgba(8, 11, 18, 0.85);
+    text-align: left;
+    padding: 10px 12px;
+    color: var(--mana-cyan);
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    border-bottom: 2px solid rgba(255,255,255,0.1);
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    user-select: none;
+  }
+  th:first-child { border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm); }
+  th:last-child { border-top-right-radius: var(--radius-sm); border-bottom-right-radius: var(--radius-sm); }
+  th.sortable { cursor: pointer; transition: all 0.15s; }
+  th.sortable:hover { color: #fff; background: rgba(56, 189, 248, 0.15); }
+  th.sort-active { color: var(--aegis-light); background: rgba(245, 158, 11, 0.1); }
+
+  td {
+    padding: 7px 12px;
+    background: rgba(255, 255, 255, 0.02);
+    vertical-align: middle;
+    transition: background 0.15s;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  }
+  tbody tr td:first-child { border-top-left-radius: var(--radius-md); border-bottom-left-radius: var(--radius-md); }
+  tbody tr td:last-child { border-top-right-radius: var(--radius-md); border-bottom-right-radius: var(--radius-md); }
+
+  tbody tr {
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  tbody tr:hover td {
+    background: rgba(56, 189, 248, 0.12) !important;
+  }
+  tbody tr.row-selected td {
+    background: rgba(225, 29, 72, 0.16) !important;
+    border-top-color: rgba(225, 29, 72, 0.4);
+    border-bottom-color: rgba(225, 29, 72, 0.4);
+  }
+
+  .custom-check {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--dire-crimson);
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+  }
+  .player-name {
+    font-weight: 800;
+    color: #fff;
+    font-size: 14px;
+    letter-spacing: 0.3px;
+  }
+  .player-cell { display: inline-flex; align-items: center; gap: 6px; }
+  .steam-link {
+    color: var(--mana-cyan);
+    text-decoration: none;
+    font-size: 12px;
+    opacity: 0.8;
+  }
+  .steam-link:hover { opacity: 1; text-decoration: underline; }
+
+  /* Ранги с пульсирующим свечением для Титанов */
+  .rank-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 800;
+    font-size: 13px;
+  }
+  .rank-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+  }
+  .rank-immortal {
+    color: #fbbf24;
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+    animation: immortal-pulse 3s infinite ease-in-out;
+  }
+  @keyframes immortal-pulse {
+    0%, 100% { filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.5)); }
+    50% { filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.9)); }
+  }
+  .rank-divine   { color: #c084fc; filter: drop-shadow(0 0 6px rgba(192, 132, 252, 0.5)); }
+  .rank-ancient  { color: #2dd4bf; filter: drop-shadow(0 0 5px rgba(45, 212, 191, 0.4)); }
+  .rank-legend   { color: #4ade80; }
+  .rank-archon   { color: #60a5fa; }
+  .rank-crusader { color: #d97706; }
+  .rank-guardian { color: #94a3b8; }
+
+  .mmr-badge {
+    background: #131926;
+    color: #fbbf24;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.4);
+  }
+
+  .pos-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 800;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin: 1px;
+  }
+  .pos-1 { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+  .pos-2 { background: rgba(234, 179, 8, 0.2); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.4); }
+  .pos-3 { background: rgba(249, 115, 22, 0.2); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.4); }
+  .pos-4 { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+  .pos-5 { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+
+  /* Герои */
+  .hero-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+  }
+  .hero-badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+  .hero-badge img {
+    width: 38px;
+    height: 22px;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.18);
+    display: block;
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.15s;
+  }
+  .hero-badge:hover img {
+    transform: scale(1.3) translateY(-2px);
+    border-color: var(--mana-cyan);
+    box-shadow: 0 4px 10px rgba(56, 189, 248, 0.5);
+    z-index: 20;
+  }
+
+  .pool-warning-pill {
+    background: rgba(239, 68, 68, 0.25);
+    border: 1px solid #ef4444;
+    color: #fca5a5;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .btn-icon {
+    background: #181d28;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    border-radius: var(--radius-sm);
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 12px;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+    transition: all 0.12s;
+  }
+  .btn-icon:hover { background: #283347; color: #fff; transform: translateY(-1px); }
+  .btn-icon.del:hover { background: #991b1b; border-color: #ef4444; }
+
+  /* 7. ФРАКЦИОННЫЕ АЛТАРИ ЛОББИ 5x5 */
+  .balance-variants-bar {
+    background: #0d121c;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .variant-chip-btn {
+    background: #161e2e;
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    color: #cbd5e1;
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.3);
+    transition: all 0.15s;
+  }
+  .variant-chip-btn:hover { background: #222d42; color: #fff; transform: translateY(-1px); }
+  .variant-chip-btn.active {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border-color: #60a5fa;
+    color: #fff;
+    box-shadow: 0 3px 0 #1e40af, 0 0 10px var(--mana-glow);
+  }
+
+  .lobby-header {
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.25) 0%, rgba(13, 18, 28, 0.95) 50%, rgba(225, 29, 72, 0.25) 100%);
+    padding: 12px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .match-diff {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    padding: 5px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid var(--aegis-gold);
+    color: #fbbf24;
+    font-weight: 800;
+    box-shadow: 0 0 10px var(--aegis-glow);
+  }
+
+  .teams-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+  
+  /* Алтарь Сил Света */
+  .team-panel.radiant-altar {
+    background: radial-gradient(circle at top left, rgba(16, 185, 129, 0.08), rgba(11, 16, 24, 0.95));
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--rad-border);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15), inset 0 0 20px rgba(16, 185, 129, 0.05);
+    overflow: hidden;
+  }
+  /* Алтарь Сил Тьмы */
+  .team-panel.dire-altar {
+    background: radial-gradient(circle at top right, rgba(225, 29, 72, 0.1), rgba(14, 11, 18, 0.95));
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--dire-border);
+    box-shadow: 0 8px 24px rgba(225, 29, 72, 0.18), inset 0 0 20px rgba(225, 29, 72, 0.05);
+    overflow: hidden;
+  }
+
+  .team-bar {
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .team-bar.radiant {
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.3), transparent);
+    color: #34d399;
+    border-bottom: 2px solid var(--rad-border);
+    text-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+  }
+  .team-bar.dire {
+    background: linear-gradient(90deg, rgba(225, 29, 72, 0.3), transparent);
+    color: #fb7185;
+    border-bottom: 2px solid var(--dire-border);
+    text-shadow: 0 0 8px rgba(251, 113, 133, 0.6);
+  }
+  .team-avg {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  /* Яркая подсветка Drag-and-Drop */
+  .lobby-list {
+    min-height: 230px;
+    padding: 4px;
+    transition: all 0.2s;
+  }
+  .drop-zone-active {
+    background: rgba(56, 189, 248, 0.12) !important;
+    outline: 2px dashed var(--mana-cyan) !important;
+    outline-offset: -3px;
+  }
+  .drag-over-item {
+    outline: 2px solid var(--aegis-gold) !important;
+    background: rgba(245, 158, 11, 0.2) !important;
+    box-shadow: 0 0 14px var(--aegis-glow) !important;
+    transform: scale(1.015);
+  }
+  .lobby-player-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-md);
+    gap: 10px;
+    cursor: grab;
+    transition: all 0.15s ease;
+  }
+  .lobby-player-row:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+  .lobby-player-row.dragging { opacity: 0.3; border: 2px dashed #fff; }
+
+  .drag-handle {
+    color: var(--text-muted);
+    font-size: 14px;
+    user-select: none;
+    cursor: grab;
+  }
+  .pos-select {
+    background: #0d121c;
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-sm);
+    padding: 3px 6px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+  }
+  .pos-select:focus { border-color: var(--mana-cyan); }
+
+  .hero-pick-btn {
+    background: #0f1522;
+    border: 2px solid rgba(255, 255, 255, 0.14);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.3);
+    transition: all 0.15s;
+  }
+  .hero-pick-btn:hover {
+    border-color: var(--mana-cyan);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 0 rgba(0,0,0,0.4), 0 0 10px var(--mana-glow);
+  }
+  .hero-pick-btn img {
+    width: 32px;
+    height: 18px;
+    border-radius: 3px;
+    object-fit: cover;
+  }
+
+  /* Аналитика линий */
+  .laning-card {
+    margin: 12px 16px 16px 16px;
+    background: rgba(11, 15, 24, 0.9);
+    border: var(--border-dota);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  }
+  .laning-card-header {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 10px 14px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .laning-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
+  .lane-col {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .lane-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 4px;
+  }
+  .lane-advantage {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 6px;
+    border-radius: var(--radius-sm);
+    text-align: center;
+    margin-top: 4px;
+  }
+  .adv-rad { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid var(--rad-border); }
+  .adv-dire { background: rgba(225, 29, 72, 0.2); color: #fb7185; border: 1px solid var(--dire-border); }
+  .adv-even { background: rgba(100, 116, 139, 0.2); color: #cbd5e1; border: 1px solid #475569; }
+
+  .bench-panel {
+    background: rgba(9, 13, 21, 0.85);
+    border-top: 2px solid rgba(255, 255, 255, 0.08);
+    padding: 12px 18px;
+  }
+  .bench-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+  .bench-badge {
+    background: #141b29;
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-md);
+    padding: 5px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: grab;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.3);
+    transition: all 0.15s;
+  }
+  .bench-badge:hover {
+    border-color: var(--mana-cyan);
+    transform: translateY(-2px);
+  }
+
+  /* 8. СЕТКА ВЫБОРА ГЕРОЕВ (МОДАЛКА) */
+  .hero-grid-modal {
+    max-width: 880px !important;
+    width: 95% !important;
+  }
+  .attr-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    padding: 5px 12px;
+    border-radius: var(--radius-sm);
+    font-family: 'Oswald', sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.25);
+    transition: all 0.12s;
+  }
+  .attr-btn:active { transform: translateY(3px); box-shadow: none; }
+  .attr-btn.str.active { background: #991b1b; border-color: var(--attr-str); color: #fff; }
+  .attr-btn.agi.active { background: #166534; border-color: var(--attr-agi); color: #fff; }
+  .attr-btn.int.active { background: #1e40af; border-color: var(--attr-int); color: #fff; }
+  .attr-btn.uni.active { background: #6b21a8; border-color: var(--attr-uni); color: #fff; }
+
+  .hero-grid-container {
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+    gap: 8px;
+    padding: 8px 4px;
+    max-height: 480px;
+  }
+  .hero-card {
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .hero-card:hover {
+    border-color: var(--mana-cyan);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 12px var(--mana-glow);
+    z-index: 5;
+  }
+  .hero-card.is-selected {
+    border-color: var(--rad-emerald) !important;
+    background: rgba(16, 185, 129, 0.2) !important;
+  }
+  .hero-card.is-selected::after {
+    content: "✓";
+    position: absolute;
+    top: -5px; right: -5px;
+    background: var(--rad-emerald);
+    color: #000;
+    font-size: 11px;
+    font-weight: 900;
+    border-radius: 50%;
+    width: 17px; height: 17px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hero-card img {
+    width: 100%;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  .hero-card-name {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 4px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
+
+  /* 9. МОДАЛЬНЫЕ ОКНА (SPRING BOUNCE АНИМАЦИЯ) */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 5, 10, 0.88);
+    backdrop-filter: blur(10px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 14px;
+  }
+  .modal-window {
+    background: var(--bg-card);
+    border: var(--border-dota);
+    border-top: 5px solid var(--dire-crimson);
+    border-radius: var(--radius-lg);
+    max-width: 540px;
+    width: 100%;
+    padding: 22px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 25px rgba(225, 29, 72, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalBounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes modalBounce {
+    from { opacity: 0; transform: scale(0.92) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 10px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 19px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label {
+    font-size: 11.5px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 800;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+  }
+  .form-input {
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .form-input:focus {
+    border-color: var(--mana-cyan);
+    box-shadow: 0 0 10px var(--mana-glow);
+  }
+
+  .role-checkboxes { display: flex; flex-wrap: wrap; gap: 8px; }
+  .role-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12.5px;
+    font-weight: 700;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+  }
+
+  /* История матчей */
+  .match-card {
+    background: rgba(15, 20, 31, 0.9);
+    border: var(--border-dota);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: var(--shadow-card);
+  }
+  .match-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .winner-tag {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .winner-radiant {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 2px solid var(--rad-border);
+    box-shadow: 0 2px 0 #065f46;
+  }
+  .winner-dire {
+    background: rgba(225, 29, 72, 0.2);
+    color: #fb7185;
+    border: 2px solid var(--dire-border);
+    box-shadow: 0 2px 0 var(--dire-ruby);
+  }
+
+  /* Статистика и винрейт бар */
+  .winrate-bar-bg {
+    width: 68px;
+    height: 8px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 4px;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 6px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .winrate-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #3b82f6);
+  }
+
+  .sub-nav-tabs {
+    display: flex;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 8px 14px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.06);
+    overflow-x: auto;
+  }
+  .sub-tab-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .sub-tab-btn.active {
+    background: #2563eb;
+    border-color: #60a5fa;
+    color: #fff;
+    box-shadow: 0 2px 0 #1d4ed8;
+  }
+
+  /* Уважаем системную настройку «уменьшить движение»: отключаем фоновые и декоративные анимации */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    body::before, body::after { animation: none !important; }
+  }
+
+  @media (max-width: 860px) {
+    body { padding: 8px 6px; }
+    .teams-container { grid-template-columns: 1fr; padding: 10px; }
+    .laning-grid { grid-template-columns: 1fr; }
+    .controls-panel { flex-direction: column; align-items: stretch; }
+    .filter-group { justify-content: center; }
+    .filter-btn { flex: 1 1 auto; text-align: center; }
+    .controls-search-actions { flex-direction: column; align-items: stretch; }
+    .action-btns .btn { flex: 1 1 calc(50% - 4px); }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- ШАПКА В СТИЛЕ ЭГИДЫ ДИРЕ И РАДИАНТА -->
+  <header class="top-branding">
+    <div class="brand-title-group">
+      <div class="brand-logo-icon" title="Dota 2 Compet">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>DOTA 2 Compet</h1>
+        <p>тирлист</p>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span id="sync-status" class="sync-badge">⚪ Проверка базы...</span>
+    </div>
+  </header>
+
+  <!-- ВКЛАДКИ -->
+  <div class="nav-tabs">
+    <button id="tab-btn-roster" class="tab-btn active" onclick="switchTab('roster')">
+      👥 Состав игроков <span id="badge-roster-count" class="badge-counter">0</span>
+    </button>
+    <button id="tab-btn-lobby" class="tab-btn" onclick="switchTab('lobby')">
+      ⚔️ Лобби матча <span id="badge-lobby-active" class="badge-counter" style="display:none; color:var(--aegis-gold);">●</span>
+    </button>
+    <button id="tab-btn-history" class="tab-btn" onclick="switchTab('history')">
+      📜 История матчей <span id="badge-history-count" class="badge-counter">0</span>
+    </button>
+    <button id="tab-btn-stats" class="tab-btn" onclick="switchTab('stats')">
+      📊 Таблица лидеров & Аналитика
+    </button>
+  </div>
+
+  <!-- ВКЛАДКА 1: СОСТАВ ИГРОКОВ -->
+  <div id="section-roster" style="display: flex; flex-direction: column; gap: 12px;">
+    <div class="controls-panel">
+      <div class="filter-group">
+        <button class="filter-btn active" onclick="setPosFilter('all', this)">Все</button>
+        <button class="filter-btn" onclick="setPosFilter('1', this)">Carry</button>
+        <button class="filter-btn" onclick="setPosFilter('2', this)">Mid</button>
+        <button class="filter-btn" onclick="setPosFilter('3', this)">Offlane</button>
+        <button class="filter-btn" onclick="setPosFilter('4', this)">Support</button>
+        <button class="filter-btn" onclick="setPosFilter('5', this)">Hard Sup</button>
+      </div>
+
+      <div class="controls-search-actions">
+        <input type="text" id="search-input" class="search-box" placeholder="Поиск ника или героя..." oninput="renderTable()">
+        <div class="action-btns">
+          <button id="admin-toggle-btn" class="btn btn-admin" onclick="toggleAdminLogin()">🔑 Админ</button>
+          <button id="btn-add-player" class="btn btn-add" style="display: none;" onclick="openAddModal()">➕ Игрок</button>
+          <button class="btn btn-random10" onclick="selectRandom10()">🎲 Выбрать 10</button>
+          <button class="btn btn-lobby" onclick="generateLobby('standard')" title="Стандартный подбор по общему MMR">⚔️ Собрать 5x5</button>
+          <button class="btn btn-lobby-core" onclick="generateLobby('core')" title="Подбор с приоритетом равных кор-позиций и пула героев">👑 По корам</button>
+          <button class="btn btn-manual" onclick="initManualLobby()" title="Собрать лобби вручную">🛠️ Вручную</button>
+          <button id="btn-backup-json" class="btn btn-random10" style="display: none;" onclick="exportBackupJSON()" title="Скачать бэкап базы (.json)">💾 Бэкап</button>
+          <button id="btn-import-json" class="btn btn-reset" style="display: none;" onclick="document.getElementById('file-import-input').click()" title="Загрузить базу из файла">📥 Импорт</button>
+          <input type="file" id="file-import-input" accept=".json" style="display: none;" onchange="importBackupJSON(event)">
+          <button id="btn-reset-roster" class="btn btn-reset" style="display: none;" onclick="resetToDefault()" title="Восстановить исходный список из 18 игроков">🔄</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="roster-card" class="content-section">
+      <div class="header-widget">
+        <div class="header-title-box">
+          <span class="header-title">👥 лидерборд игроков Dota 2</span>
+        </div>
+        <div class="stats-badges">
+          <div class="stat-card">
+            <span class="stat-label">Выбрано</span>
+            <span class="stat-val" id="stat-selected" style="color: var(--mana-cyan);">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Всего</span>
+            <span class="stat-val" id="stat-count">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Средний MMR</span>
+            <span class="stat-val" id="stat-avg">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 38px; text-align: center;" class="check-col">
+                <input type="checkbox" id="check-all" onchange="toggleSelectAll(this)" title="Выбрать всех" class="custom-check">
+              </th>
+              <th style="width: 40px; text-align: center;">#</th>
+              <th style="width: 170px;" class="sortable" onclick="sortTable('name')">Игрок ⬍</th>
+              <th style="width: 140px;">Звание</th>
+              <th style="width: 105px; text-align: center;" class="sortable" onclick="sortTable('mmr')">MMR ⬍</th>
+              <th style="width: 160px;">Позиция</th>
+              <th>Пул героев и сигнатурка</th>
+              <th id="th-actions" style="width: 90px; text-align: right; display: none;" class="action-col">Действия</th>
+            </tr>
+          </thead>
+          <tbody id="roster-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ВКЛАДКА 2: ФРАКЦИОННОЕ ЛОББИ 5x5 -->
+  <div id="section-lobby" class="content-section" style="display: none;">
+    <div id="balance-variants-bar" class="balance-variants-bar" style="display: none;">
+      <span style="font-family:'Oswald', sans-serif; font-size:13px; font-weight:800; color:var(--text-secondary); text-transform:uppercase;">⚖️ Варианты баланса:</span>
+      <div id="variants-chips-container" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+    </div>
+
+    <div class="lobby-header">
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <span style="font-family:'Oswald', sans-serif; font-size:17px; font-weight:800; letter-spacing:1px;">⚔️ ЛОББИ МАТЧА 5x5</span>
+        <button class="btn btn-lobby" style="padding: 5px 10px; font-size: 11px;" onclick="autoBalanceCurrentLobby('standard')">⚖️ Стандарт</button>
+        <button class="btn btn-lobby-core" style="padding: 5px 10px; font-size: 11px;" onclick="autoBalanceCurrentLobby('core')">👑 По корам</button>
+        <button class="btn btn-random10" style="padding: 5px 10px; font-size: 11px;" onclick="copyLobbyToDiscord()">📋 Для Discord</button>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span id="lobby-diff" class="match-diff">Разница: 0 MMR</span>
+        <button id="btn-finish-lobby-match" class="btn btn-finish" style="display: none;" onclick="openFinishMatchModal()">🏁 Завершить матч</button>
+      </div>
+    </div>
+
+    <div id="lobby-cm-alert" style="display: none; background: rgba(225,29,72,0.12); border: 2px solid var(--dire-border); border-radius: var(--radius-md); padding: 10px 14px; margin: 12px 16px 0 16px; font-size: 12.5px; color: #fca5a5;"></div>
+    
+    <div class="teams-container">
+      <!-- Алтарь Radiant -->
+      <div class="team-panel radiant-altar">
+        <div class="team-bar radiant">
+          <span>🟢 The Radiant</span>
+          <span class="team-avg" id="radiant-avg">Avg: 0 MMR</span>
+        </div>
+        <div class="lobby-list" id="radiant-roster" data-drop-zone="radiant"></div>
+      </div>
+
+      <!-- Алтарь Dire -->
+      <div class="team-panel dire-altar">
+        <div class="team-bar dire">
+          <span>🔴 The Dire</span>
+          <span class="team-avg" id="dire-avg">Avg: 0 MMR</span>
+        </div>
+        <div class="lobby-list" id="dire-roster" data-drop-zone="dire"></div>
+      </div>
+    </div>
+
+    <div class="laning-card">
+      <div class="laning-card-header">
+        <span>📊 Анализ линий и матчапов (с учетом банов Captains Mode)</span>
+        <span style="font-size: 11px; color: var(--text-muted); font-family:'JetBrains Mono', monospace;">Прогноз противостояний</span>
+      </div>
+      <div class="laning-grid" id="laning-grid-content"></div>
+    </div>
+
+    <div id="bench-panel" class="bench-panel" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+        <div class="bench-title">
+          <span>🛋️ На замене / Следующая игра:</span>
+          <span id="bench-count" style="color: var(--mana-cyan); font-family:'JetBrains Mono', monospace;">(0)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px; width: 100%; max-width: 280px;">
+          <select id="bench-add-select" class="form-input" style="width: 100%; padding: 6px;" onchange="handleAddPlayerToLobby(this)">
+            <option value="">➕ Добавить игрока в замену...</option>
+          </select>
+        </div>
+      </div>
+      <div class="bench-list" id="bench-roster" data-drop-zone="bench" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+    </div>
+  </div>
+
+  <!-- ВКЛАДКА 3: ИСТОРИЯ МАТЧЕЙ -->
+  <div id="section-history" class="content-section" style="display: none;">
+    <div class="header-widget">
+      <div class="header-title">📜 Архив сыгранных матчей</div>
+      <span style="font-size: 12px; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">Результаты синхронизируются в облаке</span>
+    </div>
+    <div id="history-container"></div>
+  </div>
+
+  <!-- ВКЛАДКА 4: СТАТИСТИКА И ЛИДЕРБОРД -->
+  <div id="section-stats" class="content-section" style="display: none;">
+    <div class="header-widget">
+      <div class="header-title">📊 Аналитика и таблица лидеров</div>
+      <span style="font-size: 12px; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">Рейтинг результативности и парная синергия</span>
+    </div>
+
+    <div class="sub-nav-tabs">
+      <button id="sub-tab-btn-leaderboard" class="sub-tab-btn active" onclick="switchStatsSubTab('leaderboard')">🏆 Таблица лидеров</button>
+      <button id="sub-tab-btn-roles" class="sub-tab-btn" onclick="switchStatsSubTab('roles')">🎯 Эффективность по ролям</button>
+      <button id="sub-tab-btn-synergy" class="sub-tab-btn" onclick="switchStatsSubTab('synergy')">🤝 Синергия пар (Winrate)</button>
+    </div>
+
+    <div id="stats-sub-leaderboard" class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 70px; text-align: center;" class="sortable" onclick="sortStatsTable('rank')">Место <span id="sort-ind-rank">⬍</span></th>
+            <th style="width: 170px;" class="sortable" onclick="sortStatsTable('name')">Игрок <span id="sort-ind-name">⬍</span></th>
+            <th style="width: 80px; text-align: center;" class="sortable" onclick="sortStatsTable('matches')">Игр <span id="sort-ind-matches">⬍</span></th>
+            <th style="width: 90px; text-align: center;" class="sortable" onclick="sortStatsTable('wins')">Побед <span id="sort-ind-wins">⬍</span></th>
+            <th style="width: 90px; text-align: center;" class="sortable" onclick="sortStatsTable('losses')">Поражений <span id="sort-ind-losses">⬍</span></th>
+            <th style="width: 160px;" class="sortable" onclick="sortStatsTable('winrate')">Винрейт (%) <span id="sort-ind-winrate">⬍</span></th>
+          </tr>
+        </thead>
+        <tbody id="stats-table-body"></tbody>
+      </table>
+    </div>
+
+    <div id="stats-sub-roles" class="table-responsive" style="display: none;">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 170px;" class="sortable" onclick="sortRolesTable('name')">Игрок <span id="sort-role-name">⬍</span></th>
+            <th style="width: 120px; text-align: center;" class="sortable" onclick="sortRolesTable('1')">Поз. 1 (Carry) <span id="sort-role-1">⬍</span></th>
+            <th style="width: 120px; text-align: center;" class="sortable" onclick="sortRolesTable('2')">Поз. 2 (Mid) <span id="sort-role-2">⬍</span></th>
+            <th style="width: 120px; text-align: center;" class="sortable" onclick="sortRolesTable('3')">Поз. 3 (Offlane) <span id="sort-role-3">⬍</span></th>
+            <th style="width: 120px; text-align: center;" class="sortable" onclick="sortRolesTable('4')">Поз. 4 (Support) <span id="sort-role-4">⬍</span></th>
+            <th style="width: 120px; text-align: center;" class="sortable" onclick="sortRolesTable('5')">Поз. 5 (Hard Sup) <span id="sort-role-5">⬍</span></th>
+            <th style="min-width: 150px;">Лучшая роль</th>
+          </tr>
+        </thead>
+        <tbody id="roles-table-body"></tbody>
+      </table>
+    </div>
+
+    <div id="stats-sub-synergy" style="display: none; padding: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+        <input type="text" id="synergy-search-input" class="search-box" placeholder="Поиск по нику в связке..." oninput="renderSynergyTable()">
+        <span style="font-size: 12px; color: var(--text-muted);">Винрейт пар игроков, игравших в одной команде</span>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 260px;" class="sortable" onclick="sortSynergyTable('pair')">Связка игроков <span id="sort-syn-pair">⬍</span></th>
+              <th style="width: 90px; text-align: center;" class="sortable" onclick="sortSynergyTable('matches')">Матчей <span id="sort-syn-matches">⬍</span></th>
+              <th style="width: 90px; text-align: center;" class="sortable" onclick="sortSynergyTable('wins')">Побед <span id="sort-syn-wins">⬍</span></th>
+              <th style="width: 90px; text-align: center;" class="sortable" onclick="sortSynergyTable('losses')">Поражений <span id="sort-syn-losses">⬍</span></th>
+              <th style="width: 160px;" class="sortable" onclick="sortSynergyTable('winrate')">Винрейт (%) <span id="sort-syn-winrate">⬍</span></th>
+              <th style="width: 160px; text-align: center;">Статус синергии</th>
+            </tr>
+          </thead>
+          <tbody id="synergy-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- МОДАЛКА ВЫБОРА БОЙЦА НА СЛОТ -->
+<div id="slot-pick-modal" class="modal-overlay">
+  <div class="modal-window">
+    <div class="modal-header">
+      <div id="slot-modal-title" style="display:flex; align-items:center; gap:10px;">Назначить игрока</div>
+      <button style="background:none; border:none; color:var(--text-muted); font-size:24px; font-weight: 800; cursor:pointer;" onclick="closeSlotPickModal()">✕</button>
+    </div>
+    <input type="text" id="slot-player-search" class="form-input" placeholder="Быстрый поиск свободного игрока..." oninput="renderSlotPlayerList()">
+    <div id="slot-players-list" style="display:flex; flex-direction:column; gap:8px; max-height:380px; overflow-y:auto; margin-top:8px; padding-right:4px;"></div>
+  </div>
+</div>
+
+<!-- МОДАЛКА ВЫБОРА ГЕРОЕВ -->
+<div id="hero-select-modal" class="modal-overlay">
+  <div class="modal-window hero-grid-modal">
+    <div class="modal-header">
+      <span id="hero-modal-title">Выбор героя</span>
+      <button style="background: none; border: none; color: var(--text-muted); font-size: 24px; font-weight:800; cursor: pointer;" onclick="closeHeroSelectModal()">✕</button>
+    </div>
+    
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <button class="attr-btn all active" onclick="setGridAttrFilter('all', this)">Все</button>
+        <button class="attr-btn str" onclick="setGridAttrFilter('str', this)">🔴 Сила</button>
+        <button class="attr-btn agi" onclick="setGridAttrFilter('agi', this)">🟢 Ловкость</button>
+        <button class="attr-btn int" onclick="setGridAttrFilter('int', this)">🔵 Интеллект</button>
+        <button class="attr-btn uni" onclick="setGridAttrFilter('uni', this)">🟣 Универсал</button>
+      </div>
+      <input type="text" id="hero-grid-filter" class="search-box" style="width: 100%; margin-top: 6px;" placeholder="Поиск героя..." oninput="renderHeroGrid()">
+    </div>
+
+    <div class="hero-grid-container" id="hero-grid-cards"></div>
+
+    <div id="hero-grid-multi-actions" style="display:none; justify-content: space-between; align-items:center; border-top:2px solid rgba(255,255,255,0.08); padding-top:10px;">
+      <span id="hero-grid-selected-counter" style="font-family:'JetBrains Mono', monospace; font-size: 13px; font-weight: 800; color: var(--rad-emerald);">Выбрано: 0</span>
+      <button class="btn btn-lobby" onclick="applyMultiHeroSelect()">Готово</button>
+    </div>
+  </div>
+</div>
+
+<!-- МОДАЛКА ИГРОКА -->
+<div id="player-modal" class="modal-overlay">
+  <div class="modal-window">
+    <div class="modal-header">
+      <span id="modal-title">Редактировать игрока</span>
+      <button style="background: none; border: none; color: var(--text-muted); font-size: 24px; font-weight:800; cursor: pointer;" onclick="closeModal()">✕</button>
+    </div>
+    <input type="hidden" id="edit-player-id">
+    
+    <div class="form-group" style="background: rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.08); padding: 12px; border-radius: var(--radius-md);">
+      <label class="form-label" style="display: flex; justify-content: space-between;">
+        <span>🌐 Интеграция OpenDota / Steam ID</span>
+        <span style="color: var(--mana-cyan); text-transform: none;">Автозаполнение</span>
+      </label>
+      <div style="display: flex; gap: 8px; margin-top: 6px;">
+        <input type="text" id="form-steam-id" class="form-input" placeholder="ID32, Steam64 или ссылка Dotabuff" style="flex:1;">
+        <button type="button" class="btn btn-add" id="btn-fetch-opendota" onclick="fetchOpenDotaData()">⚡ Загрузить</button>
+      </div>
+      <div id="opendota-status" style="font-size: 11px; min-height: 16px; margin-top: 6px; font-family:'JetBrains Mono', monospace;"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Никнейм игрока</label>
+      <input type="text" id="form-name" class="form-input" placeholder="Например: Miracle-">
+    </div>
+    <div class="form-group">
+      <label class="form-label">MMR рейтинг (0 - 20000)</label>
+      <input type="number" id="form-mmr" class="form-input" placeholder="Например: 4500" step="10">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Игровые роли</label>
+      <div class="role-checkboxes">
+        <label class="role-label"><input type="checkbox" name="edit-role" value="1"> 1 - Carry</label>
+        <label class="role-label"><input type="checkbox" name="edit-role" value="2"> 2 - Mid</label>
+        <label class="role-label"><input type="checkbox" name="edit-role" value="3"> 3 - Offlane</label>
+        <label class="role-label"><input type="checkbox" name="edit-role" value="4"> 4 - Support</label>
+        <label class="role-label"><input type="checkbox" name="edit-role" value="5"> 5 - Hard Sup</label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <label class="form-label">Пул персонажей</label>
+        <button type="button" class="btn btn-add" style="padding: 4px 8px; font-size: 11px;" onclick="openHeroGridForPlayerPool()">➕ Сетка героев</button>
+      </div>
+      <div id="player-form-pool-chips" style="display:flex; flex-wrap:wrap; gap:6px; min-height:48px; background:rgba(0,0,0,0.4); padding:8px; border-radius:var(--radius-md); border:1px solid rgba(255,255,255,0.08);"></div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+      <button class="btn btn-reset" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-add" onclick="savePlayer()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- МОДАЛКА ЗАВЕРШЕНИЯ МАТЧА (K/D/A) -->
+<div id="finish-match-modal" class="modal-overlay">
+  <div class="modal-window" style="max-width: 720px;">
+    <div class="modal-header">
+      <span>🏁 Завершение матча</span>
+      <button style="background: none; border: none; color: var(--text-muted); font-size: 24px; font-weight:800; cursor: pointer;" onclick="closeFinishMatchModal()">✕</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px;">
+      <div>
+        <label class="form-label">ID матча</label>
+        <input type="text" id="finish-match-id" class="form-input" placeholder="8993608227">
+      </div>
+      <div>
+        <label class="form-label">Счёт (Rad : Dire)</label>
+        <input type="text" id="finish-match-score" class="form-input" placeholder="49 : 53">
+      </div>
+      <div>
+        <label class="form-label">Длительность</label>
+        <input type="text" id="finish-match-duration" class="form-input" placeholder="48:38">
+      </div>
+    </div>
+
+    <div>
+      <div class="form-label" style="margin-bottom: 6px;">Статистика K / D / A:</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid var(--rad-border); border-radius: var(--radius-md); padding: 8px;">
+          <div style="color: #34d399; font-weight: 800; font-family:'Oswald', sans-serif; font-size: 13px; margin-bottom: 6px;">🟢 THE RADIANT</div>
+          <div id="finish-radiant-kda-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+        <div style="background: rgba(225, 29, 72, 0.08); border: 1px solid var(--dire-border); border-radius: var(--radius-md); padding: 8px;">
+          <div style="color: #fb7185; font-weight: 800; font-family:'Oswald', sans-serif; font-size: 13px; margin-bottom: 6px;">🔴 THE DIRE</div>
+          <div id="finish-dire-kda-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px;">
+      <button class="btn" style="background: #15803d; border-color: #22c55e; padding: 12px; font-size: 14px;" onclick="confirmFinishMatchWithKda('Radiant')">
+        🟢 Победа RADIANT
+      </button>
+      <button class="btn" style="background: #be123c; border-color: #f43f5e; padding: 12px; font-size: 14px;" onclick="confirmFinishMatchWithKda('Dire')">
+        🔴 Победа DIRE
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const WORKER_URL = "https://dota-db-proxy.gomegan1975.workers.dev";
+
+  function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+
+  function generateId() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+    return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+  }
+
+  const DOTA2_HEROES_CATALOG = [
+    { name: "Alchemist", slug: "alchemist", attr: "str" },
+    { name: "Axe", slug: "axe", attr: "str" },
+    { name: "Bristleback", slug: "bristleback", attr: "str" },
+    { name: "Centaur Warrunner", slug: "centaur", attr: "str" },
+    { name: "Chaos Knight", slug: "chaos_knight", attr: "str" },
+    { name: "Clockwerk", slug: "rattletrap", attr: "str" },
+    { name: "Dawnbreaker", slug: "dawnbreaker", attr: "str" },
+    { name: "Doom", slug: "doom_bringer", attr: "str" },
+    { name: "Dragon Knight", slug: "dragon_knight", attr: "str" },
+    { name: "Earth Spirit", slug: "earth_spirit", attr: "str" },
+    { name: "Earthshaker", slug: "earthshaker", attr: "str" },
+    { name: "Elder Titan", slug: "elder_titan", attr: "str" },
+    { name: "Huskar", slug: "huskar", attr: "str" },
+    { name: "Kunkka", slug: "kunkka", attr: "str" },
+    { name: "Largo", slug: "largo", attr: "str" },
+    { name: "Legion Commander", slug: "legion_commander", attr: "str" },
+    { name: "Lifestealer", slug: "life_stealer", attr: "str" },
+    { name: "Lycan", slug: "lycan", attr: "str" },
+    { name: "Mars", slug: "mars", attr: "str" },
+    { name: "Night Stalker", slug: "night_stalker", attr: "str" },
+    { name: "Ogre Magi", slug: "ogre_magi", attr: "str" },
+    { name: "Omniknight", slug: "omniknight", attr: "str" },
+    { name: "Phoenix", slug: "phoenix", attr: "str" },
+    { name: "Primal Beast", slug: "primal_beast", attr: "str" },
+    { name: "Pudge", slug: "pudge", attr: "str" },
+    { name: "Slardar", slug: "slardar", attr: "str" },
+    { name: "Spirit Breaker", slug: "spirit_breaker", attr: "str" },
+    { name: "Sven", slug: "sven", attr: "str" },
+    { name: "Tidehunter", slug: "tidehunter", attr: "str" },
+    { name: "Timbersaw", slug: "shredder", attr: "str" },
+    { name: "Tiny", slug: "tiny", attr: "str" },
+    { name: "Treant Protector", slug: "treant", attr: "str" },
+    { name: "Tusk", slug: "tusk", attr: "str" },
+    { name: "Underlord", slug: "abyssal_underlord", attr: "str" },
+    { name: "Undying", slug: "undying", attr: "str" },
+    { name: "Wraith King", slug: "skeleton_king", attr: "str" },
+    { name: "Anti-Mage", slug: "antimage", attr: "agi" },
+    { name: "Bloodseeker", slug: "bloodseeker", attr: "agi" },
+    { name: "Bounty Hunter", slug: "bounty_hunter", attr: "agi" },
+    { name: "Broodmother", slug: "broodmother", attr: "agi" },
+    { name: "Clinkz", slug: "clinkz", attr: "agi" },
+    { name: "Drow Ranger", slug: "drow_ranger", attr: "agi" },
+    { name: "Ember Spirit", slug: "ember_spirit", attr: "agi" },
+    { name: "Faceless Void", slug: "faceless_void", attr: "agi" },
+    { name: "Gyrocopter", slug: "gyrocopter", attr: "agi" },
+    { name: "Hoodwink", slug: "hoodwink", attr: "agi" },
+    { name: "Juggernaut", slug: "juggernaut", attr: "agi" },
+    { name: "Kez", slug: "kez", attr: "agi" },
+    { name: "Lone Druid", slug: "lone_druid", attr: "agi" },
+    { name: "Luna", slug: "luna", attr: "agi" },
+    { name: "Medusa", slug: "medusa", attr: "agi" },
+    { name: "Meepo", slug: "meepo", attr: "agi" },
+    { name: "Mirana", slug: "mirana", attr: "agi" },
+    { name: "Monkey King", slug: "monkey_king", attr: "agi" },
+    { name: "Morphling", slug: "morphling", attr: "agi" },
+    { name: "Naga Siren", slug: "naga_siren", attr: "agi" },
+    { name: "Phantom Assassin", slug: "phantom_assassin", attr: "agi" },
+    { name: "Phantom Lancer", slug: "phantom_lancer", attr: "agi" },
+    { name: "Razor", slug: "razor", attr: "agi" },
+    { name: "Riki", slug: "riki", attr: "agi" },
+    { name: "Shadow Fiend", slug: "nevermore", attr: "agi" },
+    { name: "Slark", slug: "slark", attr: "agi" },
+    { name: "Sniper", slug: "sniper", attr: "agi" },
+    { name: "Spectre", slug: "spectre", attr: "agi" },
+    { name: "Templar Assassin", slug: "templar_assassin", attr: "agi" },
+    { name: "Terrorblade", slug: "terrorblade", attr: "agi" },
+    { name: "Troll Warlord", slug: "troll_warlord", attr: "agi" },
+    { name: "Ursa", slug: "ursa", attr: "agi" },
+    { name: "Vengeful Spirit", slug: "vengefulspirit", attr: "agi" },
+    { name: "Viper", slug: "viper", attr: "agi" },
+    { name: "Weaver", slug: "weaver", attr: "agi" },
+    { name: "Ancient Apparition", slug: "ancient_apparition", attr: "int" },
+    { name: "Chen", slug: "chen", attr: "int" },
+    { name: "Crystal Maiden", slug: "crystal_maiden", attr: "int" },
+    { name: "Dark Seer", slug: "dark_seer", attr: "int" },
+    { name: "Dark Willow", slug: "dark_willow", attr: "int" },
+    { name: "Disruptor", slug: "disruptor", attr: "int" },
+    { name: "Enchantress", slug: "enchantress", attr: "int" },
+    { name: "Grimstroke", slug: "grimstroke", attr: "int" },
+    { name: "Invoker", slug: "invoker", attr: "int" },
+    { name: "Jakiro", slug: "jakiro", attr: "int" },
+    { name: "Keeper of the Light", slug: "keeper_of_the_light", attr: "int" },
+    { name: "Leshrac", slug: "leshrac", attr: "int" },
+    { name: "Lich", slug: "lich", attr: "int" },
+    { name: "Lina", slug: "lina", attr: "int" },
+    { name: "Lion", slug: "lion", attr: "int" },
+    { name: "Muerta", slug: "muerta", attr: "int" },
+    { name: "Necrophos", slug: "necrolyte", attr: "int" },
+    { name: "Oracle", slug: "oracle", attr: "int" },
+    { name: "Outworld Destroyer", slug: "obsidian_destroyer", attr: "int" },
+    { name: "Puck", slug: "puck", attr: "int" },
+    { name: "Pugna", slug: "pugna", attr: "int" },
+    { name: "Queen of Pain", slug: "queenofpain", attr: "int" },
+    { name: "Ringmaster", slug: "ringmaster", attr: "int" },
+    { name: "Rubick", slug: "rubick", attr: "int" },
+    { name: "Shadow Demon", slug: "shadow_demon", attr: "int" },
+    { name: "Shadow Shaman", slug: "shadow_shaman", attr: "int" },
+    { name: "Silencer", slug: "silencer", attr: "int" },
+    { name: "Skywrath Mage", slug: "skywrath_mage", attr: "int" },
+    { name: "Storm Spirit", slug: "storm_spirit", attr: "int" },
+    { name: "Tinker", slug: "tinker", attr: "int" },
+    { name: "Warlock", slug: "warlock", attr: "int" },
+    { name: "Winter Wyvern", slug: "winter_wyvern", attr: "int" },
+    { name: "Witch Doctor", slug: "witch_doctor", attr: "int" },
+    { name: "Zeus", slug: "zuus", attr: "int" },
+    { name: "Abaddon", slug: "abaddon", attr: "uni" },
+    { name: "Arc Warden", slug: "arc_warden", attr: "uni" },
+    { name: "Bane", slug: "bane", attr: "uni" },
+    { name: "Batrider", slug: "batrider", attr: "uni" },
+    { name: "Beastmaster", slug: "beastmaster", attr: "uni" },
+    { name: "Brewmaster", slug: "brewmaster", attr: "uni" },
+    { name: "Dazzle", slug: "dazzle", attr: "uni" },
+    { name: "Death Prophet", slug: "death_prophet", attr: "uni" },
+    { name: "Enigma", slug: "enigma", attr: "uni" },
+    { name: "Io", slug: "wisp", attr: "uni" },
+    { name: "Magnus", slug: "magnataur", attr: "uni" },
+    { name: "Marci", slug: "marci", attr: "uni" },
+    { name: "Nature's Prophet", slug: "furion", attr: "uni" },
+    { name: "Nyx Assassin", slug: "nyx_assassin", attr: "uni" },
+    { name: "Pangolier", slug: "pangolier", attr: "uni" },
+    { name: "Sand King", slug: "sand_king", attr: "uni" },
+    { name: "Snapfire", slug: "snapfire", attr: "uni" },
+    { name: "Techies", slug: "techies", attr: "uni" },
+    { name: "Venomancer", slug: "venomancer", attr: "uni" },
+    { name: "Visage", slug: "visage", attr: "uni" },
+    { name: "Void Spirit", slug: "void_spirit", attr: "uni" },
+    { name: "Windranger", slug: "windrunner", attr: "uni" }
+  ];
+
+  const HERO_MAP = {};
+  DOTA2_HEROES_CATALOG.forEach(h => { HERO_MAP[h.name.toLowerCase()] = h.slug; });
+
+  function getHeroSlug(name) {
+    const clean = (name || '').toLowerCase().trim();
+    if (HERO_MAP[clean]) return HERO_MAP[clean];
+    return clean.replace(/['\s-]+/g, '_').replace(/[^a-z0-9_]/g, '');
+  }
+
+  function getHeroImg(name) {
+    const clean = (name || '').toLowerCase().trim();
+    const slug = getHeroSlug(name);
+    // Берем иконки ВСЕХ героев напрямую из официальных ресурсов Dota 2
+    return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/${encodeURIComponent(slug)}.png`;
+  }
+
+  function getRankInfo(mmr) {
+    if (mmr >= 5600) return { name: "Титан", medal: 8, class: "rank-immortal" };
+    if (mmr >= 4700) return { name: "Божество", medal: 7, class: "rank-divine" };
+    if (mmr >= 3800) return { name: "Властелин", medal: 6, class: "rank-ancient" };
+    if (mmr >= 3000) return { name: "Легенда", medal: 5, class: "rank-legend" };
+    if (mmr >= 2200) return { name: "Герой", medal: 4, class: "rank-archon" };
+    if (mmr >= 1540) return { name: "Рыцарь", medal: 3, class: "rank-crusader" };
+    return { name: "Страж", medal: 2, class: "rank-guardian" };
+  }
+
+  /* По умолчанию ВСЕ игроки имеют selected: false */
+  const DEFAULT_ROSTER = [
+    { id: "1", name: "Varker32", mmr: 6800, roles: [3], heroes: ["Primal Beast", "Night Stalker", "Axe", "Doom", "Sand King", "Dark Seer", "Enigma", "Slardar", "Pudge", "Dawnbreaker"], selected: false },
+    { id: "2", name: "Shimmy", mmr: 6800, roles: [5], heroes: ["Bane", "Tusk", "Ringmaster", "Shadow Demon", "Grimstroke", "Ancient Apparition"], selected: false },
+    { id: "3", name: "K1zaz", mmr: 6400, roles: [3], heroes: ["Lycan", "Nature's Prophet", "Brewmaster", "Tidehunter", "Beastmaster", "Batrider", "Enigma", "Dragon Knight"], selected: false },
+    { id: "4", name: "nonta", mmr: 5600, roles: [2], heroes: ["Invoker", "Shadow Fiend", "Leshrac", "Outworld Destroyer", "Ember Spirit", "Lone Druid", "Necrophos", "Arc Warden", "Nature's Prophet"], selected: false },
+    { id: "5", name: "Arabius", mmr: 5400, roles: [2], heroes: ["Templar Assassin", "Shadow Fiend", "Huskar", "Arc Warden", "Outworld Destroyer", "Ember Spirit", "Void Spirit"], selected: false },
+    { id: "6", name: "Tutik", mmr: 4600, roles: [1], heroes: ["Shadow Fiend", "Drow Ranger", "Phantom Lancer", "Medusa", "Necrophos", "Lifestealer", "Ursa"], selected: false },
+    { id: "7", name: "Sumnir", mmr: 4000, roles: [1], heroes: ["Faceless Void", "Anti-Mage", "Lifestealer", "Ursa"], selected: false },
+    { id: "8", name: "Polosofast", mmr: 4000, roles: [3], heroes: ["Brewmaster", "Dark Seer", "Necrophos"], selected: false },
+    { id: "9", name: "Kiberborsh", mmr: 3500, roles: [3, 4], heroes: ["Ringmaster"], selected: false },
+    { id: "10", name: "Gomegan", mmr: 2900, roles: [4, 5], heroes: ["Clockwerk", "Warlock", "Ancient Apparition", "Ringmaster", "Hoodwink", "Jakiro"], selected: false },
+    { id: "11", name: "Ap", mmr: 2600, roles: [1, 4], heroes: ["Pudge", "Phantom Assassin", "Lion", "Shadow Fiend"], selected: false },
+    { id: "12", name: "DeniumC", mmr: 2400, roles: [2], heroes: ["Tinker"], selected: false },
+    { id: "13", name: "Watcher", mmr: 2000, roles: [1], heroes: ["Naga Siren", "Juggernaut", "Terrorblade", "Templar Assassin"], selected: false },
+    { id: "14", name: "Mkka", mmr: 1500, roles: [1, 3, 5], heroes: ["Anti-Mage", "Tidehunter", "Dazzle"], selected: false },
+    { id: "15", name: "Maramirk", mmr: 1400, roles: [3], heroes: ["Axe", "Timbersaw", "Centaur Warrunner"], selected: false },
+    { id: "16", name: "Zvzelya", mmr: 1000, roles: [1, 2, 3, 4, 5], heroes: ["Spirit Breaker", "Ogre Magi", "Shadow Fiend", "Ursa", "Spectre", "Wraith King"], selected: false },
+    { id: "17", name: "Vistu", mmr: 1000, roles: [4], heroes: ["Zeus", "Bane", "Undying"], selected: false },
+    { id: "18", name: "Roman", mmr: 900, roles: [3], heroes: ["Dawnbreaker"], selected: false }
+  ];
+
+  let players = [];
+  let matches = [];
+  let adminKey = sessionStorage.getItem('dota_admin_key') || '';
+  let activePos = 'all';
+
+  let activeSortType = 'mmr';
+  let sortDirection = { mmr: -1, name: 1 };
+  
+  let currentLobbyData = null;
+  let currentBalanceVariants = [];
+  let activeVariantIndex = 0;
+
+  let statsSortCol = 'winrate';
+  let statsSortDir = -1;
+  let rolesSortCol = 'name';
+  let rolesSortDir = 1;
+  let synergySortCol = 'winrate';
+  let synergySortDir = -1;
+  let activeStatsSubTab = 'leaderboard';
+
+  let heroSelectMode = 'lobbyPick';
+  let activeGridAttr = 'all';
+  let heroSelectContext = { team: null, playerIndex: null, player: null };
+  let currentFormPool = [];
+  let draggedPlayerInfo = null;
+
+  function isAdmin() { return Boolean(adminKey); }
+
+  function applySort() {
+    if (!activeSortType) return;
+    players.sort((a, b) => {
+      if (activeSortType === 'mmr') return (a.mmr - b.mmr) * sortDirection.mmr;
+      if (activeSortType === 'name') return a.name.localeCompare(b.name) * sortDirection.name;
+      return 0;
+    });
+  }
+
+  function sortTable(type) {
+    if (activeSortType === type) sortDirection[type] = -sortDirection[type];
+    else activeSortType = type;
+    applySort();
+    renderTable();
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('section-roster').style.display = 'none';
+    document.getElementById('section-lobby').style.display = 'none';
+    document.getElementById('section-history').style.display = 'none';
+    document.getElementById('section-stats').style.display = 'none';
+
+    if (tab === 'roster') {
+      document.getElementById('tab-btn-roster').classList.add('active');
+      document.getElementById('section-roster').style.display = 'flex';
+      renderTable();
+    } else if (tab === 'lobby') {
+      document.getElementById('tab-btn-lobby').classList.add('active');
+      document.getElementById('section-lobby').style.display = 'block';
+      renderLobby();
+    } else if (tab === 'history') {
+      document.getElementById('tab-btn-history').classList.add('active');
+      document.getElementById('section-history').style.display = 'block';
+      renderHistory();
+    } else if (tab === 'stats') {
+      document.getElementById('tab-btn-stats').classList.add('active');
+      document.getElementById('section-stats').style.display = 'block';
+      renderStats();
+    }
+  }
+
+  function switchStatsSubTab(subTab) {
+    activeStatsSubTab = subTab;
+    document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('stats-sub-leaderboard').style.display = 'none';
+    document.getElementById('stats-sub-roles').style.display = 'none';
+    document.getElementById('stats-sub-synergy').style.display = 'none';
+
+    if (subTab === 'leaderboard') {
+      document.getElementById('sub-tab-btn-leaderboard').classList.add('active');
+      document.getElementById('stats-sub-leaderboard').style.display = 'block';
+      renderLeaderboardTable();
+    } else if (subTab === 'roles') {
+      document.getElementById('sub-tab-btn-roles').classList.add('active');
+      document.getElementById('stats-sub-roles').style.display = 'block';
+      renderRolesTable();
+    } else if (subTab === 'synergy') {
+      document.getElementById('sub-tab-btn-synergy').classList.add('active');
+      document.getElementById('stats-sub-synergy').style.display = 'block';
+      renderSynergyTable();
+    }
+  }
+
+  function updateAdminUI() {
+    const btn = document.getElementById('admin-toggle-btn');
+    const addBtn = document.getElementById('btn-add-player');
+    const resetBtn = document.getElementById('btn-reset-roster');
+    const backupBtn = document.getElementById('btn-backup-json');
+    const importBtn = document.getElementById('btn-import-json');
+    const thActions = document.getElementById('th-actions');
+    const finishBtn = document.getElementById('btn-finish-lobby-match');
+
+    if (isAdmin()) {
+      btn.textContent = '🔓 Админ Онлайн';
+      btn.classList.add('active');
+      addBtn.style.display = 'inline-flex';
+      resetBtn.style.display = 'inline-flex';
+      if (backupBtn) backupBtn.style.display = 'inline-flex';
+      importBtn.style.display = 'inline-flex';
+      thActions.style.display = '';
+      if (finishBtn) finishBtn.style.display = 'inline-flex';
+    } else {
+      btn.textContent = '🔑 Админ';
+      btn.classList.remove('active');
+      addBtn.style.display = 'none';
+      resetBtn.style.display = 'none';
+      if (backupBtn) backupBtn.style.display = 'none';
+      importBtn.style.display = 'none';
+      thActions.style.display = 'none';
+      if (finishBtn) finishBtn.style.display = 'none';
+    }
+  }
+
+  async function toggleAdminLogin() {
+  if (isAdmin()) {
+    if (confirm('Выйти из режима администратора?')) {
+      adminKey = '';
+      sessionStorage.removeItem('dota_admin_key');
+      updateAdminUI();
+      renderTable();
+      renderHistory();
+    }
+  } else {
+    const pass = prompt('Введите пароль администратора:');
+    if (!pass || !pass.trim()) return;
+
+    const candidateKey = pass.trim();
+    const statusEl = document.getElementById('sync-status');
+    statusEl.textContent = '🔑 Проверка...';
+
+    try {
+      const testRes = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: candidateKey })
+      });
+      const verifyData = await testRes.json();
+      if (!verifyData.ok) throw new Error();
+
+      adminKey = candidateKey;
+      sessionStorage.setItem('dota_admin_key', adminKey);
+      updateAdminUI();
+      renderTable();
+      renderHistory();
+      statusEl.textContent = '🟢 Админ онлайн';
+      alert('Авторизация успешна!');
+    } catch (err) {
+      statusEl.textContent = '🔴 Ошибка доступа';
+      alert('Доступ запрещен: неверный пароль!');
+    }
+  }
+}
+
+  async function loadData() {
+  const statusEl = document.getElementById('sync-status');
+  statusEl.textContent = '⏳ Синхронизация...';
+
+  try {
+    const res = await fetch(WORKER_URL);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    
+    if (Array.isArray(data.record)) {
+      players = data.record;
+      matches = [];
+    } else if (data.record && typeof data.record === 'object') {
+      players = data.record.players || DEFAULT_ROSTER;
+      matches = data.record.matches || [];
+    } else {
+      players = JSON.parse(JSON.stringify(DEFAULT_ROSTER));
+      matches = [];
+    }
+    statusEl.textContent = '🟢 Облако онлайн';
+  } catch(err) {
+    statusEl.textContent = '⚠️ Локальный режим';
+    try {
+      const localP = localStorage.getItem('dota2_roster_data');
+      const localM = localStorage.getItem('dota2_matches_data');
+      players = localP ? JSON.parse(localP) : JSON.parse(JSON.stringify(DEFAULT_ROSTER));
+      matches = localM ? JSON.parse(localM) : [];
+    } catch(e) {
+      players = JSON.parse(JSON.stringify(DEFAULT_ROSTER));
+      matches = [];
+    }
+  }
+
+  players.forEach(p => p.selected = false);
+  document.getElementById('badge-history-count').textContent = matches.length;
+  applySort();
+  syncLobbyWithRoster();
+  renderTable();
+}
+
+  async function syncCloud() {
+  localStorage.setItem('dota2_roster_data', JSON.stringify(players));
+  localStorage.setItem('dota2_matches_data', JSON.stringify(matches));
+  document.getElementById('badge-history-count').textContent = matches.length;
+
+  const statusEl = document.getElementById('sync-status');
+  if (!isAdmin()) return;
+
+  statusEl.textContent = '🟡 Сохранение...';
+  try {
+    const payload = { players, matches };
+    const res = await fetch(WORKER_URL, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Key': adminKey
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error();
+    statusEl.textContent = '🟢 Сохранено';
+  } catch(err) {
+    statusEl.textContent = '🔴 Ошибка сохранения!';
+    alert('Не удалось синхронизировать с облаком. Проверьте права администратора.');
+  }
+}
+
+  function exportBackupJSON() {
+    const backupData = { timestamp: new Date().toISOString(), players, matches };
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dota2-manager-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importBackupJSON(event) {
+    if (!isAdmin()) return;
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (parsed && Array.isArray(parsed.players)) {
+          if (confirm(`Загрузить из бэкапа ${parsed.players.length} игроков и ${parsed.matches ? parsed.matches.length : 0} матчей?`)) {
+            players = parsed.players;
+            players.forEach(p => p.selected = false);
+            matches = parsed.matches || [];
+            applySort();
+            syncLobbyWithRoster();
+            renderTable();
+            renderHistory();
+            renderStats();
+            syncCloud();
+            alert('База данных успешно восстановлена!');
+          }
+        }
+      } catch(err) {
+        alert('Ошибка чтения JSON файла.');
+      }
+      event.target.value = "";
+    };
+    reader.readAsText(file);
+  }
+
+  function openFinishMatchModal() {
+    if (!isAdmin()) { alert('Только администратор может завершить матч!'); return; }
+    if (!currentLobbyData) { alert('Сначала создайте лобби!'); return; }
+
+    document.getElementById('finish-match-id').value = '';
+    document.getElementById('finish-match-score').value = '';
+    document.getElementById('finish-match-duration').value = '';
+
+    const radContainer = document.getElementById('finish-radiant-kda-list');
+    const direContainer = document.getElementById('finish-dire-kda-list');
+    radContainer.innerHTML = '';
+    direContainer.innerHTML = '';
+
+    currentLobbyData.radiant.forEach(p => radContainer.appendChild(createPlayerKdaInputRow(p, 'radiant')));
+    currentLobbyData.dire.forEach(p => direContainer.appendChild(createPlayerKdaInputRow(p, 'dire')));
+
+    document.getElementById('finish-match-modal').style.display = 'flex';
+  }
+
+  function createPlayerKdaInputRow(player, team) {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; gap:6px; font-size:12px;';
+    row.innerHTML = `
+      <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
+        <img src="${escapeHtml(getHeroImg(player.pickedHero))}" style="width:24px; height:14px; border-radius:2px;">
+        <span style="font-weight:700; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; max-width:110px;">${escapeHtml(player.name)}</span>
+      </div>
+      <input type="text" id="kda-input-${player.id}" class="form-input" style="padding:3px 6px; font-size:11px; width:95px; text-align:center; font-family:'JetBrains Mono', monospace;" placeholder="К/Д/А">
+    `;
+    return row;
+  }
+
+  function closeFinishMatchModal() {
+    document.getElementById('finish-match-modal').style.display = 'none';
+  }
+
+  function confirmFinishMatchWithKda(winner) {
+    if (!isAdmin() || !currentLobbyData) return;
+
+    const matchId = document.getElementById('finish-match-id').value.trim() || null;
+    const score = document.getElementById('finish-match-score').value.trim() || null;
+    const duration = document.getElementById('finish-match-duration').value.trim() || null;
+
+    const extractKda = (p) => {
+      const input = document.getElementById(`kda-input-${p.id}`);
+      return input && input.value.trim() ? input.value.trim() : null;
+    };
+
+    const matchRecord = {
+      id: generateId(),
+      matchId, score, duration,
+      date: new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+      winner,
+      diff: currentLobbyData.diff,
+      radiantAvg: Math.round(currentLobbyData.radiantMmr / (currentLobbyData.radiant.length || 1)),
+      direAvg: Math.round(currentLobbyData.direMmr / (currentLobbyData.dire.length || 1)),
+      radiant: currentLobbyData.radiant.map(p => ({
+        id: p.id, name: p.name, pos: p.assignedPos, hero: p.pickedHero, mmr: p.mmr, kda: extractKda(p)
+      })),
+      dire: currentLobbyData.dire.map(p => ({
+        id: p.id, name: p.name, pos: p.assignedPos, hero: p.pickedHero, mmr: p.mmr, kda: extractKda(p)
+      }))
+    };
+
+    matches.unshift(matchRecord);
+    closeFinishMatchModal();
+    syncCloud();
+    renderStats();
+    switchTab('history');
+  }
+
+  /* БАЛАНСИРОВЩИК МАТЧЕЙ */
+  function getStackAntiFraudPenalty(teamA, teamB) {
+    if (!matches || matches.length === 0) return 0;
+    let penalty = 0;
+    const idsA = new Set(teamA.map(p => p.id || p.name));
+    const idsB = new Set(teamB.map(p => p.id || p.name));
+
+    matches.slice(0, 2).forEach((m, matchIdx) => {
+      const weight = matchIdx === 0 ? 1.0 : 0.6;
+      const prevRadIds = new Set((m.radiant || []).map(p => p.id || p.name));
+      const prevDireIds = new Set((m.dire || []).map(p => p.id || p.name));
+
+      const getOverlap = (s1, s2) => {
+        let count = 0;
+        s1.forEach(id => { if (s2.has(id)) count++; });
+        return count;
+      };
+
+      const maxOverlap = Math.max(
+        getOverlap(idsA, prevRadIds), getOverlap(idsA, prevDireIds),
+        getOverlap(idsB, prevRadIds), getOverlap(idsB, prevDireIds)
+      );
+
+      if (maxOverlap === 5) penalty += 80000 * weight;
+      else if (maxOverlap === 4) penalty += 35000 * weight;
+      else if (maxOverlap === 3) penalty += 4000 * weight;
+    });
+
+    return penalty;
+  }
+
+  function getRecentTeammatesHistoryMap(recentMatchesCount = 3) {
+    const pairWeights = {};
+    if (!matches || matches.length === 0) return pairWeights;
+
+    matches.slice(0, recentMatchesCount).forEach((m, matchIndex) => {
+      const weight = (recentMatchesCount - matchIndex) * 180;
+      const processTeam = (teamArr) => {
+        if (!Array.isArray(teamArr)) return;
+        for (let i = 0; i < teamArr.length; i++) {
+          for (let j = i + 1; j < teamArr.length; j++) {
+            const idA = teamArr[i].id || teamArr[i].name;
+            const idB = teamArr[j].id || teamArr[j].name;
+            if (!idA || !idB) continue;
+            const key = idA < idB ? `${idA}___${idB}` : `${idB}___${idA}`;
+            pairWeights[key] = (pairWeights[key] || 0) + weight;
+          }
+        }
+      };
+      processTeam(m.radiant);
+      processTeam(m.dire);
+    });
+    return pairWeights;
+  }
+
+  function generatePermutations(arr) {
+    if (arr.length <= 1) return [arr];
+    let res = [];
+    for (let i = 0; i < arr.length; i++) {
+      const rest = generatePermutations(arr.slice(0, i).concat(arr.slice(i + 1)));
+      for (let r of rest) res.push([arr[i], ...r]);
+    }
+    return res;
+  }
+  const PRECOMPUTED_PERMS = generatePermutations([0, 1, 2, 3, 4]);
+
+  const ROLE_NAMES = {
+    1: 'Поз. 1 (Carry)', 2: 'Поз. 2 (Mid)', 3: 'Поз. 3 (Offlane)',
+    4: 'Поз. 4 (Support)', 5: 'Поз. 5 (Hard Sup)'
+  };
+
+  function sortTeamByPositions(teamArray) {
+    if (!Array.isArray(teamArray)) return;
+    teamArray.sort((a, b) => (a.assignedPos || 1) - (b.assignedPos || 1));
+  }
+
+  // MMR-приоритет позиций (только режим core).
+  // Идея: при конфликте за позицию более сильный игрок получает более "важную"
+  // позицию (1–3) из тех, где у него ОТМЕЧЕНА роль; слабый уходит на менее важную,
+  // даже если это чуть дороже по штрафам роли/пула героев.
+  //   * Бонус начисляется ТОЛЬКО за постановку игрока на позицию с его ролью:
+  //     MMR-приоритет никогда не "награждает" игрока, стоящего без роли.
+  //   * Выигрыш на поз. 3 = MMR_PRIORITY_K * 0.5 * ΔMMR = 0.06 очка за каждый 1 MMR
+  //     разницы (≈60 очков на 1000 MMR), на поз. 1–2 — вдвое больше.
+  //   * Это ОТДЕЛЬНЫЙ член: он участвует только в выборе перестановки и НЕ входит
+  //     в возвращаемый penalty (масштаб score в evaluateBalanceVariants не меняется).
+  //   * Потолок MMR_PRIORITY_MAX_PREMIUM: приоритет выбирает только среди расстановок,
+  //     чей базовый штраф не выше минимального больше чем на 250 очков (< штрафа
+  //     "нет роли" на поз. 3 = 500 и поз. 1–2 = 1200). Штрафы за роль/пул не отключены.
+  const MMR_PRIORITY_K = 0.12;
+  const MMR_PRIORITY_MAX_PREMIUM = 250;
+  const CORE_POS_PRIORITY = [0, 1, 1, 0.5, 0, 0]; // индекс = позиция 1..5
+
+  function assignBestRoles(teamPlayers, mode = 'standard') {
+    const rolePenaltyWeights = mode === 'core' ? [0, 1200, 1200, 500, 200, 150] : [0, 200, 200, 200, 200, 200];
+    const usePriority = mode === 'core';
+
+    const penalties = new Array(PRECOMPUTED_PERMS.length);
+    const priorities = new Array(PRECOMPUTED_PERMS.length);
+    let minPenalty = Infinity;
+
+    for (let i = 0; i < PRECOMPUTED_PERMS.length; i++) {
+      const order = PRECOMPUTED_PERMS[i];
+      let penalty = 0;
+      let mmrPriority = 0;
+      for (let pos = 1; pos <= 5; pos++) {
+        const player = teamPlayers[order[pos - 1]];
+        // При РАВНОМ штрафе за роль предпочтение отдаётся игроку с более высоким MMR
+        // (мелкий тай-брейк, как раньше). Основной MMR-приоритет — см. mmrPriority ниже.
+        if (!player.roles.includes(pos)) penalty += rolePenaltyWeights[pos] + (player.mmr || 0) * 0.001;
+
+        if (mode === 'core') {
+          const poolLen = (player.heroes && Array.isArray(player.heroes)) ? player.heroes.length : 0;
+          if (pos === 1 || pos === 2) {
+            if (poolLen === 0) penalty += 700;
+            else if (poolLen === 1) penalty += 500;
+            else if (poolLen === 2) penalty += 250;
+            else if (poolLen === 3) penalty += 100;
+          } else if (pos === 3) {
+            if (poolLen === 0) penalty += 400;
+            else if (poolLen === 1) penalty += 250;
+            else if (poolLen === 2) penalty += 120;
+          }
+        }
+
+        if (usePriority && player.roles.includes(pos)) mmrPriority += (player.mmr || 0) * CORE_POS_PRIORITY[pos];
+      }
+      penalties[i] = penalty;
+      priorities[i] = MMR_PRIORITY_K * mmrPriority;
+      if (penalty < minPenalty) minPenalty = penalty;
+    }
+
+    // Выбор: среди расстановок с базовым штрафом в пределах потолка от минимального
+    // берём с наибольшим MMR-приоритетом (в standard-режиме потолок = 0 → как раньше:
+    // побеждает минимальный штраф, при равенстве — первая найденная).
+    const window = usePriority ? MMR_PRIORITY_MAX_PREMIUM : 0;
+    let bestIdx = -1;
+    let bestCost = Infinity;
+    for (let i = 0; i < PRECOMPUTED_PERMS.length; i++) {
+      if (penalties[i] > minPenalty + window) continue;
+      const cost = penalties[i] - priorities[i];
+      if (cost < bestCost) { bestCost = cost; bestIdx = i; }
+    }
+
+    let bestAssignment = null;
+    if (bestIdx >= 0) {
+      const order = PRECOMPUTED_PERMS[bestIdx];
+      bestAssignment = order.map((idx, pPos) => ({
+        ...teamPlayers[idx],
+        assignedPos: pPos + 1,
+        pickedHero: teamPlayers[idx].heroes[0] || 'Pudge'
+      }));
+      sortTeamByPositions(bestAssignment);
+    }
+    return { assigned: bestAssignment, penalty: bestIdx >= 0 ? penalties[bestIdx] : 999999 };
+  }
+
+  function getCoreEffectiveRating(player, pos) {
+    if (!player) return 0;
+    const poolSize = (player.heroes && Array.isArray(player.heroes)) ? player.heroes.length : 0;
+    let poolWeight = 0;
+    if (pos === 1 || pos === 2) {
+      if (poolSize === 0) poolWeight = -800;
+      else if (poolSize === 1) poolWeight = -500;
+      else if (poolSize === 2) poolWeight = -250;
+      else if (poolSize === 3) poolWeight = -100;
+      else if (poolSize >= 6) poolWeight = 150;
+    } else if (pos === 3) {
+      if (poolSize === 0) poolWeight = -500;
+      else if (poolSize === 1) poolWeight = -350;
+      else if (poolSize === 2) poolWeight = -150;
+      else if (poolSize >= 5) poolWeight = 100;
+    }
+    return player.mmr + poolWeight;
+  }
+
+  function evaluateBalanceVariants(selectedPlayers, mode = 'standard') {
+    const teammatePairWeights = getRecentTeammatesHistoryMap(3);
+    const candidateSplits = [];
+    const seenSplits = new Set();
+
+    function getTeamRecentPairPenalty(team) {
+      let penalty = 0;
+      for (let i = 0; i < team.length; i++) {
+        for (let j = i + 1; j < team.length; j++) {
+          const idA = team[i].id || team[i].name;
+          const idB = team[j].id || team[j].name;
+          const key = idA < idB ? `${idA}___${idB}` : `${idB}___${idA}`;
+          if (teammatePairWeights[key]) penalty += teammatePairWeights[key];
+        }
+      }
+      return penalty;
+    }
+
+    function evalTen(ten) {
+      function getCombos(start, combo) {
+        if (combo.length === 5) {
+          const teamA = combo;
+          const teamB = ten.filter(p => !teamA.includes(p));
+
+          const keyA = teamA.map(p => p.id).sort().join('_');
+          const keyB = teamB.map(p => p.id).sort().join('_');
+          const canonicalKey = keyA < keyB ? `${keyA}|${keyB}` : `${keyB}|${keyA}`;
+
+          if (seenSplits.has(canonicalKey)) return;
+          seenSplits.add(canonicalKey);
+
+          const mmrA = teamA.reduce((s, p) => s + p.mmr, 0);
+          const mmrB = teamB.reduce((s, p) => s + p.mmr, 0);
+          const diff = Math.abs(mmrA - mmrB);
+
+          let coreDistributionPenalty = 0;
+          if (mode === 'core') {
+            const carriesInTen = ten.filter(p => p.roles && p.roles.includes(1)).length;
+            const carriesInA = teamA.filter(p => p.roles && p.roles.includes(1)).length;
+            if (carriesInTen >= 2 && (carriesInA === 0 || carriesInA === carriesInTen)) coreDistributionPenalty += 4000;
+
+            const midsInTen = ten.filter(p => p.roles && p.roles.includes(2)).length;
+            const midsInA = teamA.filter(p => p.roles && p.roles.includes(2)).length;
+            if (midsInTen >= 2 && (midsInA === 0 || midsInA === midsInTen)) coreDistributionPenalty += 4000;
+          }
+
+          const rA = assignBestRoles(teamA, mode);
+          const rB = assignBestRoles(teamB, mode);
+
+          const antiFraudPenalty = getStackAntiFraudPenalty(teamA, teamB);
+          const teammatePenalty = getTeamRecentPairPenalty(teamA) + getTeamRecentPairPenalty(teamB);
+
+          let score = 0;
+          if (mode === 'core') {
+            const p1A = rA.assigned.find(p => p.assignedPos === 1);
+            const p1B = rB.assigned.find(p => p.assignedPos === 1);
+            const p2A = rA.assigned.find(p => p.assignedPos === 2);
+            const p2B = rB.assigned.find(p => p.assignedPos === 2);
+            const p3A = rA.assigned.find(p => p.assignedPos === 3);
+            const p3B = rB.assigned.find(p => p.assignedPos === 3);
+
+            const effCarryA = getCoreEffectiveRating(p1A, 1);
+            const effCarryB = getCoreEffectiveRating(p1B, 1);
+            const effMidA = getCoreEffectiveRating(p2A, 2);
+            const effMidB = getCoreEffectiveRating(p2B, 2);
+            const effOffA = getCoreEffectiveRating(p3A, 3);
+            const effOffB = getCoreEffectiveRating(p3B, 3);
+
+            score = (diff * 1.0) + (Math.abs(effMidA - effMidB) * 2.2) + (Math.abs(effCarryA - effCarryB) * 1.8) + (Math.abs(effOffA - effOffB) * 1.1) +
+                    rA.penalty + rB.penalty + coreDistributionPenalty + teammatePenalty + antiFraudPenalty;
+          } else {
+            score = (diff * 1.5) + rA.penalty + rB.penalty + teammatePenalty + antiFraudPenalty;
+          }
+
+          candidateSplits.push({
+            score, diff,
+            radiant: rA.assigned, dire: rB.assigned,
+            radiantMmr: mmrA, direMmr: mmrB,
+            bench: selectedPlayers.filter(p => !ten.includes(p)),
+            teamAIds: new Set(teamA.map(p => p.id))
+          });
+
+          return;
+        }
+        for (let i = start; i < ten.length; i++) getCombos(i + 1, combo.concat([ten[i]]));
+      }
+      getCombos(0, []);
+    }
+
+    if (selectedPlayers.length === 10) evalTen(selectedPlayers);
+    else {
+      for (let it = 0; it < Math.min(300, selectedPlayers.length * 20); it++) {
+        evalTen([...selectedPlayers].sort(() => 0.5 - Math.random()).slice(0, 10));
+      }
+    }
+
+    if (candidateSplits.length === 0) return [];
+    candidateSplits.sort((a, b) => a.score - b.score);
+
+    const variants = [];
+    const v1 = candidateSplits[0];
+    v1.variantTitle = "Вариант 1 (Оптимальный)";
+    variants.push(v1);
+
+    const minDiffCandidate = [...candidateSplits].sort((a, b) => a.diff - b.diff || a.score - b.score).find(c => {
+      let overlap = 0;
+      c.teamAIds.forEach(id => { if (v1.teamAIds.has(id)) overlap++; });
+      return overlap <= 3;
+    });
+
+    if (minDiffCandidate) {
+      minDiffCandidate.variantTitle = "Вариант 2 (Минимум MMR)";
+      variants.push(minDiffCandidate);
+    } else if (candidateSplits[1]) {
+      candidateSplits[1].variantTitle = "Вариант 2 (Альтернативный)";
+      variants.push(candidateSplits[1]);
+    }
+
+    const v3Candidate = candidateSplits.find(c => {
+      if (variants.includes(c)) return false;
+      let o1 = 0, o2 = 0;
+      c.teamAIds.forEach(id => {
+        if (variants[0]?.teamAIds.has(id)) o1++;
+        if (variants[1]?.teamAIds.has(id)) o2++;
+      });
+      return o1 <= 3 && o2 <= 3;
+    });
+
+    if (v3Candidate) {
+      v3Candidate.variantTitle = "Вариант 3 (Свежие связки)";
+      variants.push(v3Candidate);
+    } else {
+      const fallback = candidateSplits.find(c => !variants.includes(c));
+      if (fallback) {
+        fallback.variantTitle = "Вариант 3 (Альтернативный)";
+        variants.push(fallback);
+      }
+    }
+
+    return variants;
+  }
+
+  function applyLobbyVariant(index) {
+    if (!currentBalanceVariants || !currentBalanceVariants[index]) return;
+    activeVariantIndex = index;
+    currentLobbyData = currentBalanceVariants[index];
+    recalculateLobbyStats();
+    renderLobby();
+  }
+
+  function generateLobby(mode = 'standard') {
+    const selected = players.filter(p => p.selected);
+    if (selected.length < 10) {
+      alert(`Выберите минимум 10 игроков! Сейчас выбрано: ${selected.length}.`);
+      return;
+    }
+
+    const variants = evaluateBalanceVariants(selected, mode);
+    if (variants.length === 0) {
+      alert('Не удалось рассчитать варианты баланса.');
+      return;
+    }
+
+    variants.forEach(v => {
+      sortTeamByPositions(v.radiant);
+      sortTeamByPositions(v.dire);
+    });
+
+    currentBalanceVariants = variants;
+    activeVariantIndex = 0;
+    currentLobbyData = variants[0];
+
+    document.getElementById('badge-lobby-active').style.display = 'inline-block';
+    renderLobby();
+    switchTab('lobby');
+  }
+
+  function autoBalanceCurrentLobby(mode = 'standard') {
+    if (!currentLobbyData) return;
+    const currentTen = [...currentLobbyData.radiant, ...currentLobbyData.dire];
+    if (currentTen.length < 10) {
+      alert('В лобби должно быть суммарно 10 игроков!');
+      return;
+    }
+
+    const variants = evaluateBalanceVariants(currentTen, mode);
+    if (variants.length > 0) {
+      variants.forEach(v => {
+        sortTeamByPositions(v.radiant);
+        sortTeamByPositions(v.dire);
+        v.bench = currentLobbyData.bench || [];
+      });
+      currentBalanceVariants = variants;
+      activeVariantIndex = 0;
+      currentLobbyData = variants[0];
+      recalculateLobbyStats();
+      renderLobby();
+    }
+  }
+
+  
+
+  function renderBalanceVariantsBar() {
+    const bar = document.getElementById('balance-variants-bar');
+    const container = document.getElementById('variants-chips-container');
+    if (!currentBalanceVariants || currentBalanceVariants.length <= 1) {
+      bar.style.display = 'none';
+      return;
+    }
+
+    bar.style.display = 'flex';
+    container.innerHTML = '';
+
+    currentBalanceVariants.forEach((v, idx) => {
+      const btn = document.createElement('button');
+      btn.className = `variant-chip-btn ${idx === activeVariantIndex ? 'active' : ''}`;
+      btn.innerHTML = `
+        <span>${escapeHtml(v.variantTitle || `Вариант ${idx + 1}`)}</span>
+        <span style="font-family:'JetBrains Mono', monospace; opacity:0.9;">(Δ ${v.diff} MMR)</span>
+      `;
+      btn.onclick = () => applyLobbyVariant(idx);
+      container.appendChild(btn);
+    });
+  }
+
+  function getBanRiskNotice(player, roleTitle) {
+    if (!player) return '';
+    const pool = player.heroes || [];
+    const pName = escapeHtml(player.name);
+    const rTitle = escapeHtml(roleTitle);
+
+    if (pool.length === 0) return `<div class="cm-ban-warning" style="font-size:10.5px; color:#fca5a5; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:3px 6px; border-radius:4px; margin-top:3px;">⚠️ <b>${pName}</b> (${rTitle}): нет пула — риск бана в CM!</div>`;
+    if (pool.length === 1) return `<div class="cm-ban-warning" style="font-size:10.5px; color:#fca5a5; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:3px 6px; border-radius:4px; margin-top:3px;">⚠️ <b>${pName}</b> (${rTitle}): всего 1 герой (<b>${escapeHtml(pool[0])}</b>) — 100% бан!</div>`;
+    if (pool.length === 2) return `<div class="cm-ban-warning" style="font-size:10.5px; color:#fca5a5; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:3px 6px; border-radius:4px; margin-top:3px;">⚠️ <b>${pName}</b> (${rTitle}): узкий пул (2 героя)!</div>`;
+    return '';
+  }
+
+  function updateLaningAnalysis() {
+    const container = document.getElementById('laning-grid-content');
+    if (!container || !currentLobbyData) return;
+
+    const rad = currentLobbyData.radiant;
+    const dire = currentLobbyData.dire;
+
+    const radMid = rad.find(p => p.assignedPos === 2) || rad[1] || rad[0] || { name: "Не определен", mmr: 0, heroes: [] };
+    const direMid = dire.find(p => p.assignedPos === 2) || dire[1] || dire[0] || { name: "Не определен", mmr: 0, heroes: [] };
+    const cmMidDiff = getCoreEffectiveRating(radMid, 2) - getCoreEffectiveRating(direMid, 2);
+
+    const radCarry = rad.find(p => p.assignedPos === 1) || rad[0];
+    const radHardSup = rad.find(p => p.assignedPos === 5) || rad[rad.length - 1];
+    const direOff = dire.find(p => p.assignedPos === 3) || dire[2] || dire[0];
+    const direSup = dire.find(p => p.assignedPos === 4) || dire[3] || dire[dire.length - 1];
+
+    const radSafeMmr = Math.round(((radCarry ? radCarry.mmr : 0) + (radHardSup ? radHardSup.mmr : 0)) / 2);
+    const direOffMmr = Math.round(((direOff ? direOff.mmr : 0) + (direSup ? direSup.mmr : 0)) / 2);
+    const cmSafeEff = Math.round((getCoreEffectiveRating(radCarry, 1) + getCoreEffectiveRating(radHardSup, 5)) / 2);
+    const cmOffEff = Math.round((getCoreEffectiveRating(direOff, 3) + getCoreEffectiveRating(direSup, 4)) / 2);
+    const topCmDiff = cmSafeEff - cmOffEff;
+
+    const radOff = rad.find(p => p.assignedPos === 3) || rad[2] || rad[0];
+    const radSup = rad.find(p => p.assignedPos === 4) || rad[3] || rad[rad.length - 1];
+    const direCarry = dire.find(p => p.assignedPos === 1) || dire[0];
+    const direHardSup = dire.find(p => p.assignedPos === 5) || dire[dire.length - 1];
+
+    const radOffMmr = Math.round(((radOff ? radOff.mmr : 0) + (radSup ? radSup.mmr : 0)) / 2);
+    const direSafeMmr = Math.round(((direCarry ? direCarry.mmr : 0) + (direHardSup ? direHardSup.mmr : 0)) / 2);
+    const cmRadOffEff = Math.round((getCoreEffectiveRating(radOff, 3) + getCoreEffectiveRating(radSup, 4)) / 2);
+    const cmDireSafeEff = Math.round((getCoreEffectiveRating(direCarry, 1) + getCoreEffectiveRating(direHardSup, 5)) / 2);
+    const botCmDiff = cmRadOffEff - cmDireSafeEff;
+
+    function renderAdvBadge(cmDiff) {
+      const diffStr = cmDiff > 0 ? `+${cmDiff}` : `${cmDiff}`;
+      if (Math.abs(cmDiff) <= 80) return `<div class="lane-advantage adv-even">⚖️ Равная линия (${diffStr} CM)</div>`;
+      if (cmDiff > 80) return `<div class="lane-advantage adv-rad">🟢 Преимущество Radiant (${diffStr} CM)</div>`;
+      return `<div class="lane-advantage adv-dire">🔴 Преимущество Dire (${diffStr} CM)</div>`;
+    }
+
+    container.innerHTML = `
+      <div class="lane-col">
+        <div class="lane-name">
+          <span>⚔️ Центральная линия</span>
+          <span style="color:var(--aegis-gold);">Mid (1x1)</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+          <span style="color:#4ade80; font-weight:700;">${escapeHtml(radMid.name)} (${radMid.mmr})</span>
+          <span style="color:var(--text-muted);">vs</span>
+          <span style="color:#f87171; font-weight:700;">${escapeHtml(direMid.name)} (${direMid.mmr})</span>
+        </div>
+        ${getBanRiskNotice(radMid, "Mid")}
+        ${getBanRiskNotice(direMid, "Mid")}
+        ${renderAdvBadge(cmMidDiff)}
+      </div>
+
+      <div class="lane-col">
+        <div class="lane-name">
+          <span>🛡️ Легкая Rad vs Сложная Dire</span>
+          <span style="color:var(--mana-cyan);">Bot / Top</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+          <span style="color:#4ade80; font-weight:700;">Rad: ~${radSafeMmr}</span>
+          <span style="color:var(--text-muted);">vs</span>
+          <span style="color:#f87171; font-weight:700;">Dire: ~${direOffMmr}</span>
+        </div>
+        ${getBanRiskNotice(radCarry, "Carry")}
+        ${getBanRiskNotice(radHardSup, "Hard Sup")}
+        ${getBanRiskNotice(direOff, "Offlane")}
+        ${getBanRiskNotice(direSup, "Support")}
+        ${renderAdvBadge(topCmDiff)}
+      </div>
+
+      <div class="lane-col">
+        <div class="lane-name">
+          <span>⚔️ Сложная Rad vs Легкая Dire</span>
+          <span style="color:var(--attr-uni);">Top / Bot</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+          <span style="color:#4ade80; font-weight:700;">Rad: ~${radOffMmr}</span>
+          <span style="color:var(--text-muted);">vs</span>
+          <span style="color:#f87171; font-weight:700;">Dire: ~${direSafeMmr}</span>
+        </div>
+        ${getBanRiskNotice(radOff, "Offlane")}
+        ${getBanRiskNotice(radSup, "Support")}
+        ${getBanRiskNotice(direCarry, "Carry")}
+        ${getBanRiskNotice(direHardSup, "Hard Sup")}
+        ${renderAdvBadge(botCmDiff)}
+      </div>
+    `;
+  }
+
+  
+
+  function findFreePosForTeam(team) {
+    const taken = currentLobbyData[team].map(p => p.assignedPos);
+    for (let i = 1; i <= 5; i++) {
+      if (!taken.includes(i)) return i;
+    }
+    return 1;
+  }
+
+  function switchPlayerTeam(fromTeam, idx) {
+    const toTeam = fromTeam === 'radiant' ? 'dire' : 'radiant';
+    if (currentLobbyData[toTeam].length < 5) {
+      const [p] = currentLobbyData[fromTeam].splice(idx, 1);
+      p.assignedPos = findFreePosForTeam(toTeam);
+      currentLobbyData[toTeam].push(p);
+    } else {
+      const temp = currentLobbyData[fromTeam][idx];
+      const targetP = currentLobbyData[toTeam][idx] || currentLobbyData[toTeam][0];
+      const tempPos = temp.assignedPos;
+      temp.assignedPos = targetP.assignedPos;
+      targetP.assignedPos = tempPos;
+      
+      const targetIdx = currentLobbyData[toTeam].indexOf(targetP);
+      currentLobbyData[fromTeam][idx] = targetP;
+      currentLobbyData[toTeam][targetIdx] = temp;
+    }
+    sortTeamByPositions(currentLobbyData.radiant);
+    sortTeamByPositions(currentLobbyData.dire);
+    recalculateLobbyStats();
+    renderLobby();
+  }
+
+  function sendPlayerToBench(team, idx) {
+    const [p] = currentLobbyData[team].splice(idx, 1);
+    if (!currentLobbyData.bench) currentLobbyData.bench = [];
+    currentLobbyData.bench.push(p);
+    sortTeamByPositions(currentLobbyData[team]);
+    recalculateLobbyStats();
+    renderLobby();
+  }
+
+  
+
+  function removeBenchPlayer(benchIdx) {
+    currentLobbyData.bench.splice(benchIdx, 1);
+    renderLobby();
+  }
+
+  function changePlayerPos(team, idx, newPos) {
+    currentLobbyData[team][idx].assignedPos = parseInt(newPos, 10);
+    sortTeamByPositions(currentLobbyData[team]);
+    renderLobby();
+  }
+
+  function handleAddPlayerToLobby(selectEl) {
+    const playerId = selectEl.value;
+    if (!playerId) return;
+    const playerToAdd = players.find(p => p.id === playerId);
+    if (playerToAdd) {
+      if (!currentLobbyData.bench) currentLobbyData.bench = [];
+      currentLobbyData.bench.push({ ...playerToAdd });
+      renderLobby();
+    }
+    selectEl.value = "";
+  }
+
+  /* DRAG AND DROP ЛОББИ */
+  function handleDragStart(e, fromZone, idx) {
+    draggedPlayerInfo = { fromZone, idx };
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', JSON.stringify({ fromZone, idx }));
+    setTimeout(() => { if (e.target) e.target.classList.add('dragging'); }, 10);
+  }
+
+  function handleDragEnd() {
+    draggedPlayerInfo = null;
+    document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+    document.querySelectorAll('.drop-zone-active').forEach(el => el.classList.remove('drop-zone-active'));
+    document.querySelectorAll('.drag-over-item').forEach(el => el.classList.remove('drag-over-item'));
+  }
+
+  function handleItemDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    const targetItem = e.currentTarget;
+    if (!targetItem.classList.contains('drag-over-item')) {
+      document.querySelectorAll('.drag-over-item').forEach(el => el.classList.remove('drag-over-item'));
+      targetItem.classList.add('drag-over-item');
+    }
+  }
+
+  function handleItemDragLeave(e) { e.currentTarget.classList.remove('drag-over-item'); }
+
+  function handleItemDrop(e, targetZone, targetIdx) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.querySelectorAll('.drag-over-item').forEach(el => el.classList.remove('drag-over-item'));
+    document.querySelectorAll('.drop-zone-active').forEach(el => el.classList.remove('drop-zone-active'));
+
+    if (!draggedPlayerInfo) return;
+    const { fromZone, idx: fromIdx } = draggedPlayerInfo;
+    if (fromZone === targetZone && fromIdx === targetIdx) return;
+
+    if (fromZone === targetZone && (fromZone === 'radiant' || fromZone === 'dire')) {
+      const pFrom = currentLobbyData[fromZone][fromIdx];
+      const pTarget = currentLobbyData[targetZone][targetIdx];
+      const tempPos = pFrom.assignedPos;
+      pFrom.assignedPos = pTarget.assignedPos;
+      pTarget.assignedPos = tempPos;
+      sortTeamByPositions(currentLobbyData[fromZone]);
+      recalculateLobbyStats();
+      renderLobby();
+      return;
+    }
+
+    if ((fromZone === 'radiant' || fromZone === 'dire') && (targetZone === 'radiant' || targetZone === 'dire')) {
+      const pFrom = currentLobbyData[fromZone][fromIdx];
+      const pTarget = currentLobbyData[targetZone][targetIdx];
+      const tempPos = pFrom.assignedPos;
+      pFrom.assignedPos = pTarget.assignedPos;
+      pTarget.assignedPos = tempPos;
+
+      currentLobbyData[fromZone][fromIdx] = pTarget;
+      currentLobbyData[targetZone][targetIdx] = pFrom;
+
+      sortTeamByPositions(currentLobbyData.radiant);
+      sortTeamByPositions(currentLobbyData.dire);
+      recalculateLobbyStats();
+      renderLobby();
+      return;
+    }
+
+    if (fromZone === 'bench' && (targetZone === 'radiant' || targetZone === 'dire')) {
+      const [subIn] = currentLobbyData.bench.splice(fromIdx, 1);
+      const replaced = currentLobbyData[targetZone][targetIdx];
+      subIn.assignedPos = replaced.assignedPos;
+      subIn.pickedHero = (subIn.heroes && subIn.heroes[0]) ? subIn.heroes[0] : 'Pudge';
+
+      currentLobbyData.bench.push(replaced);
+      currentLobbyData[targetZone][targetIdx] = subIn;
+
+      sortTeamByPositions(currentLobbyData[targetZone]);
+      recalculateLobbyStats();
+      renderLobby();
+      return;
+    }
+  }
+
+  function handleZoneDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const zoneEl = e.currentTarget;
+    if (!zoneEl.classList.contains('drop-zone-active')) zoneEl.classList.add('drop-zone-active');
+  }
+
+  function handleZoneDragLeave(e) { e.currentTarget.classList.remove('drop-zone-active'); }
+
+  function handleZoneDrop(e, targetZone) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drop-zone-active');
+    document.querySelectorAll('.drag-over-item').forEach(el => el.classList.remove('drag-over-item'));
+    if (!draggedPlayerInfo) return;
+
+    const { fromZone, idx } = draggedPlayerInfo;
+    if (fromZone === targetZone) return;
+
+    let movedPlayer = null;
+    if (fromZone === 'radiant') [movedPlayer] = currentLobbyData.radiant.splice(idx, 1);
+    else if (fromZone === 'dire') [movedPlayer] = currentLobbyData.dire.splice(idx, 1);
+    else if (fromZone === 'bench') [movedPlayer] = currentLobbyData.bench.splice(idx, 1);
+
+    if (!movedPlayer) return;
+
+    if (targetZone === 'bench') {
+      if (!currentLobbyData.bench) currentLobbyData.bench = [];
+      currentLobbyData.bench.push(movedPlayer);
+    } else {
+      if (currentLobbyData[targetZone].length >= 5) {
+        const evicted = currentLobbyData[targetZone].pop();
+        if (!currentLobbyData.bench) currentLobbyData.bench = [];
+        currentLobbyData.bench.push(evicted);
+      }
+      movedPlayer.assignedPos = findFreePosForTeam(targetZone);
+      movedPlayer.pickedHero = (movedPlayer.heroes && movedPlayer.heroes[0]) ? movedPlayer.heroes[0] : 'Pudge';
+      currentLobbyData[targetZone].push(movedPlayer);
+      sortTeamByPositions(currentLobbyData[targetZone]);
+    }
+
+    if (fromZone === 'radiant' || fromZone === 'dire') sortTeamByPositions(currentLobbyData[fromZone]);
+
+    recalculateLobbyStats();
+    renderLobby();
+  }
+
+  function attachDropZoneEvents(el, zoneName) {
+    el.ondragover = handleZoneDragOver;
+    el.ondragleave = handleZoneDragLeave;
+    el.ondrop = (e) => handleZoneDrop(e, zoneName);
+  }
+
+  function renderLobby() {
+    if (!currentLobbyData) return;
+
+    syncLobbyWithRoster();
+    renderBalanceVariantsBar();
+
+    const m = currentLobbyData;
+    sortTeamByPositions(m.radiant);
+    sortTeamByPositions(m.dire);
+    recalculateLobbyStats();
+
+    const smallPoolPlayers = [...m.radiant, ...m.dire].filter(p => !p.heroes || p.heroes.length <= 2);
+    const alertBox = document.getElementById('lobby-cm-alert');
+    if (smallPoolPlayers.length > 0) {
+      const namesList = smallPoolPlayers.map(p => {
+        const count = (p.heroes && Array.isArray(p.heroes)) ? p.heroes.length : 0;
+        const heroesStr = count > 0 ? `: ${p.heroes.map(escapeHtml).join(', ')}` : ' (нет сигнатурок)';
+        return `<b>${escapeHtml(p.name)}</b> (${count} гер.${heroesStr})`;
+      }).join('; ');
+      alertBox.style.display = 'block';
+      alertBox.innerHTML = `⚠️ <b>Сноска для Captains Mode:</b> у игроков [${namesList}] высокий риск бана на 1-й стадии драфта!`;
+    } else {
+      alertBox.style.display = 'none';
+    }
+
+    const radContainer = document.getElementById('radiant-roster');
+    const direContainer = document.getElementById('dire-roster');
+    radContainer.innerHTML = '';
+    direContainer.innerHTML = '';
+
+    attachDropZoneEvents(radContainer, 'radiant');
+    attachDropZoneEvents(direContainer, 'dire');
+
+    m.radiant.forEach((p, idx) => radContainer.appendChild(createLobbyPlayerRow(p, 'radiant', idx)));
+    m.dire.forEach((p, idx) => direContainer.appendChild(createLobbyPlayerRow(p, 'dire', idx)));
+
+    const benchPanel = document.getElementById('bench-panel');
+    const benchContainer = document.getElementById('bench-roster');
+    const benchSelect = document.getElementById('bench-add-select');
+    benchContainer.innerHTML = '';
+    benchPanel.style.display = 'block';
+
+    attachDropZoneEvents(benchContainer, 'bench');
+
+    const inLobbyIds = [
+      ...m.radiant.map(p => p.id),
+      ...m.dire.map(p => p.id),
+      ...(m.bench || []).map(p => p.id)
+    ];
+
+    benchSelect.innerHTML = '<option value="">➕ Добавить игрока в замену...</option>';
+    players.filter(p => !inLobbyIds.includes(p.id)).forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = `${p.name} (${p.mmr} MMR)`;
+      benchSelect.appendChild(opt);
+    });
+
+    if (m.bench && m.bench.length > 0) {
+      document.getElementById('bench-count').textContent = `(${m.bench.length})`;
+      m.bench.forEach((p, idx) => {
+        const b = document.createElement('div');
+        b.className = 'bench-badge';
+        b.draggable = true;
+        
+        b.ondragstart = (e) => handleDragStart(e, 'bench', idx);
+        b.ondragend = handleDragEnd;
+        b.ondragover = handleItemDragOver;
+        b.ondragleave = handleItemDragLeave;
+        b.ondrop = (e) => handleItemDrop(e, 'bench', idx);
+
+        b.innerHTML = `
+          <span class="drag-handle">⠿</span>
+          <span>${escapeHtml(p.name)}</span>
+          <span style="color:var(--aegis-gold); font-family:'JetBrains Mono', monospace; font-size:11.5px;">${p.mmr}</span>
+          <button class="btn btn-add" style="padding:2px 6px; font-size:10px;" onclick="addBenchToTeam(${idx}, 'radiant')">🟢 Rad</button>
+          <button class="btn btn-lobby-core" style="padding:2px 6px; font-size:10px;" onclick="addBenchToTeam(${idx}, 'dire')">🔴 Dire</button>
+          <button style="background:none; border:none; color:#ef4444; font-size:14px; cursor:pointer;" onclick="removeBenchPlayer(${idx})">✕</button>
+        `;
+        benchContainer.appendChild(b);
+      });
+    } else {
+      document.getElementById('bench-count').textContent = '(0)';
+      benchContainer.innerHTML = '<span style="color:var(--text-muted); font-size:12px;">Скамейка запасных пуста.</span>';
+    }
+
+    updateAdminUI();
+  }
+
+  
+
+  
+
+  /* РЕНДЕР ТАБЛИЦЫ И ОБРАБОТКА КЛИКА ПО ВСЕЙ СТРОКЕ */
+  function renderTable() {
+    updateAdminUI();
+    const tbody = document.getElementById('roster-body');
+    const query = document.getElementById('search-input').value.toLowerCase().trim();
+    tbody.innerHTML = '';
+
+    let visibleCount = 0;
+    let selectedCount = 0;
+    let totalMmr = 0;
+
+    players.forEach(p => {
+      if (p.selected) selectedCount++;
+      const matchesPos = (activePos === 'all') || p.roles.includes(parseInt(activePos, 10));
+      const matchesSearch = !query || p.name.toLowerCase().includes(query) || p.heroes.some(h => h.toLowerCase().includes(query));
+
+      if (!matchesPos || !matchesSearch) return;
+
+      visibleCount++;
+      totalMmr += p.mmr;
+      const rank = getRankInfo(p.mmr);
+      const row = document.createElement('tr');
+      if (p.selected) row.classList.add('row-selected');
+
+      /* Клик на всю строку выделяет чекбокс (кроме кликов на спец-кнопки/ссылки) */
+      row.onclick = (e) => {
+        if (e.target.closest('.check-col') || e.target.closest('.action-col') || e.target.closest('.steam-link') || e.target.closest('.hero-badge')) return;
+        togglePlayerCheck(p.id, !p.selected);
+      };
+
+      const roleBadges = p.roles.map(r => `<span class="pos-badge pos-${r}">Поз. ${r}</span>`).join(' ');
+      const heroBadges = p.heroes.map(h => `
+        <span class="hero-badge" data-hero="${escapeHtml(h)}">
+          <img src="${escapeHtml(getHeroImg(h))}" loading="lazy">
+        </span>
+      `).join('');
+
+      const poolLen = (p.heroes && Array.isArray(p.heroes)) ? p.heroes.length : 0;
+      const smallPoolPill = (poolLen <= 2) ? `<span class="pool-warning-pill">⚠️ ${poolLen} гер.</span>` : '';
+
+      const steamBadge = p.steamId ? `<a class="steam-link" href="https://www.opendota.com/players/${escapeHtml(p.steamId)}" target="_blank" title="Профиль OpenDota">📊</a>` : '';
+
+      const actionButtons = isAdmin() ? `
+        <td class="action-col" style="text-align:right;">
+          <div style="display:flex; gap:4px; justify-content:flex-end;">
+            <button class="btn-icon" title="Редактировать" onclick="openEditModal('${escapeHtml(p.id)}')">✏️</button>
+            <button class="btn-icon del" title="Удалить" onclick="deletePlayer('${escapeHtml(p.id)}')">🗑️</button>
+          </div>
+        </td>
+      ` : '';
+
+      row.innerHTML = `
+        <td style="text-align:center;" class="check-col">
+          <input type="checkbox" class="custom-check" ${p.selected ? 'checked' : ''} onchange="togglePlayerCheck('${escapeHtml(p.id)}', this.checked)">
+        </td>
+        <td style="text-align:center; color:var(--text-muted); font-family:'JetBrains Mono', monospace;">${visibleCount}</td>
+        <td>
+          <div class="player-cell">
+            <span class="player-name">${escapeHtml(p.name)}</span>
+            ${steamBadge}
+          </div>
+        </td>
+        <td>
+          <div class="rank-cell ${rank.class}">
+            <img class="rank-icon" src="https://wsrv.nl/?url=https://www.opendota.com/assets/images/dota2/rank_icons/rank_icon_${rank.medal}.png" loading="lazy">
+            <span>${escapeHtml(rank.name)}</span>
+          </div>
+        </td>
+        <td style="text-align:center;"><span class="mmr-badge">${p.mmr}</span></td>
+        <td>${roleBadges}</td>
+        <td><div class="hero-list">${heroBadges} ${smallPoolPill}</div></td>
+        ${actionButtons}
+      `;
+      tbody.appendChild(row);
+    });
+
+    document.getElementById('badge-roster-count').textContent = players.length;
+    document.getElementById('stat-selected').textContent = `${selectedCount} / ${players.length}`;
+    document.getElementById('stat-count').textContent = visibleCount;
+    document.getElementById('stat-avg').textContent = visibleCount > 0 ? Math.round(totalMmr / visibleCount).toLocaleString('ru-RU') : '0';
+    document.getElementById('check-all').checked = (players.length > 0 && selectedCount === players.length);
+  }
+
+  function togglePlayerCheck(id, isChecked) {
+    const p = players.find(x => x.id === id);
+    if (p) { p.selected = isChecked; renderTable(); }
+  }
+  function toggleSelectAll(master) {
+    players.forEach(p => p.selected = master.checked);
+    renderTable();
+  }
+  function selectRandom10() {
+    players.forEach(p => p.selected = false);
+    [...players].sort(() => 0.5 - Math.random()).slice(0, 10).forEach(p => p.selected = true);
+    renderTable();
+  }
+  function setPosFilter(pos, btn) {
+    activePos = pos;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTable();
+  }
+
+  function calculatePositionsStats() {
+    const posStats = {};
+    players.forEach(p => {
+      posStats[p.id] = {
+        id: p.id, name: p.name,
+        roles: {
+          1: { matches: 0, wins: 0, losses: 0, winrate: 0 },
+          2: { matches: 0, wins: 0, losses: 0, winrate: 0 },
+          3: { matches: 0, wins: 0, losses: 0, winrate: 0 },
+          4: { matches: 0, wins: 0, losses: 0, winrate: 0 },
+          5: { matches: 0, wins: 0, losses: 0, winrate: 0 }
+        }
+      };
+    });
+
+    const getPlayerKey = (p) => {
+      if (p.id) return p.id;
+      const found = players.find(x => x.name === p.name);
+      return found ? found.id : p.name;
+    };
+
+    matches.forEach(m => {
+      const radWon = m.winner === 'Radiant';
+      const scanTeam = (teamArr, isWinner) => {
+        if (!Array.isArray(teamArr)) return;
+        teamArr.forEach(p => {
+          const key = getPlayerKey(p);
+          const pos = parseInt(p.pos, 10);
+          if (!key || !pos || pos < 1 || pos > 5) return;
+
+          if (!posStats[key]) {
+            posStats[key] = {
+              id: key, name: p.name,
+              roles: {
+                1: { matches: 0, wins: 0, losses: 0, winrate: 0 },
+                2: { matches: 0, wins: 0, losses: 0, winrate: 0 },
+                3: { matches: 0, wins: 0, losses: 0, winrate: 0 },
+                4: { matches: 0, wins: 0, losses: 0, winrate: 0 },
+                5: { matches: 0, wins: 0, losses: 0, winrate: 0 }
+              }
+            };
+          }
+          posStats[key].roles[pos].matches++;
+          if (isWinner) posStats[key].roles[pos].wins++;
+          else posStats[key].roles[pos].losses++;
+        });
+      };
+      scanTeam(m.radiant, radWon);
+      scanTeam(m.dire, !radWon);
+    });
+
+    Object.values(posStats).forEach(entry => {
+      let bestPos = null;
+      let maxScore = -1;
+      for (let pos = 1; pos <= 5; pos++) {
+        const r = entry.roles[pos];
+        r.winrate = r.matches > 0 ? Math.round((r.wins / r.matches) * 100) : 0;
+        if (r.matches > 0 && r.wins > 0) {
+          const score = r.wins * 100 + r.winrate;
+          if (score > maxScore) { maxScore = score; bestPos = pos; }
+        }
+      }
+      entry.bestRole = bestPos;
+    });
+
+    return posStats;
+  }
+
+  function calculatePairsSynergy() {
+    const pairsMap = {};
+    const getPlayerKey = (p) => {
+      if (p.id) return p.id;
+      const found = players.find(x => x.name === p.name);
+      return found ? found.id : p.name;
+    };
+
+    matches.forEach(m => {
+      const radWon = m.winner === 'Radiant';
+      const scanTeamPairs = (teamArr, isWinner) => {
+        if (!Array.isArray(teamArr)) return;
+        for (let i = 0; i < teamArr.length; i++) {
+          for (let j = i + 1; j < teamArr.length; j++) {
+            const idA = getPlayerKey(teamArr[i]);
+            const idB = getPlayerKey(teamArr[j]);
+            if (!idA || !idB || idA === idB) continue;
+
+            const key = idA < idB ? `${idA}___${idB}` : `${idB}___${idA}`;
+            if (!pairsMap[key]) {
+              const liveA = players.find(p => p.id === idA);
+              const liveB = players.find(p => p.id === idB);
+              pairsMap[key] = {
+                idA, idB,
+                nameA: liveA ? liveA.name : teamArr[i].name,
+                nameB: liveB ? liveB.name : teamArr[j].name,
+                matches: 0, wins: 0, losses: 0, winrate: 0
+              };
+            }
+            pairsMap[key].matches++;
+            if (isWinner) pairsMap[key].wins++;
+            else pairsMap[key].losses++;
+          }
+        }
+      };
+      scanTeamPairs(m.radiant, radWon);
+      scanTeamPairs(m.dire, !radWon);
+    });
+
+    return Object.values(pairsMap).map(pair => {
+      pair.winrate = pair.matches > 0 ? Math.round((pair.wins / pair.matches) * 100) : 0;
+      return pair;
+    });
+  }
+
+  function sortStatsTable(col) {
+    if (statsSortCol === col) statsSortDir = -statsSortDir;
+    else { statsSortCol = col; statsSortDir = (col === 'name') ? 1 : -1; }
+    renderLeaderboardTable();
+  }
+
+  function sortRolesTable(col) {
+    if (rolesSortCol === col) rolesSortDir = -rolesSortDir;
+    else { rolesSortCol = col; rolesSortDir = (col === 'name') ? 1 : -1; }
+    renderRolesTable();
+  }
+
+  function sortSynergyTable(col) {
+    if (synergySortCol === col) synergySortDir = -synergySortDir;
+    else { synergySortCol = col; synergySortDir = (col === 'pair') ? 1 : -1; }
+    renderSynergyTable();
+  }
+
+  function renderStats() {
+    if (activeStatsSubTab === 'leaderboard') renderLeaderboardTable();
+    else if (activeStatsSubTab === 'roles') renderRolesTable();
+    else if (activeStatsSubTab === 'synergy') renderSynergyTable();
+  }
+
+  function renderLeaderboardTable() {
+    const tbody = document.getElementById('stats-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const statsMap = {};
+    players.forEach(p => {
+      statsMap[p.id] = { id: p.id, name: p.name, matches: 0, wins: 0, losses: 0, winrate: 0 };
+    });
+
+    const getPlayerKey = (p) => {
+      if (p.id) return p.id;
+      const found = players.find(x => x.name === p.name);
+      return found ? found.id : p.name;
+    };
+
+    matches.forEach(m => {
+      const radWon = m.winner === 'Radiant';
+      const processTeam = (teamArr, isWinner) => {
+        teamArr.forEach(p => {
+          const key = getPlayerKey(p);
+          if (!statsMap[key]) statsMap[key] = { id: p.id || key, name: p.name, matches: 0, wins: 0, losses: 0, winrate: 0 };
+          statsMap[key].matches++;
+          if (isWinner) statsMap[key].wins++;
+          else statsMap[key].losses++;
+        });
+      };
+      processTeam(m.radiant, radWon);
+      processTeam(m.dire, !radWon);
+    });
+
+    const statList = Object.values(statsMap).map(s => {
+      const live = players.find(p => p.id === s.id);
+      if (live) s.name = live.name;
+      s.winrate = s.matches > 0 ? Math.round((s.wins / s.matches) * 100) : 0;
+      return s;
+    });
+
+    statList.sort((a, b) => {
+      let res = 0;
+      if (statsSortCol === 'name') res = a.name.localeCompare(b.name);
+      else if (statsSortCol === 'matches') res = a.matches - b.matches;
+      else if (statsSortCol === 'wins') res = a.wins - b.wins;
+      else if (statsSortCol === 'losses') res = a.losses - b.losses;
+      else if (statsSortCol === 'winrate' || statsSortCol === 'rank') res = (a.winrate - b.winrate) || (a.matches - b.matches);
+      return res * statsSortDir;
+    });
+
+    statList.forEach((s, idx) => {
+      const row = document.createElement('tr');
+      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`;
+      row.innerHTML = `
+        <td style="text-align:center; font-weight:800; color:var(--aegis-gold); font-family:'JetBrains Mono', monospace;">${medal}</td>
+        <td><span class="player-name">${escapeHtml(s.name)}</span></td>
+        <td style="text-align:center; font-weight:800; font-family:'JetBrains Mono', monospace;">${s.matches}</td>
+        <td style="text-align:center; color:#34d399; font-weight:800; font-family:'JetBrains Mono', monospace;">${s.wins}</td>
+        <td style="text-align:center; color:#f87171; font-weight:800; font-family:'JetBrains Mono', monospace;">${s.losses}</td>
+        <td>
+          <div class="winrate-bar-bg"><div class="winrate-bar-fill" style="width: ${s.winrate}%;"></div></div>
+          <span style="font-family:'JetBrains Mono', monospace; font-weight:800;">${s.winrate}%</span>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function renderRolesTable() {
+    const tbody = document.getElementById('roles-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const list = Object.values(calculatePositionsStats());
+    list.sort((a, b) => {
+      if (rolesSortCol === 'name') return a.name.localeCompare(b.name) * rolesSortDir;
+      const pos = parseInt(rolesSortCol, 10);
+      const wrA = a.roles[pos]?.winrate ?? 0;
+      const wrB = b.roles[pos]?.winrate ?? 0;
+      return (wrA - wrB) * rolesSortDir;
+    });
+
+    list.forEach(p => {
+      const row = document.createElement('tr');
+      const renderPosCell = (posNum) => {
+        const r = p.roles[posNum];
+        if (!r || r.matches === 0) return `<td style="text-align:center; color:var(--text-muted);">—</td>`;
+        const color = r.winrate >= 60 ? '#34d399' : r.winrate <= 40 ? '#f87171' : '#facc15';
+        return `
+          <td style="text-align:center;">
+            <span style="font-weight:800; color:${color}; font-family:'JetBrains Mono', monospace;">${r.winrate}%</span>
+            <div style="font-size:10.5px; color:var(--text-muted); font-family:'JetBrains Mono', monospace;">${r.wins}W - ${r.losses}L</div>
+          </td>
+        `;
+      };
+
+      let bestRoleText = `<span style="color:var(--text-muted);">—</span>`;
+      if (p.bestRole) {
+        const br = p.roles[p.bestRole];
+        bestRoleText = `<span class="pos-badge pos-${p.bestRole}">🔥 ${ROLE_NAMES[p.bestRole]} (${br.winrate}%)</span>`;
+      }
+
+      row.innerHTML = `
+        <td><span class="player-name">${escapeHtml(p.name)}</span></td>
+        ${renderPosCell(1)}
+        ${renderPosCell(2)}
+        ${renderPosCell(3)}
+        ${renderPosCell(4)}
+        ${renderPosCell(5)}
+        <td>${bestRoleText}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function renderSynergyTable() {
+    const tbody = document.getElementById('synergy-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const query = (document.getElementById('synergy-search-input')?.value || '').toLowerCase().trim();
+    let pairs = calculatePairsSynergy();
+
+    if (query) pairs = pairs.filter(p => p.nameA.toLowerCase().includes(query) || p.nameB.toLowerCase().includes(query));
+
+    pairs.sort((a, b) => {
+      if (synergySortCol === 'pair') return `${a.nameA} ${a.nameB}`.localeCompare(`${b.nameA} ${b.nameB}`) * synergySortDir;
+      if (synergySortCol === 'matches') return (a.matches - b.matches) * synergySortDir;
+      if (synergySortCol === 'wins') return (a.wins - b.wins) * synergySortDir;
+      if (synergySortCol === 'losses') return (a.losses - b.losses) * synergySortDir;
+      return ((a.winrate - b.winrate) || (a.matches - b.matches)) * synergySortDir;
+    });
+
+    if (pairs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:20px;">Нет данных о совместных играх.</td></tr>`;
+      return;
+    }
+
+    pairs.forEach(pair => {
+      const row = document.createElement('tr');
+      let statusBadge = '';
+      if (pair.matches >= 2 && pair.winrate === 100) statusBadge = `<span class="pos-badge pos-4">🔥 Непобедимые</span>`;
+      else if (pair.winrate >= 60) statusBadge = `<span class="pos-badge pos-2">⭐ Сильная связка</span>`;
+      else if (pair.winrate >= 40) statusBadge = `<span class="pos-badge pos-5">⚖️ 50 / 50</span>`;
+      else statusBadge = `<span class="pos-badge pos-1">🧊 Сложная связка</span>`;
+
+      row.innerHTML = `
+        <td>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-weight:700;">${escapeHtml(pair.nameA)}</span>
+            <span style="color:var(--mana-cyan); font-weight:bold;">+</span>
+            <span style="font-weight:700;">${escapeHtml(pair.nameB)}</span>
+          </div>
+        </td>
+        <td style="text-align:center; font-weight:800; font-family:'JetBrains Mono', monospace;">${pair.matches}</td>
+        <td style="text-align:center; color:#34d399; font-weight:800; font-family:'JetBrains Mono', monospace;">${pair.wins}</td>
+        <td style="text-align:center; color:#f87171; font-weight:800; font-family:'JetBrains Mono', monospace;">${pair.losses}</td>
+        <td>
+          <div class="winrate-bar-bg"><div class="winrate-bar-fill" style="width:${pair.winrate}%;"></div></div>
+          <span style="font-family:'JetBrains Mono', monospace; font-weight:800;">${pair.winrate}%</span>
+        </td>
+        <td style="text-align:center;">${statusBadge}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function renderHistory() {
+    const container = document.getElementById('history-container');
+    container.innerHTML = '';
+
+    if (matches.length === 0) {
+      container.innerHTML = '<div style="padding: 30px; text-align: center; color: var(--text-muted); font-family:\'JetBrains Mono\', monospace;">Архив матчей пока пуст.</div>';
+      return;
+    }
+
+    matches.forEach(m => {
+      const card = document.createElement('div');
+      card.className = 'match-card';
+      const isRad = m.winner === 'Radiant';
+
+      const renderPlayerLines = (teamArr) => teamArr.map(p => {
+        const live = players.find(x => x.id === p.id);
+        const displayName = live ? live.name : p.name;
+        const kdaBadge = p.kda ? `<span style="font-family:'JetBrains Mono', monospace; font-size:11px; background:rgba(0,0,0,0.5); padding:1px 5px; border-radius:3px; border:1px solid rgba(255,255,255,0.1); color:var(--mana-cyan);">${escapeHtml(p.kda)}</span>` : '';
+        return `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; font-size:12.5px; border-bottom:1px solid rgba(255,255,255,0.05);">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <img src="${escapeHtml(getHeroImg(p.hero))}" style="width:24px; height:14px; border-radius:2px;">
+              <span style="font-weight:700;">${escapeHtml(displayName)}</span>
+              <span style="color:var(--text-muted); font-size:11px;">(Поз. ${p.pos})</span>
+              ${kdaBadge}
+            </div>
+            <span style="font-family:'JetBrains Mono', monospace; color:var(--aegis-gold); font-size:12px;">${p.mmr} MMR</span>
+          </div>
+        `;
+      }).join('');
+
+      card.innerHTML = `
+        <div class="match-card-header">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span class="winner-tag ${isRad ? 'winner-radiant' : 'winner-dire'}">Победа ${escapeHtml(m.winner)}</span>
+            <span style="color:var(--text-muted); font-size:12px; font-family:'JetBrains Mono', monospace;">📅 ${escapeHtml(m.date)}</span>
+            ${m.matchId ? `<span style="font-size:12px; color:var(--mana-cyan); font-family:'JetBrains Mono', monospace;">ID: ${escapeHtml(m.matchId)}</span>` : ''}
+            ${m.score ? `<span style="font-size:12px; color:#cbd5e1; font-family:'JetBrains Mono', monospace;">[${escapeHtml(m.score)}]</span>` : ''}
+            ${m.duration ? `<span style="font-size:12px; color:#cbd5e1; font-family:'JetBrains Mono', monospace;">⏱️ ${escapeHtml(m.duration)}</span>` : ''}
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:12px; color:var(--aegis-gold); font-family:'JetBrains Mono', monospace;">Разница: ${m.diff} MMR</span>
+            ${isAdmin() ? `<button class="btn-icon del" title="Удалить" onclick="deleteMatch('${escapeHtml(m.id)}')">🗑️</button>` : ''}
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div style="background:rgba(16,185,129,0.06); border:1px solid var(--rad-border); border-radius:var(--radius-md); padding:10px;">
+            <div style="font-size:12px; font-weight:800; color:#34d399; margin-bottom:6px; display:flex; justify-content:space-between; font-family:'Oswald', sans-serif;">
+              <span>🟢 RADIANT</span>
+              <span style="font-family:'JetBrains Mono', monospace;">Avg: ${m.radiantAvg}</span>
+            </div>
+            ${renderPlayerLines(m.radiant)}
+          </div>
+          <div style="background:rgba(225,29,72,0.06); border:1px solid var(--dire-border); border-radius:var(--radius-md); padding:10px;">
+            <div style="font-size:12px; font-weight:800; color:#fb7185; margin-bottom:6px; display:flex; justify-content:space-between; font-family:'Oswald', sans-serif;">
+              <span>🔴 DIRE</span>
+              <span style="font-family:'JetBrains Mono', monospace;">Avg: ${m.direAvg}</span>
+            </div>
+            ${renderPlayerLines(m.dire)}
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function deleteMatch(id) {
+    if (!isAdmin()) return;
+    if (confirm('Удалить этот матч из истории?')) {
+      matches = matches.filter(m => m.id !== id);
+      syncCloud();
+      renderHistory();
+      renderStats();
+    }
+  }
+
+  // OpenDota: разбор введённого SteamID32 / SteamID64 / ссылки Dotabuff / OpenDota / Steam
+  function parseSteamIdInput(raw) {
+    const val = (raw || '').trim();
+    if (!val) return null;
+
+    const urlMatch = val.match(/(?:dotabuff\.com\/players\/|opendota\.com\/players\/|steamcommunity\.com\/profiles\/)(\d+)/i);
+    const digitsOnly = urlMatch ? urlMatch[1] : val;
+
+    if (!/^\d+$/.test(digitsOnly)) return null;
+
+    // SteamID64 -> SteamID32 (Account ID)
+    if (digitsOnly.length >= 16) {
+      try {
+        const steam64 = BigInt(digitsOnly);
+        const steam32 = steam64 - 76561197960265728n;
+        if (steam32 <= 0n) return null;
+        return steam32.toString();
+      } catch (e) {
+        return null;
+      }
+    }
+    return digitsOnly;
+  }
+
+  const OPENDOTA_RANK_NAMES = {
+    1: 'Рекрут', 2: 'Страж', 3: 'Крестоносец', 4: 'Архонт',
+    5: 'Легенда', 6: 'Античность', 7: 'Божество', 8: 'Титан'
+  };
+
+  // OpenDota: автозаполнение никнейма и MMR по SteamID
+  async function fetchOpenDotaData() {
+    const statusEl = document.getElementById('opendota-status');
+    const btn = document.getElementById('btn-fetch-opendota');
+    const accountId = parseSteamIdInput(document.getElementById('form-steam-id').value);
+
+    if (!accountId) {
+      statusEl.style.color = 'var(--dire-crimson)';
+      statusEl.textContent = '⚠️ Введите корректный SteamID32, SteamID64 или ссылку Dotabuff/OpenDota/Steam';
+      return;
+    }
+
+    btn.disabled = true;
+    statusEl.style.color = 'var(--mana-cyan)';
+    statusEl.textContent = '⏳ Запрос к OpenDota...';
+
+    try {
+      const res = await fetch(`https://api.opendota.com/api/players/${accountId}`);
+      if (!res.ok) throw new Error('http_' + res.status);
+      const data = await res.json();
+
+      if (!data || !data.profile) {
+        statusEl.style.color = 'var(--dire-crimson)';
+        statusEl.textContent = '⚠️ Игрок не найден на OpenDota (профиль скрыт или ID неверный)';
+        return;
+      }
+
+      if (data.profile.personaname) {
+        document.getElementById('form-name').value = data.profile.personaname;
+      }
+      document.getElementById('form-steam-id').value = accountId;
+
+      let mmrText = 'MMR не найден, укажите вручную';
+      if (data.mmr_estimate && typeof data.mmr_estimate.estimate === 'number') {
+        document.getElementById('form-mmr').value = data.mmr_estimate.estimate;
+        mmrText = `≈${data.mmr_estimate.estimate} MMR`;
+      } else if (typeof data.solo_competitive_rank === 'number') {
+        document.getElementById('form-mmr').value = data.solo_competitive_rank;
+        mmrText = `≈${data.solo_competitive_rank} MMR`;
+      }
+
+      let rankText = '';
+      if (typeof data.rank_tier === 'number' && data.rank_tier > 0) {
+        const tier = Math.floor(data.rank_tier / 10);
+        const stars = data.rank_tier % 10;
+        const tierName = OPENDOTA_RANK_NAMES[tier] || '';
+        rankText = (tier === 8)
+          ? `Титан${data.leaderboard_rank ? ' #' + data.leaderboard_rank : ''}`
+          : `${tierName} ${stars}`;
+      }
+
+      statusEl.style.color = 'var(--rad-emerald)';
+      statusEl.textContent = `✅ ${data.profile.personaname || 'Профиль'} загружен${rankText ? ' • Ранг: ' + rankText : ''} • ${mmrText}`;
+    } catch (err) {
+      statusEl.style.color = 'var(--dire-crimson)';
+      statusEl.textContent = '⚠️ Ошибка запроса к OpenDota. Проверьте ID или подключение к интернету.';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function openAddModal() {
+    document.getElementById('modal-title').textContent = 'Добавить игрока';
+    document.getElementById('edit-player-id').value = '';
+    document.getElementById('form-name').value = '';
+    document.getElementById('form-mmr').value = '';
+    document.getElementById('form-steam-id').value = '';
+    document.getElementById('opendota-status').textContent = '';
+    currentFormPool = [];
+    renderPlayerFormPool();
+    document.querySelectorAll('input[name="edit-role"]').forEach(c => c.checked = false);
+    document.getElementById('player-modal').style.display = 'flex';
+  }
+
+  function openEditModal(id) {
+    const p = players.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('modal-title').textContent = `Редактировать: ${p.name}`;
+    document.getElementById('edit-player-id').value = p.id;
+    document.getElementById('form-name').value = p.name;
+    document.getElementById('form-mmr').value = p.mmr;
+    document.getElementById('form-steam-id').value = p.steamId || '';
+    document.getElementById('opendota-status').textContent = '';
+    currentFormPool = [...p.heroes];
+    renderPlayerFormPool();
+    document.querySelectorAll('input[name="edit-role"]').forEach(c => c.checked = p.roles.includes(parseInt(c.value, 10)));
+    document.getElementById('player-modal').style.display = 'flex';
+  }
+
+  function closeModal() { document.getElementById('player-modal').style.display = 'none'; }
+
+  function renderPlayerFormPool() {
+    const container = document.getElementById('player-form-pool-chips');
+    container.innerHTML = '';
+    currentFormPool.forEach((h, index) => {
+      const chip = document.createElement('div');
+      chip.style.cssText = 'background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:3px 6px; display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700;';
+      chip.innerHTML = `
+        <img src="${escapeHtml(getHeroImg(h))}" style="width:24px; height:14px; border-radius:2px; object-fit:cover;">
+        <span>${escapeHtml(h)}</span>
+        <span style="color:#ef4444; cursor:pointer; font-weight:bold;" onclick="removeHeroFromPlayerPool(${index})">✕</span>
+      `;
+      container.appendChild(chip);
+    });
+  }
+
+  function removeHeroFromPlayerPool(index) {
+    currentFormPool.splice(index, 1);
+    renderPlayerFormPool();
+  }
+
+  function savePlayer() {
+    const id = document.getElementById('edit-player-id').value;
+    const name = document.getElementById('form-name').value.trim();
+    const mmr = parseInt(document.getElementById('form-mmr').value, 10);
+    const steamId = document.getElementById('form-steam-id').value.trim();
+    const roles = Array.from(document.querySelectorAll('input[name="edit-role"]:checked')).map(c => parseInt(c.value, 10));
+
+    if (!name || isNaN(mmr) || roles.length === 0) return;
+
+    if (id) {
+      const p = players.find(x => x.id === id);
+      if (p) {
+        p.name = name; p.mmr = mmr; p.roles = roles; p.heroes = currentFormPool; p.steamId = steamId;
+      }
+    } else {
+      players.unshift({
+        id: generateId(), name, mmr, roles, heroes: currentFormPool, selected: false, steamId
+      });
+    }
+
+    applySort();
+    closeModal();
+    syncLobbyWithRoster();
+    renderTable();
+    syncCloud();
+  }
+
+  function deletePlayer(id) {
+    if (!isAdmin()) return;
+    const p = players.find(x => x.id === id);
+    if (p && confirm(`Удалить игрока "${p.name}"?`)) {
+      players = players.filter(x => x.id !== id);
+      applySort();
+      syncLobbyWithRoster();
+      renderTable();
+      syncCloud();
+    }
+  }
+
+  function resetToDefault() {
+    if (confirm('Сбросить состав до исходного (18 игроков)?')) {
+      players = JSON.parse(JSON.stringify(DEFAULT_ROSTER));
+      players.forEach(p => p.selected = false);
+      applySort();
+      renderTable();
+      currentLobbyData = null;
+      currentBalanceVariants = [];
+      document.getElementById('badge-lobby-active').style.display = 'none';
+      syncCloud();
+    }
+  }
+
+  function setGridAttrFilter(attr, btn) {
+    activeGridAttr = attr;
+    document.querySelectorAll('.attr-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderHeroGrid();
+  }
+
+  function openHeroSelectModalForLobby(team, playerIndex) {
+    heroSelectMode = 'lobbyPick';
+    const player = currentLobbyData[team][playerIndex];
+    heroSelectContext = { team, playerIndex, player };
+    document.getElementById('hero-modal-title').textContent = `Герой для ${player.name}`;
+    document.getElementById('hero-grid-multi-actions').style.display = 'none';
+    resetGridFilters();
+    document.getElementById('hero-select-modal').style.display = 'flex';
+  }
+
+  function openHeroGridForPlayerPool() {
+    heroSelectMode = 'playerPool';
+    document.getElementById('hero-modal-title').textContent = `Формирование пула`;
+    document.getElementById('hero-grid-multi-actions').style.display = 'flex';
+    resetGridFilters();
+    document.getElementById('hero-select-modal').style.display = 'flex';
+  }
+
+  function resetGridFilters() {
+    activeGridAttr = 'all';
+    document.querySelectorAll('.attr-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.attr-btn.all')?.classList.add('active');
+    document.getElementById('hero-grid-filter').value = '';
+    renderHeroGrid();
+  }
+
+  function closeHeroSelectModal() {
+    document.getElementById('hero-select-modal').style.display = 'none';
+  }
+
+  function applyMultiHeroSelect() {
+    renderPlayerFormPool();
+    closeHeroSelectModal();
+  }
+
+  function renderHeroGrid() {
+    const container = document.getElementById('hero-grid-cards');
+    const query = document.getElementById('hero-grid-filter').value.toLowerCase().trim();
+    container.innerHTML = '';
+
+    let heroList = [...DOTA2_HEROES_CATALOG];
+    if (activeGridAttr !== 'all') heroList = heroList.filter(h => h.attr === activeGridAttr);
+    if (query) heroList = heroList.filter(h => h.name.toLowerCase().includes(query));
+
+    heroList.forEach(hero => {
+      const card = document.createElement('div');
+      card.className = 'hero-card';
+
+      if (heroSelectMode === 'playerPool' && currentFormPool.includes(hero.name)) {
+        card.classList.add('is-selected');
+      }
+
+      card.innerHTML = `
+        <img src="${escapeHtml(getHeroImg(hero.name))}">
+        <span class="hero-card-name">${escapeHtml(hero.name)}</span>
+      `;
+
+      card.onclick = () => {
+        if (heroSelectMode === 'lobbyPick') {
+          currentLobbyData[heroSelectContext.team][heroSelectContext.playerIndex].pickedHero = hero.name;
+          closeHeroSelectModal();
+          renderLobby();
+        } else {
+          const idx = currentFormPool.indexOf(hero.name);
+          if (idx > -1) {
+            currentFormPool.splice(idx, 1);
+            card.classList.remove('is-selected');
+          } else {
+            currentFormPool.push(hero.name);
+            card.classList.add('is-selected');
+          }
+          document.getElementById('hero-grid-selected-counter').textContent = `Выбрано: ${currentFormPool.length}`;
+        }
+      };
+
+      container.appendChild(card);
+    });
+  }
+
+// 1. Создание ручного лобби с пустыми виртуальными слотами
+  function initManualLobby() {
+    const selected = players.filter(p => p.selected);
+    const createEmptySlot = (pos) => ({ isEmptySlot: true, id: 'empty-' + Date.now() + '-' + pos, name: "Пустой слот", mmr: 0, assignedPos: pos, roles: [], heroes: [] });
+    
+    currentLobbyData = {
+      variantTitle: "Ручной состав",
+      radiant: [1, 2, 3, 4, 5].map(pos => createEmptySlot(pos)),
+      dire: [1, 2, 3, 4, 5].map(pos => createEmptySlot(pos)),
+      radiantMmr: 0, direMmr: 0, diff: 0,
+      bench: [...selected]
+    };
+    currentBalanceVariants = [currentLobbyData];
+    activeVariantIndex = 0;
+
+    document.getElementById('badge-lobby-active').style.display = 'inline-block';
+    recalculateLobbyStats();
+    renderLobby();
+    switchTab('lobby');
+  }
+
+  function renderBalanceVariantsBar() {
+    const bar = document.getElementById('balance-variants-bar');
+    const container = document.getElementById('variants-chips-container');
+    if (!currentBalanceVariants || currentBalanceVariants.length <= 1) {
+      bar.style.display = 'none';
+      return;
+    }
+
+    bar.style.display = 'flex';
+    container.innerHTML = '';
+
+    currentBalanceVariants.forEach((v, idx) => {
+      const btn = document.createElement('button');
+      btn.className = `variant-chip-btn ${idx === activeVariantIndex ? 'active' : ''}`;
+      btn.innerHTML = `
+        <span>${escapeHtml(v.variantTitle || `Вариант ${idx + 1}`)}</span>
+        <span style="font-family:'JetBrains Mono', monospace; opacity:0.9;">(Δ ${v.diff} MMR)</span>
+      `;
+      btn.onclick = () => applyLobbyVariant(idx);
+      container.appendChild(btn);
+    });
+  }
+
+  function getBanRiskNotice(player, roleTitle) {
+    if (!player || player.isEmptySlot) return '';
+    const pool = player.heroes || [];
+    const pName = escapeHtml(player.name);
+    const rTitle = escapeHtml(roleTitle);
+
+    if (pool.length === 0) return `<div class="cm-ban-warning" style="font-size:10.5px; color:#fca5a5; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:3px 6px; border-radius:4px; margin-top:3px;">⚠️ <b>${pName}</b> (${rTitle}): нет пула — риск бана в CM!</div>`;
+    if (pool.length === 1) return `<div class="cm-ban-warning" style="font-size:10.5px; color:#fca5a5; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:3px 6px; border-radius:4px; margin-top:3px;">⚠️ <b>${pName}</b> (${rTitle}): всего 1 герой (<b>${escapeHtml(pool[0])}</b>) — 100% бан!</div>`;
+    if (pool.length === 2) return `<div class="cm-ban-warning" style="font-size:10.5px; color:#fca5a5; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:3px 6px; border-radius:4px; margin-top:3px;">⚠️ <b>${pName}</b> (${rTitle}): узкий пул (2 героя)!</div>`;
+    return '';
+  }
+
+  function updateLaningAnalysis() {
+    const container = document.getElementById('laning-grid-content');
+    if (!container || !currentLobbyData) return;
+
+    const rad = currentLobbyData.radiant;
+    const dire = currentLobbyData.dire;
+
+    const radMid = rad.find(p => p.assignedPos === 2 && !p.isEmptySlot) || { name: "Не определен", mmr: 0, heroes: [] };
+    const direMid = dire.find(p => p.assignedPos === 2 && !p.isEmptySlot) || { name: "Не определен", mmr: 0, heroes: [] };
+    const cmMidDiff = getCoreEffectiveRating(radMid.name === "Не определен" ? null : radMid, 2) - getCoreEffectiveRating(direMid.name === "Не определен" ? null : direMid, 2);
+
+    const radCarry = rad.find(p => p.assignedPos === 1 && !p.isEmptySlot) || null;
+    const radHardSup = rad.find(p => p.assignedPos === 5 && !p.isEmptySlot) || null;
+    const direOff = dire.find(p => p.assignedPos === 3 && !p.isEmptySlot) || null;
+    const direSup = dire.find(p => p.assignedPos === 4 && !p.isEmptySlot) || null;
+
+    const radSafeMmr = Math.round(((radCarry ? radCarry.mmr : 0) + (radHardSup ? radHardSup.mmr : 0)) / (radCarry && radHardSup ? 2 : 1));
+    const direOffMmr = Math.round(((direOff ? direOff.mmr : 0) + (direSup ? direSup.mmr : 0)) / (direOff && direSup ? 2 : 1));
+    const cmSafeEff = Math.round((getCoreEffectiveRating(radCarry, 1) + getCoreEffectiveRating(radHardSup, 5)) / 2);
+    const cmOffEff = Math.round((getCoreEffectiveRating(direOff, 3) + getCoreEffectiveRating(direSup, 4)) / 2);
+    const topCmDiff = cmSafeEff - cmOffEff;
+
+    const radOff = rad.find(p => p.assignedPos === 3 && !p.isEmptySlot) || null;
+    const radSup = rad.find(p => p.assignedPos === 4 && !p.isEmptySlot) || null;
+    const direCarry = dire.find(p => p.assignedPos === 1 && !p.isEmptySlot) || null;
+    const direHardSup = dire.find(p => p.assignedPos === 5 && !p.isEmptySlot) || null;
+
+    const radOffMmr = Math.round(((radOff ? radOff.mmr : 0) + (radSup ? radSup.mmr : 0)) / (radOff && radSup ? 2 : 1));
+    const direSafeMmr = Math.round(((direCarry ? direCarry.mmr : 0) + (direHardSup ? direHardSup.mmr : 0)) / (direCarry && direHardSup ? 2 : 1));
+    const cmRadOffEff = Math.round((getCoreEffectiveRating(radOff, 3) + getCoreEffectiveRating(radSup, 4)) / 2);
+    const cmDireSafeEff = Math.round((getCoreEffectiveRating(direCarry, 1) + getCoreEffectiveRating(direHardSup, 5)) / 2);
+    const botCmDiff = cmRadOffEff - cmDireSafeEff;
+
+    function renderAdvBadge(cmDiff) {
+      const diffStr = cmDiff > 0 ? `+${cmDiff}` : `${cmDiff}`;
+      if (Math.abs(cmDiff) <= 80) return `<div class="lane-advantage adv-even">⚖️ Равная линия (${diffStr} CM)</div>`;
+      if (cmDiff > 80) return `<div class="lane-advantage adv-rad">🟢 Преимущество Radiant (${diffStr} CM)</div>`;
+      return `<div class="lane-advantage adv-dire">🔴 Преимущество Dire (${diffStr} CM)</div>`;
+    }
+
+    container.innerHTML = `
+      <div class="lane-col">
+        <div class="lane-name">
+          <span>⚔️ Центральная линия</span>
+          <span style="color:var(--aegis-gold);">Mid (1x1)</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+          <span style="color:#4ade80; font-weight:700;">${escapeHtml(radMid.name)} (${radMid.mmr})</span>
+          <span style="color:var(--text-muted);">vs</span>
+          <span style="color:#f87171; font-weight:700;">${escapeHtml(direMid.name)} (${direMid.mmr})</span>
+        </div>
+        ${getBanRiskNotice(radMid, "Mid")}
+        ${getBanRiskNotice(direMid, "Mid")}
+        ${renderAdvBadge(cmMidDiff)}
+      </div>
+
+      <div class="lane-col">
+        <div class="lane-name">
+          <span>🛡️ Легкая Rad vs Сложная Dire</span>
+          <span style="color:var(--mana-cyan);">Bot / Top</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+          <span style="color:#4ade80; font-weight:700;">Rad: ~${radSafeMmr}</span>
+          <span style="color:var(--text-muted);">vs</span>
+          <span style="color:#f87171; font-weight:700;">Dire: ~${direOffMmr}</span>
+        </div>
+        ${getBanRiskNotice(radCarry, "Carry")}
+        ${getBanRiskNotice(radHardSup, "Hard Sup")}
+        ${getBanRiskNotice(direOff, "Offlane")}
+        ${getBanRiskNotice(direSup, "Support")}
+        ${renderAdvBadge(topCmDiff)}
+      </div>
+
+      <div class="lane-col">
+        <div class="lane-name">
+          <span>⚔️ Сложная Rad vs Легкая Dire</span>
+          <span style="color:var(--attr-uni);">Top / Bot</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+          <span style="color:#4ade80; font-weight:700;">Rad: ~${radOffMmr}</span>
+          <span style="color:var(--text-muted);">vs</span>
+          <span style="color:#f87171; font-weight:700;">Dire: ~${direSafeMmr}</span>
+        </div>
+        ${getBanRiskNotice(radOff, "Offlane")}
+        ${getBanRiskNotice(radSup, "Support")}
+        ${getBanRiskNotice(direCarry, "Carry")}
+        ${getBanRiskNotice(direHardSup, "Hard Sup")}
+        ${renderAdvBadge(botCmDiff)}
+      </div>
+    `;
+  }
+
+  // 2. Пересчет MMR (игнорируем пустые слоты)
+  function recalculateLobbyStats() {
+    if (!currentLobbyData) return;
+    const radPlayers = currentLobbyData.radiant.filter(p => !p.isEmptySlot);
+    const direPlayers = currentLobbyData.dire.filter(p => !p.isEmptySlot);
+
+    const radCount = radPlayers.length;
+    const direCount = direPlayers.length;
+    
+    currentLobbyData.radiantMmr = radPlayers.reduce((sum, p) => sum + p.mmr, 0);
+    currentLobbyData.direMmr = direPlayers.reduce((sum, p) => sum + p.mmr, 0);
+    currentLobbyData.diff = Math.abs(currentLobbyData.radiantMmr - currentLobbyData.direMmr);
+
+    const radAvg = radCount > 0 ? Math.round(currentLobbyData.radiantMmr / radCount) : 0;
+    const direAvg = direCount > 0 ? Math.round(currentLobbyData.direMmr / direCount) : 0;
+
+    document.getElementById('radiant-avg').textContent = `Avg: ${radAvg} (${radCount}/5)`;
+    document.getElementById('dire-avg').textContent = `Avg: ${direAvg} (${direCount}/5)`;
+    document.getElementById('lobby-diff').textContent = `Разница: ${currentLobbyData.diff} MMR`;
+
+    updateLaningAnalysis(); 
+  }
+
+  function findFreePosForTeam(team) {
+    const taken = currentLobbyData[team].map(p => p.assignedPos);
+    for (let i = 1; i <= 5; i++) {
+      if (!taken.includes(i)) return i;
+    }
+    return 1;
+  }
+
+  function switchPlayerTeam(fromTeam, idx) {
+    const toTeam = fromTeam === 'radiant' ? 'dire' : 'radiant';
+    const temp = currentLobbyData[fromTeam][idx];
+    const targetP = currentLobbyData[toTeam][idx];
+    
+    const tempPos = temp.assignedPos;
+    temp.assignedPos = targetP.assignedPos;
+    targetP.assignedPos = tempPos;
+    
+    currentLobbyData[fromTeam][idx] = targetP;
+    currentLobbyData[toTeam][idx] = temp;
+    
+    sortTeamByPositions(currentLobbyData.radiant);
+    sortTeamByPositions(currentLobbyData.dire);
+    recalculateLobbyStats();
+    renderLobby();
+  }
+
+  function sendPlayerToBench(team, idx) {
+    const p = currentLobbyData[team][idx];
+    if (!p.isEmptySlot) {
+        if (!currentLobbyData.bench) currentLobbyData.bench = [];
+        currentLobbyData.bench.push(p);
+        currentLobbyData[team][idx] = { isEmptySlot: true, id: 'empty-' + Date.now() + '-' + p.assignedPos, name: "Пустой слот", mmr: 0, assignedPos: p.assignedPos, roles: [], heroes: [] };
+        sortTeamByPositions(currentLobbyData[team]);
+        recalculateLobbyStats();
+        renderLobby();
+    }
+  }
+
+  // 6. Добавление игрока со скамейки в команду (поиск пустого слота)
+  function addBenchToTeam(benchIdx, targetTeam) {
+    const teamArray = currentLobbyData[targetTeam];
+    const emptySlotIdx = teamArray.findIndex(p => p.isEmptySlot);
+    
+    if (teamArray.length >= 5 && emptySlotIdx === -1) {
+      alert(`В команде уже 5 игроков! Освободите место.`);
+      return;
+    }
+    
+    const [p] = currentLobbyData.bench.splice(benchIdx, 1);
+    p.pickedHero = (p.heroes && p.heroes[0]) ? p.heroes[0] : 'Pudge';
+    
+    if (emptySlotIdx !== -1) {
+      p.assignedPos = teamArray[emptySlotIdx].assignedPos;
+      teamArray[emptySlotIdx] = p;
+    } else {
+      p.assignedPos = findFreePosForTeam(targetTeam);
+      teamArray.push(p);
+    }
+    sortTeamByPositions(teamArray);
+    recalculateLobbyStats();
+    renderLobby();
+  }
+
+  // 5. Очистка слота (замена на виртуального пустого)
+  function vacateSlot(team, idx) {
+    const slots = currentLobbyData[team];
+    const p = slots[idx];
+    if (p && !p.isEmptySlot) {
+      currentLobbyData.bench.push(p);
+      slots[idx] = { isEmptySlot: true, id: 'empty-' + Date.now() + '-' + p.assignedPos, name: "Пустой слот", mmr: 0, assignedPos: p.assignedPos, roles: [], heroes: [] };
+      recalculateLobbyStats();
+      renderLobby();
+    }
+  }
+
+  function removeBenchPlayer(benchIdx) {
+    currentLobbyData.bench.splice(benchIdx, 1);
+    renderLobby();
+  }
+
+  function changePlayerPos(team, idx, newPos) {
+    currentLobbyData[team][idx].assignedPos = parseInt(newPos, 10);
+    sortTeamByPositions(currentLobbyData[team]);
+    renderLobby();
+  }
+
+  function handleAddPlayerToLobby(selectEl) {
+    const playerId = selectEl.value;
+    if (!playerId) return;
+    const playerToAdd = players.find(p => p.id === playerId);
+    if (playerToAdd) {
+      if (!currentLobbyData.bench) currentLobbyData.bench = [];
+      currentLobbyData.bench.push({ ...playerToAdd });
+      renderLobby();
+    }
+    selectEl.value = "";
+  }
+
+  /* DRAG AND DROP ЛОББИ */
+  function handleDragStart(e, fromZone, idx) {
+    draggedPlayerInfo = { fromZone, idx };
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', JSON.stringify({ fromZone, idx }));
+    setTimeout(() => { if (e.target) e.target.classList.add('dragging'); }, 10);
+  }
+
+  function handleDragEnd() {
+    draggedPlayerInfo = null;
+    document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+    document.querySelectorAll('.drop-zone-active').forEach(el => el.classList.remove('drop-zone-active'));
+    document.querySelectorAll('.drag-over-item').forEach(el => el.classList.remove('drag-over-item'));
+  }
+
+  function handleItemDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    const targetItem = e.currentTarget;
+    if (!targetItem.classList.contains('drag-over-item')) {
+      document.querySelectorAll('.drag-over-item').forEach(el => el.classList.remove('drag-over-item'));
+      targetItem.classList.add('drag-over-item');
+    }
+  }
+
+  function handleItemDragLeave(e) { e.currentTarget.classList.remove('drag-over-item'); }
+
+  function handleItemDrop(e, targetZone, targetIdx) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.querySelectorAll('.drag-over-item').forEach(el => el.classList.remove('drag-over-item'));
+    document.querySelectorAll('.drop-zone-active').forEach(el => el.classList.remove('drop-zone-active'));
+
+    if (!draggedPlayerInfo) return;
+    const { fromZone, idx: fromIdx } = draggedPlayerInfo;
+    if (fromZone === targetZone && fromIdx === targetIdx) return;
+
+    if (fromZone === 'bench' && targetZone === 'bench') return;
+
+    if ((fromZone === 'radiant' || fromZone === 'dire') && (targetZone === 'radiant' || targetZone === 'dire')) {
+      const pFrom = currentLobbyData[fromZone][fromIdx];
+      const pTarget = currentLobbyData[targetZone][targetIdx];
+      
+      const tempPos = pFrom.assignedPos;
+      pFrom.assignedPos = pTarget.assignedPos;
+      pTarget.assignedPos = tempPos;
+
+      currentLobbyData[fromZone][fromIdx] = pTarget;
+      currentLobbyData[targetZone][targetIdx] = pFrom;
+
+      sortTeamByPositions(currentLobbyData.radiant);
+      sortTeamByPositions(currentLobbyData.dire);
+      recalculateLobbyStats();
+      renderLobby();
+      return;
+    }
+
+    if (fromZone === 'bench' && (targetZone === 'radiant' || targetZone === 'dire')) {
+      const [subIn] = currentLobbyData.bench.splice(fromIdx, 1);
+      const replaced = currentLobbyData[targetZone][targetIdx];
+      
+      subIn.assignedPos = replaced.assignedPos;
+      subIn.pickedHero = (subIn.heroes && subIn.heroes[0]) ? subIn.heroes[0] : 'Pudge';
+
+      if (!replaced.isEmptySlot) {
+          currentLobbyData.bench.push(replaced);
+      }
+      currentLobbyData[targetZone][targetIdx] = subIn;
+
+      sortTeamByPositions(currentLobbyData[targetZone]);
+      recalculateLobbyStats();
+      renderLobby();
+      return;
+    }
+  }
+
+  function handleZoneDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const zoneEl = e.currentTarget;
+    if (!zoneEl.classList.contains('drop-zone-active')) zoneEl.classList.add('drop-zone-active');
+  }
+
+  function handleZoneDragLeave(e) { e.currentTarget.classList.remove('drop-zone-active'); }
+
+  function handleZoneDrop(e, targetZone) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drop-zone-active');
+    document.querySelectorAll('.drag-over-item').forEach(el => el.classList.remove('drag-over-item'));
+    if (!draggedPlayerInfo) return;
+
+    const { fromZone, idx } = draggedPlayerInfo;
+    if (fromZone === targetZone) return;
+
+    if (targetZone === 'bench' && (fromZone === 'radiant' || fromZone === 'dire')) {
+      const movedPlayer = currentLobbyData[fromZone][idx];
+      if (!movedPlayer.isEmptySlot) {
+          currentLobbyData.bench.push(movedPlayer);
+          currentLobbyData[fromZone][idx] = { isEmptySlot: true, id: 'empty-' + Date.now() + '-' + movedPlayer.assignedPos, name: "Пустой слот", mmr: 0, assignedPos: movedPlayer.assignedPos, roles: [], heroes: [] };
+          sortTeamByPositions(currentLobbyData[fromZone]);
+          recalculateLobbyStats();
+          renderLobby();
+      }
+      return;
+    }
+
+    if (fromZone === 'bench' && (targetZone === 'radiant' || targetZone === 'dire')) {
+      const movedPlayer = currentLobbyData.bench[idx];
+      const emptySlotIdx = currentLobbyData[targetZone].findIndex(p => p.isEmptySlot);
+      
+      if (emptySlotIdx !== -1) {
+          currentLobbyData.bench.splice(idx, 1);
+          movedPlayer.assignedPos = currentLobbyData[targetZone][emptySlotIdx].assignedPos;
+          movedPlayer.pickedHero = (movedPlayer.heroes && movedPlayer.heroes[0]) ? movedPlayer.heroes[0] : 'Pudge';
+          currentLobbyData[targetZone][emptySlotIdx] = movedPlayer;
+          sortTeamByPositions(currentLobbyData[targetZone]);
+          recalculateLobbyStats();
+          renderLobby();
+      } else {
+          alert("В команде нет пустых слотов! Перетащите игрока на конкретный слот для замены.");
+      }
+      return;
+    }
+  }
+
+  function attachDropZoneEvents(el, zoneName) {
+    el.ondragover = handleZoneDragOver;
+    el.ondragleave = handleZoneDragLeave;
+    el.ondrop = (e) => handleZoneDrop(e, zoneName);
+  }
+
+  // 3. Синхронизация данных с базой
+  function syncLobbyWithRoster() {
+    if (!currentLobbyData) return;
+    const updatePlayerData = (p) => {
+      if (p.isEmptySlot) return p;
+      const live = players.find(x => x.id === p.id);
+      if (live) { p.name = live.name; p.mmr = live.mmr; p.heroes = live.heroes; p.roles = live.roles; p.steamId = live.steamId; }
+      return p;
+    };
+    currentLobbyData.radiant = currentLobbyData.radiant.map(updatePlayerData);
+    currentLobbyData.dire = currentLobbyData.dire.map(updatePlayerData);
+    if (currentLobbyData.bench) currentLobbyData.bench = currentLobbyData.bench.map(updatePlayerData);
+    recalculateLobbyStats();
+  }
+
+  function renderLobby() {
+    if (!currentLobbyData) return;
+
+    syncLobbyWithRoster();
+    renderBalanceVariantsBar();
+
+    const m = currentLobbyData;
+    sortTeamByPositions(m.radiant);
+    sortTeamByPositions(m.dire);
+    recalculateLobbyStats();
+
+    const radContainer = document.getElementById('radiant-roster');
+    const direContainer = document.getElementById('dire-roster');
+    radContainer.innerHTML = '';
+    direContainer.innerHTML = '';
+
+    attachDropZoneEvents(radContainer, 'radiant');
+    attachDropZoneEvents(direContainer, 'dire');
+
+    m.radiant.forEach((p, idx) => radContainer.appendChild(createLobbyPlayerRow(p, 'radiant', idx)));
+    m.dire.forEach((p, idx) => direContainer.appendChild(createLobbyPlayerRow(p, 'dire', idx)));
+
+    const benchPanel = document.getElementById('bench-panel');
+    const benchContainer = document.getElementById('bench-roster');
+    const benchSelect = document.getElementById('bench-add-select');
+    benchContainer.innerHTML = '';
+    benchPanel.style.display = 'block';
+
+    attachDropZoneEvents(benchContainer, 'bench');
+
+    const inLobbyIds = [
+      ...m.radiant.map(p => p.id),
+      ...m.dire.map(p => p.id),
+      ...(m.bench || []).map(p => p.id)
+    ];
+
+    benchSelect.innerHTML = '<option value="">➕ Добавить игрока в замену...</option>';
+    players.filter(p => !inLobbyIds.includes(p.id)).forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = `${p.name} (${p.mmr} MMR)`;
+      benchSelect.appendChild(opt);
+    });
+
+    if (m.bench && m.bench.length > 0) {
+      document.getElementById('bench-count').textContent = `(${m.bench.length})`;
+      m.bench.forEach((p, idx) => {
+        const b = document.createElement('div');
+        b.className = 'bench-badge';
+        b.draggable = true;
+        
+        b.ondragstart = (e) => handleDragStart(e, 'bench', idx);
+        b.ondragend = handleDragEnd;
+        b.ondragover = handleItemDragOver;
+        b.ondragleave = handleItemDragLeave;
+        b.ondrop = (e) => handleItemDrop(e, 'bench', idx);
+
+        b.innerHTML = `
+          <span class="drag-handle">⠿</span>
+          <span>${escapeHtml(p.name)}</span>
+          <span style="color:var(--aegis-gold); font-family:'JetBrains Mono', monospace; font-size:11.5px;">${p.mmr}</span>
+          <button class="btn btn-add" style="padding:2px 6px; font-size:10px;" onclick="addBenchToTeam(${idx}, 'radiant')">🟢 Rad</button>
+          <button class="btn btn-lobby-core" style="padding:2px 6px; font-size:10px;" onclick="addBenchToTeam(${idx}, 'dire')">🔴 Dire</button>
+          <button style="background:none; border:none; color:#ef4444; font-size:14px; cursor:pointer;" onclick="removeBenchPlayer(${idx})">✕</button>
+        `;
+        benchContainer.appendChild(b);
+      });
+    } else {
+      document.getElementById('bench-count').textContent = '(0)';
+      benchContainer.innerHTML = '<span style="color:var(--text-muted); font-size:12px;">Скамейка запасных пуста.</span>';
+    }
+
+    updateAdminUI();
+  }
+
+  // 4. Отрисовка строки лобби (с проверкой на пустой слот)
+  function createLobbyPlayerRow(p, team, idx) {
+    const row = document.createElement('div');
+    row.className = 'lobby-player-row';
+    row.draggable = true;
+
+    row.ondragstart = (e) => handleDragStart(e, team, idx);
+    row.ondragend = handleDragEnd;
+    row.ondragover = handleItemDragOver;
+    row.ondragleave = handleItemDragLeave;
+    row.ondrop = (e) => handleItemDrop(e, team, idx);
+
+    if (p.isEmptySlot) {
+      row.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px; min-width:190px; flex-wrap:wrap;">
+          <span class="drag-handle">⠿</span>
+          <select class="pos-select" disabled>
+            <option>Поз. ${p.assignedPos}</option>
+          </select>
+          <button class="player-slot-btn" style="border: 2px dashed rgba(255,255,255,0.2); background: transparent; color: var(--text-secondary); padding: 4px 10px; border-radius: 6px; cursor: pointer;" onclick="openSlotPickModal('${team}', ${idx})">
+            ➕ Назначить игрока
+          </button>
+        </div>
+      `;
+      return row;
+    }
+
+    const poolLen = (p.heroes && Array.isArray(p.heroes)) ? p.heroes.length : 0;
+    const smallPoolPill = (poolLen <= 2) ? `<span class="pool-warning-pill">⚠️ ${poolLen} гер.</span>` : '';
+
+    row.innerHTML = `
+      <div style="display:flex; align-items:center; gap:8px; min-width:190px; flex-wrap:wrap;">
+        <span class="drag-handle">⠿</span>
+        <select class="pos-select" onchange="changePlayerPos('${team}', ${idx}, this.value)">
+          <option value="1" ${p.assignedPos == 1 ? 'selected' : ''}>Поз. 1</option>
+          <option value="2" ${p.assignedPos == 2 ? 'selected' : ''}>Поз. 2</option>
+          <option value="3" ${p.assignedPos == 3 ? 'selected' : ''}>Поз. 3</option>
+          <option value="4" ${p.assignedPos == 4 ? 'selected' : ''}>Поз. 4</option>
+          <option value="5" ${p.assignedPos == 5 ? 'selected' : ''}>Поз. 5</option>
+        </select>
+        <button class="player-slot-btn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 4px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;" onclick="openSlotPickModal('${team}', ${idx})">
+          <span class="player-name">${escapeHtml(p.name)}</span>
+          <span class="mmr-badge">${p.mmr}</span>
+        </button>
+        ${smallPoolPill}
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+        <button class="btn btn-reset" style="padding:4px 8px; font-size:11px;" onclick="switchPlayerTeam('${team}', ${idx})">⇄ ${team === 'radiant' ? 'Dire' : 'Rad'}</button>
+        <button class="btn btn-reset" style="padding:4px 8px; font-size:11px;" onclick="vacateSlot('${team}', ${idx})" title="Отправить в резерв">🛋️</button>
+        <button class="hero-pick-btn" onclick="openHeroSelectModalForLobby('${team}', ${idx})">
+          <img src="${escapeHtml(getHeroImg(p.pickedHero))}">
+          <span>${escapeHtml(p.pickedHero || 'Pudge')}</span>
+          <span style="color:var(--text-muted); font-size:10px;">▼</span>
+        </button>
+      </div>
+    `;
+    return row;
+  }
+
+  // 7. Экспорт лобби в Discord (пропуск пустых слотов)
+  function copyLobbyToDiscord() {
+    if (!currentLobbyData) return;
+    const m = currentLobbyData;
+    let text = `⚔️ **DOTA 2 CUSTOM LOBBY 5v5**\n\n🟢 **THE RADIANT**:\n`;
+    m.radiant.forEach(p => { 
+        if (p.isEmptySlot) text += `• ${ROLE_NAMES[p.assignedPos]}: _Свободно_\n`;
+        else text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** [${p.mmr} MMR]\n`; 
+    });
+    text += `\n🔴 **THE DIRE**:\n`;
+    m.dire.forEach(p => { 
+        if (p.isEmptySlot) text += `• ${ROLE_NAMES[p.assignedPos]}: _Свободно_\n`;
+        else text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** [${p.mmr} MMR]\n`; 
+    });
+    text += `\n⚖️ Разница: **${m.diff} MMR**`;
+    navigator.clipboard.writeText(text).then(() => alert('Составы лобби скопированы для Discord!'));
+  }
+
+  // 8. Открытие модалки выбора игрока
+  function openSlotPickModal(team, slotIndex) {
+    slotAssignContext = { team, slotIndex };
+    const posName = `Поз. ${currentLobbyData[team][slotIndex].assignedPos}`;
+    const teamName = team === 'radiant' ? '🟢 Radiant' : '🔴 Dire';
+    
+    document.getElementById('slot-modal-title').innerHTML = `${teamName} — Назначение на ${posName}`;
+    document.getElementById('slot-player-search').value = '';
+    renderSlotPlayerList();
+    document.getElementById('slot-pick-modal').style.display = 'flex';
+  }
+
+  function closeSlotPickModal() {
+    document.getElementById('slot-pick-modal').style.display = 'none';
+  }
+
+  // 9. Отрисовка списка игроков в модалке
+  function renderSlotPlayerList() {
+    const list = document.getElementById('slot-players-list');
+    const query = (document.getElementById('slot-player-search').value || '').toLowerCase().trim();
+    list.innerHTML = '';
+
+    if (!currentLobbyData || !slotAssignContext) return;
+
+    const occupiedMap = new Map();
+    currentLobbyData.radiant.forEach((s, idx) => {
+      if (!s.isEmptySlot && !(slotAssignContext.team === 'radiant' && slotAssignContext.slotIndex === idx)) occupiedMap.set(s.id, `Radiant • Поз. ${s.assignedPos}`);
+    });
+    currentLobbyData.dire.forEach((s, idx) => {
+      if (!s.isEmptySlot && !(slotAssignContext.team === 'dire' && slotAssignContext.slotIndex === idx)) occupiedMap.set(s.id, `Dire • Поз. ${s.assignedPos}`);
+    });
+
+    const benchSet = new Set((currentLobbyData.bench || []).map(b => b.id));
+    const filtered = players.filter(p => !query || p.name.toLowerCase().includes(query));
+    const available = [];
+    const occupied = [];
+
+    filtered.forEach(p => {
+      if (occupiedMap.has(p.id)) occupied.push({ player: p, roleText: occupiedMap.get(p.id) });
+      else available.push(p);
+    });
+
+    if (available.length === 0 && occupied.length === 0) {
+      list.innerHTML = `<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:14px;">Свободные игроки не найдены</div>`;
+      return;
+    }
+
+    available.forEach(p => {
+      const isBench = benchSet.has(p.id);
+      const item = document.createElement('div');
+      item.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5); padding:10px 14px; border-radius:12px; cursor:pointer; border:2px solid rgba(255,255,255,0.05); transition:all 0.15s ease;";
+      item.onmouseover = () => { item.style.background = "rgba(16, 185, 129, 0.15)"; item.style.borderColor = "var(--rad-emerald)"; };
+      item.onmouseout = () => { item.style.background = "rgba(0,0,0,0.5)"; item.style.borderColor = "rgba(255,255,255,0.05)"; };
+      
+      item.innerHTML = `
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-weight:700; color:#fff; font-size: 15px;">${escapeHtml(p.name)}</span>
+          <span class="mmr-badge">${p.mmr} MMR</span>
+          ${isBench ? '<span style="font-size:11px; color:var(--mana-cyan); background:rgba(56,189,248,0.15); padding:3px 8px; border-radius:6px; font-weight:700; border:1px solid var(--mana-cyan);">в резерве</span>' : ''}
+        </div>
+        <div style="display:flex; gap:4px;">
+          ${p.roles.map(r => `<span class="pos-badge pos-${r}">Поз. ${r}</span>`).join('')}
+        </div>
+      `;
+      
+      item.onclick = () => {
+        const slots = currentLobbyData[slotAssignContext.team];
+        const targetSlot = slots[slotAssignContext.slotIndex];
+
+        // Если в слоте уже кто-то был, отправляем в резерв
+        if (!targetSlot.isEmptySlot && targetSlot.id !== p.id) {
+          currentLobbyData.bench.push(targetSlot);
+        }
+
+        const bIdx = currentLobbyData.bench.findIndex(b => b.id === p.id);
+        if (bIdx !== -1) currentLobbyData.bench.splice(bIdx, 1);
+
+        p.pickedHero = (p.heroes && p.heroes[0]) ? p.heroes[0] : 'Pudge';
+        p.assignedPos = targetSlot.assignedPos;
+        slots[slotAssignContext.slotIndex] = p;
+        
+        closeSlotPickModal();
+        recalculateLobbyStats();
+        renderLobby();
+      };
+      list.appendChild(item);
+    });
+
+    if (query && occupied.length > 0) {
+      const header = document.createElement('div');
+      header.style.cssText = "font-size:12px; color:var(--text-muted); text-transform:uppercase; font-family:'Oswald', sans-serif; font-weight:800; margin-top:10px; padding:0 6px;";
+      header.textContent = "Уже в лобби (недоступны):";
+      list.appendChild(header);
+
+      occupied.forEach(({ player: p, roleText }) => {
+        const item = document.createElement('div');
+        item.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:rgba(225, 29, 72, 0.05); padding:10px 14px; border-radius:12px; border:2px dashed rgba(225, 29, 72, 0.3); opacity:0.6; cursor:not-allowed;";
+        item.innerHTML = `
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-weight:700; color:#cbd5e1; font-size: 15px;">${escapeHtml(p.name)}</span>
+            <span class="mmr-badge" style="opacity:0.7;">${p.mmr} MMR</span>
+          </div>
+          <div style="font-size:11px; color:var(--dire-crimson); font-family:'JetBrains Mono', monospace; text-shadow:0 0 5px rgba(225, 29, 72, 0.5);">
+            ⛔ ${escapeHtml(roleText)}
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+  }
+
+  // Закрытие модалок по клику на оверлей
+  window.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal-overlay')) {
+      if (e.target.id === 'hero-select-modal') closeHeroSelectModal();
+      else if (e.target.id === 'player-modal') closeModal();
+      else if (e.target.id === 'finish-match-modal') closeFinishMatchModal();
+      else if (e.target.id === 'slot-pick-modal') closeSlotPickModal();
+    }
+  });
+
+  loadData();
+</script>
+</body>
+</html>
