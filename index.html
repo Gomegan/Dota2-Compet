@@ -587,7 +587,7 @@
   }
   .steam-link:hover { opacity: 1; text-decoration: underline; }
 
-  /* Ранги с пульсирующим свечением для Титанов */
+  /* Ранги; у Титанов — статичное свечение */
   .rank-cell {
     display: inline-flex;
     align-items: center;
@@ -603,11 +603,7 @@
   .rank-immortal {
     color: #fbbf24;
     text-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
-    animation: immortal-pulse 3s infinite ease-in-out;
-  }
-  @keyframes immortal-pulse {
-    0%, 100% { filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.5)); }
-    50% { filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.9)); }
+    filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.7));
   }
   .rank-divine   { color: #c084fc; filter: drop-shadow(0 0 6px rgba(192, 132, 252, 0.5)); }
   .rank-ancient  { color: #2dd4bf; filter: drop-shadow(0 0 5px rgba(45, 212, 191, 0.4)); }
@@ -1269,7 +1265,7 @@
         </svg>
       </div>
       <div class="brand-text">
-        <h1>DOTA 2 Compet</h1>
+        <h1>DOTA 2 COMPET</h1>
         <p>тирлист</p>
       </div>
     </div>
@@ -1326,7 +1322,7 @@
     <div id="roster-card" class="content-section">
       <div class="header-widget">
         <div class="header-title-box">
-          <span class="header-title">👥 лидерборд игроков Dota 2</span>
+          <span class="header-title">👥 Лидерборд игроков Dota 2</span>
         </div>
         <div class="stats-badges">
           <div class="stat-card">
