@@ -424,6 +424,11 @@
     border-color: #f43f5e;
     text-shadow: 0 1px 2px rgba(0,0,0,0.4);
   }
+  .btn-lobby-points {
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    border-color: #38bdf8;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  }
   .btn-manual {
     background: linear-gradient(135deg, #475569, #334155);
     border-color: #94a3b8;
@@ -621,6 +626,18 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 13px;
     border: 1px solid rgba(251, 191, 36, 0.3);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.4);
+  }
+
+  .points-badge {
+    background: #131926;
+    color: var(--mana-cyan);
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    border: 1px solid rgba(56, 189, 248, 0.35);
     box-shadow: 0 2px 0 rgba(0,0,0,0.4);
   }
 
@@ -1310,6 +1327,7 @@
           <button class="btn btn-random10" onclick="selectRandom10()">🎲 Выбрать 10</button>
           <button class="btn btn-lobby" onclick="generateLobby('standard')" title="Стандартный подбор по общему MMR">⚔️ Собрать 5x5</button>
           <button class="btn btn-lobby-core" onclick="generateLobby('core')" title="Подбор с приоритетом равных кор-позиций и пула героев">👑 По корам</button>
+          <button class="btn btn-lobby-points" onclick="generateLobby('points')" title="Подбор по общей сумме поинтов вместо MMR">🔷 По поинтам</button>
           <button class="btn btn-manual" onclick="initManualLobby()" title="Собрать лобби вручную">🛠️ Вручную</button>
           <button id="btn-backup-json" class="btn btn-random10" style="display: none;" onclick="exportBackupJSON()" title="Скачать бэкап базы (.json)">💾 Бэкап</button>
           <button id="btn-import-json" class="btn btn-reset" style="display: none;" onclick="document.getElementById('file-import-input').click()" title="Загрузить базу из файла">📥 Импорт</button>
@@ -1351,6 +1369,7 @@
               <th style="width: 170px;" class="sortable" onclick="sortTable('name')">Игрок ⬍</th>
               <th style="width: 140px;">Звание</th>
               <th style="width: 105px; text-align: center;" class="sortable" onclick="sortTable('mmr')">MMR ⬍</th>
+              <th style="width: 95px; text-align: center;" class="sortable" onclick="sortTable('points')">Поинты ⬍</th>
               <th style="width: 160px;">Позиция</th>
               <th>Пул героев и сигнатурка</th>
               <th id="th-actions" style="width: 90px; text-align: right; display: none;" class="action-col">Действия</th>
@@ -1374,6 +1393,7 @@
         <span style="font-family:'Oswald', sans-serif; font-size:17px; font-weight:800; letter-spacing:1px;">⚔️ ЛОББИ МАТЧА 5x5</span>
         <button class="btn btn-lobby" style="padding: 5px 10px; font-size: 11px;" onclick="autoBalanceCurrentLobby('standard')">⚖️ Стандарт</button>
         <button class="btn btn-lobby-core" style="padding: 5px 10px; font-size: 11px;" onclick="autoBalanceCurrentLobby('core')">👑 По корам</button>
+        <button class="btn btn-lobby-points" style="padding: 5px 10px; font-size: 11px;" onclick="autoBalanceCurrentLobby('points')">🔷 По поинтам</button>
         <button class="btn btn-random10" style="padding: 5px 10px; font-size: 11px;" onclick="copyLobbyToDiscord()">📋 Для Discord</button>
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
@@ -1460,6 +1480,7 @@
             <th style="width: 90px; text-align: center;" class="sortable" onclick="sortStatsTable('wins')">Побед <span id="sort-ind-wins">⬍</span></th>
             <th style="width: 90px; text-align: center;" class="sortable" onclick="sortStatsTable('losses')">Поражений <span id="sort-ind-losses">⬍</span></th>
             <th style="width: 160px;" class="sortable" onclick="sortStatsTable('winrate')">Винрейт (%) <span id="sort-ind-winrate">⬍</span></th>
+            <th style="width: 90px; text-align: center;" class="sortable" onclick="sortStatsTable('points')">Поинты <span id="sort-ind-points">⬍</span></th>
           </tr>
         </thead>
         <tbody id="stats-table-body"></tbody>
@@ -1576,6 +1597,10 @@
     <div class="form-group">
       <label class="form-label">MMR рейтинг (0 - 20000)</label>
       <input type="number" id="form-mmr" class="form-input" placeholder="Например: 4500" step="10">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Поинты (для сборки 5x5 по поинтам)</label>
+      <input type="number" id="form-points" class="form-input" placeholder="Например: 100" step="1">
     </div>
     <div class="form-group">
       <label class="form-label">Игровые роли</label>
@@ -1822,24 +1847,24 @@
 
   /* По умолчанию ВСЕ игроки имеют selected: false */
   const DEFAULT_ROSTER = [
-    { id: "1", name: "Varker32", mmr: 6800, roles: [3], heroes: ["Primal Beast", "Night Stalker", "Axe", "Doom", "Sand King", "Dark Seer", "Enigma", "Slardar", "Pudge", "Dawnbreaker"], selected: false },
-    { id: "2", name: "Shimmy", mmr: 6800, roles: [5], heroes: ["Bane", "Tusk", "Ringmaster", "Shadow Demon", "Grimstroke", "Ancient Apparition"], selected: false },
-    { id: "3", name: "K1zaz", mmr: 6400, roles: [3], heroes: ["Lycan", "Nature's Prophet", "Brewmaster", "Tidehunter", "Beastmaster", "Batrider", "Enigma", "Dragon Knight"], selected: false },
-    { id: "4", name: "nonta", mmr: 5600, roles: [2], heroes: ["Invoker", "Shadow Fiend", "Leshrac", "Outworld Destroyer", "Ember Spirit", "Lone Druid", "Necrophos", "Arc Warden", "Nature's Prophet"], selected: false },
-    { id: "5", name: "Arabius", mmr: 5400, roles: [2], heroes: ["Templar Assassin", "Shadow Fiend", "Huskar", "Arc Warden", "Outworld Destroyer", "Ember Spirit", "Void Spirit"], selected: false },
-    { id: "6", name: "Tutik", mmr: 4600, roles: [1], heroes: ["Shadow Fiend", "Drow Ranger", "Phantom Lancer", "Medusa", "Necrophos", "Lifestealer", "Ursa"], selected: false },
-    { id: "7", name: "Sumnir", mmr: 4000, roles: [1], heroes: ["Faceless Void", "Anti-Mage", "Lifestealer", "Ursa"], selected: false },
-    { id: "8", name: "Polosofast", mmr: 4000, roles: [3], heroes: ["Brewmaster", "Dark Seer", "Necrophos"], selected: false },
-    { id: "9", name: "Kiberborsh", mmr: 3500, roles: [3, 4], heroes: ["Ringmaster"], selected: false },
-    { id: "10", name: "Gomegan", mmr: 2900, roles: [4, 5], heroes: ["Clockwerk", "Warlock", "Ancient Apparition", "Ringmaster", "Hoodwink", "Jakiro"], selected: false },
-    { id: "11", name: "Ap", mmr: 2600, roles: [1, 4], heroes: ["Pudge", "Phantom Assassin", "Lion", "Shadow Fiend"], selected: false },
-    { id: "12", name: "DeniumC", mmr: 2400, roles: [2], heroes: ["Tinker"], selected: false },
-    { id: "13", name: "Watcher", mmr: 2000, roles: [1], heroes: ["Naga Siren", "Juggernaut", "Terrorblade", "Templar Assassin"], selected: false },
-    { id: "14", name: "Mkka", mmr: 1500, roles: [1, 3, 5], heroes: ["Anti-Mage", "Tidehunter", "Dazzle"], selected: false },
-    { id: "15", name: "Maramirk", mmr: 1400, roles: [3], heroes: ["Axe", "Timbersaw", "Centaur Warrunner"], selected: false },
-    { id: "16", name: "Zvzelya", mmr: 1000, roles: [1, 2, 3, 4, 5], heroes: ["Spirit Breaker", "Ogre Magi", "Shadow Fiend", "Ursa", "Spectre", "Wraith King"], selected: false },
-    { id: "17", name: "Vistu", mmr: 1000, roles: [4], heroes: ["Zeus", "Bane", "Undying"], selected: false },
-    { id: "18", name: "Roman", mmr: 900, roles: [3], heroes: ["Dawnbreaker"], selected: false }
+    { id: "1", name: "Varker32", mmr: 6800, roles: [3], heroes: ["Primal Beast", "Night Stalker", "Axe", "Doom", "Sand King", "Dark Seer", "Enigma", "Slardar", "Pudge", "Dawnbreaker"], selected: false, points: 0 },
+    { id: "2", name: "Shimmy", mmr: 6800, roles: [5], heroes: ["Bane", "Tusk", "Ringmaster", "Shadow Demon", "Grimstroke", "Ancient Apparition"], selected: false, points: 0 },
+    { id: "3", name: "K1zaz", mmr: 6400, roles: [3], heroes: ["Lycan", "Nature's Prophet", "Brewmaster", "Tidehunter", "Beastmaster", "Batrider", "Enigma", "Dragon Knight"], selected: false, points: 0 },
+    { id: "4", name: "nonta", mmr: 5600, roles: [2], heroes: ["Invoker", "Shadow Fiend", "Leshrac", "Outworld Destroyer", "Ember Spirit", "Lone Druid", "Necrophos", "Arc Warden", "Nature's Prophet"], selected: false, points: 0 },
+    { id: "5", name: "Arabius", mmr: 5400, roles: [2], heroes: ["Templar Assassin", "Shadow Fiend", "Huskar", "Arc Warden", "Outworld Destroyer", "Ember Spirit", "Void Spirit"], selected: false, points: 0 },
+    { id: "6", name: "Tutik", mmr: 4600, roles: [1], heroes: ["Shadow Fiend", "Drow Ranger", "Phantom Lancer", "Medusa", "Necrophos", "Lifestealer", "Ursa"], selected: false, points: 0 },
+    { id: "7", name: "Sumnir", mmr: 4000, roles: [1], heroes: ["Faceless Void", "Anti-Mage", "Lifestealer", "Ursa"], selected: false, points: 0 },
+    { id: "8", name: "Polosofast", mmr: 4000, roles: [3], heroes: ["Brewmaster", "Dark Seer", "Necrophos"], selected: false, points: 0 },
+    { id: "9", name: "Kiberborsh", mmr: 3500, roles: [3, 4], heroes: ["Ringmaster"], selected: false, points: 0 },
+    { id: "10", name: "Gomegan", mmr: 2900, roles: [4, 5], heroes: ["Clockwerk", "Warlock", "Ancient Apparition", "Ringmaster", "Hoodwink", "Jakiro"], selected: false, points: 0 },
+    { id: "11", name: "Ap", mmr: 2600, roles: [1, 4], heroes: ["Pudge", "Phantom Assassin", "Lion", "Shadow Fiend"], selected: false, points: 0 },
+    { id: "12", name: "DeniumC", mmr: 2400, roles: [2], heroes: ["Tinker"], selected: false, points: 0 },
+    { id: "13", name: "Watcher", mmr: 2000, roles: [1], heroes: ["Naga Siren", "Juggernaut", "Terrorblade", "Templar Assassin"], selected: false, points: 0 },
+    { id: "14", name: "Mkka", mmr: 1500, roles: [1, 3, 5], heroes: ["Anti-Mage", "Tidehunter", "Dazzle"], selected: false, points: 0 },
+    { id: "15", name: "Maramirk", mmr: 1400, roles: [3], heroes: ["Axe", "Timbersaw", "Centaur Warrunner"], selected: false, points: 0 },
+    { id: "16", name: "Zvzelya", mmr: 1000, roles: [1, 2, 3, 4, 5], heroes: ["Spirit Breaker", "Ogre Magi", "Shadow Fiend", "Ursa", "Spectre", "Wraith King"], selected: false, points: 0 },
+    { id: "17", name: "Vistu", mmr: 1000, roles: [4], heroes: ["Zeus", "Bane", "Undying"], selected: false, points: 0 },
+    { id: "18", name: "Roman", mmr: 900, roles: [3], heroes: ["Dawnbreaker"], selected: false, points: 0 }
   ];
 
   let players = [];
@@ -1848,7 +1873,7 @@
   let activePos = 'all';
 
   let activeSortType = 'mmr';
-  let sortDirection = { mmr: -1, name: 1 };
+  let sortDirection = { mmr: -1, name: 1, points: -1 };
   
   let currentLobbyData = null;
   let currentBalanceVariants = [];
@@ -1874,6 +1899,7 @@
     if (!activeSortType) return;
     players.sort((a, b) => {
       if (activeSortType === 'mmr') return (a.mmr - b.mmr) * sortDirection.mmr;
+      if (activeSortType === 'points') return ((a.points || 0) - (b.points || 0)) * sortDirection.points;
       if (activeSortType === 'name') return a.name.localeCompare(b.name) * sortDirection.name;
       return 0;
     });
@@ -2277,7 +2303,13 @@
   const MMR_PRIORITY_MAX_PREMIUM = 250;
   const CORE_POS_PRIORITY = [0, 1, 1, 0.5, 0, 0]; // индекс = позиция 1..5
 
-  function assignBestRoles(teamPlayers, mode = 'standard') {
+  // Универсальный геттер "силы" игрока для балансировки: MMR (по умолчанию) или поинты.
+  function getBalanceValue(player, metric) {
+    if (!player) return 0;
+    return metric === 'points' ? (player.points || 0) : (player.mmr || 0);
+  }
+
+  function assignBestRoles(teamPlayers, mode = 'standard', metric = 'mmr') {
     const rolePenaltyWeights = mode === 'core' ? [0, 1200, 1200, 500, 200, 150] : [0, 200, 200, 200, 200, 200];
     const usePriority = mode === 'core';
 
@@ -2291,9 +2323,9 @@
       let mmrPriority = 0;
       for (let pos = 1; pos <= 5; pos++) {
         const player = teamPlayers[order[pos - 1]];
-        // При РАВНОМ штрафе за роль предпочтение отдаётся игроку с более высоким MMR
+        // При РАВНОМ штрафе за роль предпочтение отдаётся игроку с более высоким MMR/поинтами
         // (мелкий тай-брейк, как раньше). Основной MMR-приоритет — см. mmrPriority ниже.
-        if (!player.roles.includes(pos)) penalty += rolePenaltyWeights[pos] + (player.mmr || 0) * 0.001;
+        if (!player.roles.includes(pos)) penalty += rolePenaltyWeights[pos] + getBalanceValue(player, metric) * 0.001;
 
         if (mode === 'core') {
           const poolLen = (player.heroes && Array.isArray(player.heroes)) ? player.heroes.length : 0;
@@ -2360,7 +2392,7 @@
     return player.mmr + poolWeight;
   }
 
-  function evaluateBalanceVariants(selectedPlayers, mode = 'standard') {
+  function evaluateBalanceVariants(selectedPlayers, mode = 'standard', metric = 'mmr') {
     const teammatePairWeights = getRecentTeammatesHistoryMap(3);
     const candidateSplits = [];
     const seenSplits = new Set();
@@ -2391,8 +2423,8 @@
           if (seenSplits.has(canonicalKey)) return;
           seenSplits.add(canonicalKey);
 
-          const mmrA = teamA.reduce((s, p) => s + p.mmr, 0);
-          const mmrB = teamB.reduce((s, p) => s + p.mmr, 0);
+          const mmrA = teamA.reduce((s, p) => s + getBalanceValue(p, metric), 0);
+          const mmrB = teamB.reduce((s, p) => s + getBalanceValue(p, metric), 0);
           const diff = Math.abs(mmrA - mmrB);
 
           let coreDistributionPenalty = 0;
@@ -2406,14 +2438,18 @@
             if (midsInTen >= 2 && (midsInA === 0 || midsInA === midsInTen)) coreDistributionPenalty += 4000;
           }
 
-          const rA = assignBestRoles(teamA, mode);
-          const rB = assignBestRoles(teamB, mode);
+          const rA = assignBestRoles(teamA, mode, metric);
+          const rB = assignBestRoles(teamB, mode, metric);
 
+          // При сборке по поинтам ('points') учитываются поинты, роли, штраф за
+          // недавних тиммейтов и антифрод-штраф по стакам — как и в остальных режимах.
           const antiFraudPenalty = getStackAntiFraudPenalty(teamA, teamB);
           const teammatePenalty = getTeamRecentPairPenalty(teamA) + getTeamRecentPairPenalty(teamB);
 
           let score = 0;
-          if (mode === 'core') {
+          if (metric === 'points') {
+            score = diff + rA.penalty + rB.penalty + teammatePenalty + antiFraudPenalty;
+          } else if (mode === 'core') {
             const p1A = rA.assigned.find(p => p.assignedPos === 1);
             const p1B = rB.assigned.find(p => p.assignedPos === 1);
             const p2A = rA.assigned.find(p => p.assignedPos === 2);
@@ -2435,7 +2471,7 @@
           }
 
           candidateSplits.push({
-            score, diff,
+            score, diff, metric,
             radiant: rA.assigned, dire: rB.assigned,
             radiantMmr: mmrA, direMmr: mmrB,
             bench: selectedPlayers.filter(p => !ten.includes(p)),
@@ -2471,7 +2507,7 @@
     });
 
     if (minDiffCandidate) {
-      minDiffCandidate.variantTitle = "Вариант 2 (Минимум MMR)";
+      minDiffCandidate.variantTitle = metric === 'points' ? "Вариант 2 (Минимум разницы поинтов)" : "Вариант 2 (Минимум MMR)";
       variants.push(minDiffCandidate);
     } else if (candidateSplits[1]) {
       candidateSplits[1].variantTitle = "Вариант 2 (Альтернативный)";
@@ -2517,7 +2553,9 @@
       return;
     }
 
-    const variants = evaluateBalanceVariants(selected, mode);
+    const metric = mode === 'points' ? 'points' : 'mmr';
+    const roleMode = mode === 'core' ? 'core' : 'standard';
+    const variants = evaluateBalanceVariants(selected, roleMode, metric);
     if (variants.length === 0) {
       alert('Не удалось рассчитать варианты баланса.');
       return;
@@ -2526,6 +2564,7 @@
     variants.forEach(v => {
       sortTeamByPositions(v.radiant);
       sortTeamByPositions(v.dire);
+      v.metric = metric;
     });
 
     currentBalanceVariants = variants;
@@ -2545,12 +2584,15 @@
       return;
     }
 
-    const variants = evaluateBalanceVariants(currentTen, mode);
+    const metric = mode === 'points' ? 'points' : 'mmr';
+    const roleMode = mode === 'core' ? 'core' : 'standard';
+    const variants = evaluateBalanceVariants(currentTen, roleMode, metric);
     if (variants.length > 0) {
       variants.forEach(v => {
         sortTeamByPositions(v.radiant);
         sortTeamByPositions(v.dire);
         v.bench = currentLobbyData.bench || [];
+        v.metric = metric;
       });
       currentBalanceVariants = variants;
       activeVariantIndex = 0;
@@ -2578,7 +2620,7 @@
       btn.className = `variant-chip-btn ${idx === activeVariantIndex ? 'active' : ''}`;
       btn.innerHTML = `
         <span>${escapeHtml(v.variantTitle || `Вариант ${idx + 1}`)}</span>
-        <span style="font-family:'JetBrains Mono', monospace; opacity:0.9;">(Δ ${v.diff} MMR)</span>
+        <span style="font-family:'JetBrains Mono', monospace; opacity:0.9;">(Δ ${v.diff} ${v.metric === 'points' ? 'PTS' : 'MMR'})</span>
       `;
       btn.onclick = () => applyLobbyVariant(idx);
       container.appendChild(btn);
@@ -3053,6 +3095,7 @@
           </div>
         </td>
         <td style="text-align:center;"><span class="mmr-badge">${p.mmr}</span></td>
+        <td style="text-align:center;"><span class="points-badge">${p.points || 0}</span></td>
         <td>${roleBadges}</td>
         <td><div class="hero-list">${heroBadges} ${smallPoolPill}</div></td>
         ${actionButtons}
@@ -3231,7 +3274,7 @@
 
     const statsMap = {};
     players.forEach(p => {
-      statsMap[p.id] = { id: p.id, name: p.name, matches: 0, wins: 0, losses: 0, winrate: 0 };
+      statsMap[p.id] = { id: p.id, name: p.name, matches: 0, wins: 0, losses: 0, winrate: 0, points: p.points || 0 };
     });
 
     const getPlayerKey = (p) => {
@@ -3245,7 +3288,7 @@
       const processTeam = (teamArr, isWinner) => {
         teamArr.forEach(p => {
           const key = getPlayerKey(p);
-          if (!statsMap[key]) statsMap[key] = { id: p.id || key, name: p.name, matches: 0, wins: 0, losses: 0, winrate: 0 };
+          if (!statsMap[key]) statsMap[key] = { id: p.id || key, name: p.name, matches: 0, wins: 0, losses: 0, winrate: 0, points: 0 };
           statsMap[key].matches++;
           if (isWinner) statsMap[key].wins++;
           else statsMap[key].losses++;
@@ -3257,7 +3300,7 @@
 
     const statList = Object.values(statsMap).map(s => {
       const live = players.find(p => p.id === s.id);
-      if (live) s.name = live.name;
+      if (live) { s.name = live.name; s.points = live.points || 0; }
       s.winrate = s.matches > 0 ? Math.round((s.wins / s.matches) * 100) : 0;
       return s;
     });
@@ -3269,6 +3312,7 @@
       else if (statsSortCol === 'wins') res = a.wins - b.wins;
       else if (statsSortCol === 'losses') res = a.losses - b.losses;
       else if (statsSortCol === 'winrate' || statsSortCol === 'rank') res = (a.winrate - b.winrate) || (a.matches - b.matches);
+      else if (statsSortCol === 'points') res = (a.points || 0) - (b.points || 0);
       return res * statsSortDir;
     });
 
@@ -3285,6 +3329,7 @@
           <div class="winrate-bar-bg"><div class="winrate-bar-fill" style="width: ${s.winrate}%;"></div></div>
           <span style="font-family:'JetBrains Mono', monospace; font-weight:800;">${s.winrate}%</span>
         </td>
+        <td style="text-align:center;"><span class="points-badge">${s.points || 0}</span></td>
       `;
       tbody.appendChild(row);
     });
@@ -3560,6 +3605,7 @@
     document.getElementById('edit-player-id').value = '';
     document.getElementById('form-name').value = '';
     document.getElementById('form-mmr').value = '';
+    document.getElementById('form-points').value = '0';
     document.getElementById('form-steam-id').value = '';
     document.getElementById('opendota-status').textContent = '';
     currentFormPool = [];
@@ -3575,6 +3621,7 @@
     document.getElementById('edit-player-id').value = p.id;
     document.getElementById('form-name').value = p.name;
     document.getElementById('form-mmr').value = p.mmr;
+    document.getElementById('form-points').value = p.points || 0;
     document.getElementById('form-steam-id').value = p.steamId || '';
     document.getElementById('opendota-status').textContent = '';
     currentFormPool = [...p.heroes];
@@ -3609,6 +3656,8 @@
     const id = document.getElementById('edit-player-id').value;
     const name = document.getElementById('form-name').value.trim();
     const mmr = parseInt(document.getElementById('form-mmr').value, 10);
+    const pointsRaw = parseInt(document.getElementById('form-points').value, 10);
+    const points = isNaN(pointsRaw) ? 0 : pointsRaw;
     const steamId = document.getElementById('form-steam-id').value.trim();
     const roles = Array.from(document.querySelectorAll('input[name="edit-role"]:checked')).map(c => parseInt(c.value, 10));
 
@@ -3617,11 +3666,11 @@
     if (id) {
       const p = players.find(x => x.id === id);
       if (p) {
-        p.name = name; p.mmr = mmr; p.roles = roles; p.heroes = currentFormPool; p.steamId = steamId;
+        p.name = name; p.mmr = mmr; p.points = points; p.roles = roles; p.heroes = currentFormPool; p.steamId = steamId;
       }
     } else {
       players.unshift({
-        id: generateId(), name, mmr, roles, heroes: currentFormPool, selected: false, steamId
+        id: generateId(), name, mmr, points, roles, heroes: currentFormPool, selected: false, steamId
       });
     }
 
@@ -3780,7 +3829,7 @@
       btn.className = `variant-chip-btn ${idx === activeVariantIndex ? 'active' : ''}`;
       btn.innerHTML = `
         <span>${escapeHtml(v.variantTitle || `Вариант ${idx + 1}`)}</span>
-        <span style="font-family:'JetBrains Mono', monospace; opacity:0.9;">(Δ ${v.diff} MMR)</span>
+        <span style="font-family:'JetBrains Mono', monospace; opacity:0.9;">(Δ ${v.diff} ${v.metric === 'points' ? 'PTS' : 'MMR'})</span>
       `;
       btn.onclick = () => applyLobbyVariant(idx);
       container.appendChild(btn);
@@ -3894,22 +3943,24 @@
   // 2. Пересчет MMR (игнорируем пустые слоты)
   function recalculateLobbyStats() {
     if (!currentLobbyData) return;
+    const metric = currentLobbyData.metric === 'points' ? 'points' : 'mmr';
     const radPlayers = currentLobbyData.radiant.filter(p => !p.isEmptySlot);
     const direPlayers = currentLobbyData.dire.filter(p => !p.isEmptySlot);
 
     const radCount = radPlayers.length;
     const direCount = direPlayers.length;
     
-    currentLobbyData.radiantMmr = radPlayers.reduce((sum, p) => sum + p.mmr, 0);
-    currentLobbyData.direMmr = direPlayers.reduce((sum, p) => sum + p.mmr, 0);
+    currentLobbyData.radiantMmr = radPlayers.reduce((sum, p) => sum + getBalanceValue(p, metric), 0);
+    currentLobbyData.direMmr = direPlayers.reduce((sum, p) => sum + getBalanceValue(p, metric), 0);
     currentLobbyData.diff = Math.abs(currentLobbyData.radiantMmr - currentLobbyData.direMmr);
 
     const radAvg = radCount > 0 ? Math.round(currentLobbyData.radiantMmr / radCount) : 0;
     const direAvg = direCount > 0 ? Math.round(currentLobbyData.direMmr / direCount) : 0;
+    const unitLabel = metric === 'points' ? 'PTS' : 'MMR';
 
-    document.getElementById('radiant-avg').textContent = `Avg: ${radAvg} (${radCount}/5)`;
-    document.getElementById('dire-avg').textContent = `Avg: ${direAvg} (${direCount}/5)`;
-    document.getElementById('lobby-diff').textContent = `Разница: ${currentLobbyData.diff} MMR`;
+    document.getElementById('radiant-avg').textContent = `Avg: ${radAvg} ${unitLabel} (${radCount}/5)`;
+    document.getElementById('dire-avg').textContent = `Avg: ${direAvg} ${unitLabel} (${direCount}/5)`;
+    document.getElementById('lobby-diff').textContent = `Разница: ${currentLobbyData.diff} ${unitLabel}`;
 
     updateLaningAnalysis(); 
   }
@@ -4166,6 +4217,7 @@
     renderBalanceVariantsBar();
 
     const m = currentLobbyData;
+    const lobbyMetric = (m.metric === 'points') ? 'points' : 'mmr';
     sortTeamByPositions(m.radiant);
     sortTeamByPositions(m.dire);
     recalculateLobbyStats();
@@ -4199,7 +4251,7 @@
     players.filter(p => !inLobbyIds.includes(p.id)).forEach(p => {
       const opt = document.createElement('option');
       opt.value = p.id;
-      opt.textContent = `${p.name} (${p.mmr} MMR)`;
+      opt.textContent = lobbyMetric === 'points' ? `${p.name} (${p.points || 0} PTS)` : `${p.name} (${p.mmr} MMR)`;
       benchSelect.appendChild(opt);
     });
 
@@ -4219,7 +4271,7 @@
         b.innerHTML = `
           <span class="drag-handle">⠿</span>
           <span>${escapeHtml(p.name)}</span>
-          <span style="color:var(--aegis-gold); font-family:'JetBrains Mono', monospace; font-size:11.5px;">${p.mmr}</span>
+          <span style="color:${lobbyMetric === 'points' ? 'var(--mana-cyan)' : 'var(--aegis-gold)'}; font-family:'JetBrains Mono', monospace; font-size:11.5px;">${lobbyMetric === 'points' ? (p.points || 0) : p.mmr}</span>
           <button class="btn btn-add" style="padding:2px 6px; font-size:10px;" onclick="addBenchToTeam(${idx}, 'radiant')">🟢 Rad</button>
           <button class="btn btn-lobby-core" style="padding:2px 6px; font-size:10px;" onclick="addBenchToTeam(${idx}, 'dire')">🔴 Dire</button>
           <button style="background:none; border:none; color:#ef4444; font-size:14px; cursor:pointer;" onclick="removeBenchPlayer(${idx})">✕</button>
@@ -4263,6 +4315,10 @@
 
     const poolLen = (p.heroes && Array.isArray(p.heroes)) ? p.heroes.length : 0;
     const smallPoolPill = (poolLen <= 2) ? `<span class="pool-warning-pill">⚠️ ${poolLen} гер.</span>` : '';
+    const lobbyMetric = (currentLobbyData && currentLobbyData.metric === 'points') ? 'points' : 'mmr';
+    const valueBadge = lobbyMetric === 'points'
+      ? `<span class="points-badge">${p.points || 0}</span>`
+      : `<span class="mmr-badge">${p.mmr}</span>`;
 
     row.innerHTML = `
       <div style="display:flex; align-items:center; gap:8px; min-width:190px; flex-wrap:wrap;">
@@ -4276,7 +4332,7 @@
         </select>
         <button class="player-slot-btn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 4px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;" onclick="openSlotPickModal('${team}', ${idx})">
           <span class="player-name">${escapeHtml(p.name)}</span>
-          <span class="mmr-badge">${p.mmr}</span>
+          ${valueBadge}
         </button>
         ${smallPoolPill}
       </div>
@@ -4344,6 +4400,8 @@
     });
 
     const benchSet = new Set((currentLobbyData.bench || []).map(b => b.id));
+    const lobbyMetric = (currentLobbyData.metric === 'points') ? 'points' : 'mmr';
+    const valueLabel = (p) => lobbyMetric === 'points' ? `${p.points || 0} PTS` : `${p.mmr} MMR`;
     const filtered = players.filter(p => !query || p.name.toLowerCase().includes(query));
     const available = [];
     const occupied = [];
@@ -4368,7 +4426,7 @@
       item.innerHTML = `
         <div style="display:flex; align-items:center; gap:10px;">
           <span style="font-weight:700; color:#fff; font-size: 15px;">${escapeHtml(p.name)}</span>
-          <span class="mmr-badge">${p.mmr} MMR</span>
+          <span class="mmr-badge">${valueLabel(p)}</span>
           ${isBench ? '<span style="font-size:11px; color:var(--mana-cyan); background:rgba(56,189,248,0.15); padding:3px 8px; border-radius:6px; font-weight:700; border:1px solid var(--mana-cyan);">в резерве</span>' : ''}
         </div>
         <div style="display:flex; gap:4px;">
@@ -4411,7 +4469,7 @@
         item.innerHTML = `
           <div style="display:flex; align-items:center; gap:10px;">
             <span style="font-weight:700; color:#cbd5e1; font-size: 15px;">${escapeHtml(p.name)}</span>
-            <span class="mmr-badge" style="opacity:0.7;">${p.mmr} MMR</span>
+            <span class="mmr-badge" style="opacity:0.7;">${valueLabel(p)}</span>
           </div>
           <div style="font-size:11px; color:var(--dire-crimson); font-family:'JetBrains Mono', monospace; text-shadow:0 0 5px rgba(225, 29, 72, 0.5);">
             ⛔ ${escapeHtml(roleText)}
