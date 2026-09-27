@@ -4353,17 +4353,20 @@
   function copyLobbyToDiscord() {
     if (!currentLobbyData) return;
     const m = currentLobbyData;
+    const isPoints = m.metric === 'points';
+    const unitLabel = isPoints ? 'PTS' : 'MMR';
+    const valueOf = p => isPoints ? (p.points || 0) : p.mmr;
     let text = `⚔️ **DOTA 2 CUSTOM LOBBY 5v5**\n\n🟢 **THE RADIANT**:\n`;
     m.radiant.forEach(p => { 
         if (p.isEmptySlot) text += `• ${ROLE_NAMES[p.assignedPos]}: _Свободно_\n`;
-        else text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** [${p.mmr} MMR]\n`; 
+        else text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** [${valueOf(p)} ${unitLabel}]\n`; 
     });
     text += `\n🔴 **THE DIRE**:\n`;
     m.dire.forEach(p => { 
         if (p.isEmptySlot) text += `• ${ROLE_NAMES[p.assignedPos]}: _Свободно_\n`;
-        else text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** [${p.mmr} MMR]\n`; 
+        else text += `• ${ROLE_NAMES[p.assignedPos]}: **${p.name}** [${valueOf(p)} ${unitLabel}]\n`; 
     });
-    text += `\n⚖️ Разница: **${m.diff} MMR**`;
+    text += `\n⚖️ Разница: **${m.diff} ${unitLabel}**`;
     navigator.clipboard.writeText(text).then(() => alert('Составы лобби скопированы для Discord!'));
   }
 
