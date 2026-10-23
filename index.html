@@ -2049,9 +2049,11 @@
       players = JSON.parse(JSON.stringify(DEFAULT_ROSTER));
       matches = [];
     }
+    cloudLoaded = true;
     statusEl.textContent = '🟢 Облако онлайн';
   } catch(err) {
-    statusEl.textContent = '⚠️ Локальный режим';
+    cloudLoaded = false;
+    statusEl.textContent = '⚠️ Локальный режим (облако не загрузилось — сохранение отключено)';
     try {
       const localP = localStorage.getItem('dota2_roster_data');
       const localM = localStorage.getItem('dota2_matches_data');
@@ -2070,32 +2072,59 @@
   renderTable();
 }
 
-  async function syncCloud() {
-  localStorage.setItem('dota2_roster_data', JSON.stringify(players));
-  localStorage.setItem('dota2_matches_data', JSON.stringify(matches));
-  document.getElementById('badge-history-count').textContent = matches.length;
+  let cloudLoaded = false;
+  let syncTimer = null, syncInFlight = false, syncPending = false;
 
-  const statusEl = document.getElementById('sync-status');
-  if (!isAdmin()) return;
+  function syncCloud() {
+    localStorage.setItem('dota2_roster_data', JSON.stringify(players));
+    localStorage.setItem('dota2_matches_data', JSON.stringify(matches));
+    document.getElementById('badge-history-count').textContent = matches.length;
 
-  statusEl.textContent = '🟡 Сохранение...';
-  try {
-    const payload = { players, matches };
-    const res = await fetch(WORKER_URL, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Admin-Key': adminKey
-      },
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error();
-    statusEl.textContent = '🟢 Сохранено';
-  } catch(err) {
-    statusEl.textContent = '🔴 Ошибка сохранения!';
-    alert('Не удалось синхронизировать с облаком. Проверьте права администратора.');
+    if (!isAdmin()) return;
+    const statusEl = document.getElementById('sync-status');
+    if (!cloudLoaded) {
+      statusEl.textContent = '🔴 Облако не загружено — не сохраняю (обновите страницу)';
+      return;
+    }
+    statusEl.textContent = '🟡 Сохранение...';
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(flushCloud, 600); // склеиваем быстрые правки в один запрос
   }
-}
+
+  async function flushCloud() {
+    syncTimer = null;
+    if (syncInFlight) { syncPending = true; return; } // один запрос за раз, без гонок
+    syncInFlight = true;
+    const statusEl = document.getElementById('sync-status');
+    let ok = false;
+    try {
+      for (let attempt = 0; attempt < 3 && !ok; attempt++) {
+        try {
+          const res = await fetch(WORKER_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+            body: JSON.stringify({ players, matches }) // всегда актуальное состояние на момент отправки
+          });
+          if (res.status === 401) { statusEl.textContent = '🔴 Неверный пароль админа'; return; }
+          ok = res.ok;
+        } catch (e) {}
+        if (!ok) await new Promise(r => setTimeout(r, 700 * (attempt + 1)));
+      }
+    } finally {
+      syncInFlight = false;
+    }
+    if (ok) {
+      statusEl.textContent = '🟢 Сохранено';
+    } else {
+      statusEl.textContent = '🔴 Не сохранилось — пробую снова...';
+      syncPending = true;
+    }
+    if (syncPending) { syncPending = false; syncTimer = setTimeout(flushCloud, ok ? 100 : 4000); }
+  }
+
+  window.addEventListener('beforeunload', e => {
+    if (syncTimer || syncInFlight || syncPending) { e.preventDefault(); e.returnValue = ''; }
+  });
 
   function exportBackupJSON() {
     const backupData = { timestamp: new Date().toISOString(), players, matches };
