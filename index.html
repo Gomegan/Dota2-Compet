@@ -2035,7 +2035,7 @@
   statusEl.textContent = '⏳ Синхронизация...';
 
   try {
-    const res = await fetch(WORKER_URL);
+    const res = await fetch(WORKER_URL, { cache: 'no-store' });
     if (!res.ok) throw new Error();
     const data = await res.json();
     
@@ -2049,7 +2049,9 @@
       players = JSON.parse(JSON.stringify(DEFAULT_ROSTER));
       matches = [];
     }
+    cloudVersion = (data.record && !Array.isArray(data.record) && Number(data.record.version)) || 0;
     cloudLoaded = true;
+    baseSnap = takeSnap();
     statusEl.textContent = '🟢 Облако онлайн';
   } catch(err) {
     cloudLoaded = false;
@@ -2074,6 +2076,52 @@
 
   let cloudLoaded = false;
   let syncTimer = null, syncInFlight = false, syncPending = false;
+  let cloudVersion = 0;                       // версия данных в облаке, с которой мы работаем
+  let baseSnap = { players: [], matches: [] }; // последнее состояние, совпадающее с облаком
+  let lastRefresh = 0;
+  const PFIELDS = ['name', 'mmr', 'points', 'roles', 'heroes', 'steamId'];
+  const J = v => JSON.stringify(v === undefined ? null : v);
+
+  function takeSnap() {
+    return JSON.parse(JSON.stringify({
+      players: players.map(p => Object.fromEntries([['id', p.id], ...PFIELDS.map(f => [f, p[f]])])),
+      matches: matches.map(m => ({ id: m.id }))
+    }));
+  }
+
+  // Накладываем наши локальные правки (относительно base) на свежие данные сервера
+  function mergeOntoServer(server, base, local) {
+    const baseP = new Map(base.players.map(p => [p.id, p]));
+    const localIds = new Set(local.players.map(p => p.id));
+    const result = server.players.map(p => ({ ...p }));
+    const resMap = new Map(result.map(p => [p.id, p]));
+    local.players.forEach(lp => {
+      const bp = baseP.get(lp.id);
+      const rp = resMap.get(lp.id);
+      if (!bp) { if (!rp) result.unshift(lp); return; }               // добавлен у нас
+      if (!rp) return;                                                 // на сервере уже удалён
+      PFIELDS.forEach(f => { if (J(bp[f]) !== J(lp[f])) rp[f] = lp[f]; }); // только изменённые нами поля
+    });
+    const merged = result.filter(p => !baseP.has(p.id) || localIds.has(p.id)); // удалённые у нас
+    // матчи: добавленные и удалённые нами
+    const baseM = new Set(base.matches.map(m => m.id));
+    const localM = new Set(local.matches.map(m => m.id));
+    const srvM = new Set(server.matches.map(m => m.id));
+    let mm = server.matches.filter(m => !(baseM.has(m.id) && !localM.has(m.id)));
+    const added = matches.filter(m => !baseM.has(m.id) && !srvM.has(m.id));
+    mm = [...added, ...mm];
+    return { players: merged, matches: mm };
+  }
+
+  function applyServerRecord(rec) {
+    const keepSel = new Set(players.filter(p => p.selected).map(p => p.id));
+    players = rec.players; matches = rec.matches;
+    players.forEach(p => p.selected = keepSel.has(p.id));
+    applySort();
+    syncLobbyWithRoster();
+    renderTable();
+    document.getElementById('badge-history-count').textContent = matches.length;
+  }
 
   function syncCloud() {
     localStorage.setItem('dota2_roster_data', JSON.stringify(players));
@@ -2091,22 +2139,42 @@
     syncTimer = setTimeout(flushCloud, 600); // склеиваем быстрые правки в один запрос
   }
 
-  async function flushCloud() {
+  async function flushCloud(opts) {
     syncTimer = null;
     if (syncInFlight) { syncPending = true; return; } // один запрос за раз, без гонок
     syncInFlight = true;
     const statusEl = document.getElementById('sync-status');
     let ok = false;
     try {
-      for (let attempt = 0; attempt < 3 && !ok; attempt++) {
+      for (let attempt = 0; attempt < 5 && !ok; attempt++) {
         try {
+          const body = JSON.stringify({ players, matches, baseVersion: cloudVersion });
+          const sent = takeSnap();
           const res = await fetch(WORKER_URL, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
-            body: JSON.stringify({ players, matches }) // всегда актуальное состояние на момент отправки
+            body,
+            keepalive: !!(opts && opts.keepalive) && body.length < 60000
           });
           if (res.status === 401) { statusEl.textContent = '🔴 Неверный пароль админа'; return; }
+          if (res.status === 409) { // кто-то сохранил раньше нас — объединяем и повторяем
+            const data = await res.json();
+            const server = data.record;
+            const merged = mergeOntoServer(server, baseSnap, takeSnap());
+            cloudVersion = server.version;
+            baseSnap = { players: server.players.map(p => ({ ...p })), matches: server.matches.map(m => ({ id: m.id })) };
+            applyServerRecord(merged);
+            localStorage.setItem('dota2_roster_data', JSON.stringify(players));
+            localStorage.setItem('dota2_matches_data', JSON.stringify(matches));
+            statusEl.textContent = '🟡 Данные изменились на другом устройстве — объединил, сохраняю...';
+            continue;
+          }
           ok = res.ok;
+          if (ok) {
+            const data = await res.json().catch(() => ({}));
+            if (typeof data.version === 'number') cloudVersion = data.version;
+            baseSnap = sent;
+          }
         } catch (e) {}
         if (!ok) await new Promise(r => setTimeout(r, 700 * (attempt + 1)));
       }
@@ -2121,6 +2189,38 @@
     }
     if (syncPending) { syncPending = false; syncTimer = setTimeout(flushCloud, ok ? 100 : 4000); }
   }
+
+  // Подтянуть свежие данные, если нет несохранённых правок (при возврате на вкладку)
+  async function refreshFromCloud() {
+    if (!cloudLoaded || syncTimer || syncInFlight || syncPending) return;
+    if (Date.now() - lastRefresh < 20000) return;
+    lastRefresh = Date.now();
+    try {
+      const res = await fetch(WORKER_URL, { cache: 'no-store' });
+      if (!res.ok) return;
+      const data = await res.json();
+      const rec = data.record;
+      const ver = (rec && !Array.isArray(rec) && Number(rec.version)) || 0;
+      if (!rec || Array.isArray(rec) || ver <= cloudVersion) return;
+      if (syncTimer || syncInFlight || syncPending) return;
+      cloudVersion = ver;
+      applyServerRecord({ players: rec.players || [], matches: rec.matches || [] });
+      baseSnap = takeSnap();
+      document.getElementById('sync-status').textContent = '🟢 Данные обновлены';
+    } catch (e) {}
+  }
+
+  // На телефоне вкладку замораживают без предупреждения — отправляем сразу и с keepalive
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      if (syncTimer) { clearTimeout(syncTimer); flushCloud({ keepalive: true }); }
+    } else {
+      refreshFromCloud();
+    }
+  });
+  window.addEventListener('pagehide', () => {
+    if (syncTimer) { clearTimeout(syncTimer); flushCloud({ keepalive: true }); }
+  });
 
   window.addEventListener('beforeunload', e => {
     if (syncTimer || syncInFlight || syncPending) { e.preventDefault(); e.returnValue = ''; }
@@ -4230,7 +4330,7 @@
     const updatePlayerData = (p) => {
       if (p.isEmptySlot) return p;
       const live = players.find(x => x.id === p.id);
-      if (live) { p.name = live.name; p.mmr = live.mmr; p.heroes = live.heroes; p.roles = live.roles; p.steamId = live.steamId; }
+      if (live) { p.name = live.name; p.mmr = live.mmr; p.points = live.points; p.heroes = live.heroes; p.roles = live.roles; p.steamId = live.steamId; }
       return p;
     };
     currentLobbyData.radiant = currentLobbyData.radiant.map(updatePlayerData);
