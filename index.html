@@ -996,6 +996,10 @@
   .hero-grid-modal {
     max-width: 880px !important;
     width: 95% !important;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden !important;
   }
   .attr-btn {
     background: rgba(255, 255, 255, 0.05);
@@ -1022,7 +1026,9 @@
     grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
     gap: 8px;
     padding: 8px 4px;
-    max-height: 480px;
+    flex: 1 1 auto;
+    min-height: 180px;
+    max-height: calc(90vh - 220px);
   }
   .hero-card {
     background: rgba(0, 0, 0, 0.4);
@@ -1087,6 +1093,9 @@
     align-items: center;
     z-index: 2000;
     padding: 14px;
+  }
+  #hero-select-modal {
+    z-index: 2200;
   }
   .modal-window {
     background: var(--bg-card);
@@ -1266,6 +1275,8 @@
     .filter-btn { flex: 1 1 auto; text-align: center; }
     .controls-search-actions { flex-direction: column; align-items: stretch; }
     .action-btns .btn { flex: 1 1 calc(50% - 4px); }
+    .hero-grid-modal { max-width: 98% !important; width: 98% !important; padding: 14px; }
+    .hero-grid-container { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 6px; }
   }
 </style>
 </head>
@@ -1542,34 +1553,6 @@
   </div>
 </div>
 
-<!-- МОДАЛКА ВЫБОРА ГЕРОЕВ -->
-<div id="hero-select-modal" class="modal-overlay">
-  <div class="modal-window hero-grid-modal">
-    <div class="modal-header">
-      <span id="hero-modal-title">Выбор героя</span>
-      <button style="background: none; border: none; color: var(--text-muted); font-size: 24px; font-weight:800; cursor: pointer;" onclick="closeHeroSelectModal()">✕</button>
-    </div>
-    
-    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
-      <div style="display:flex; gap:6px; flex-wrap:wrap;">
-        <button class="attr-btn all active" onclick="setGridAttrFilter('all', this)">Все</button>
-        <button class="attr-btn str" onclick="setGridAttrFilter('str', this)">🔴 Сила</button>
-        <button class="attr-btn agi" onclick="setGridAttrFilter('agi', this)">🟢 Ловкость</button>
-        <button class="attr-btn int" onclick="setGridAttrFilter('int', this)">🔵 Интеллект</button>
-        <button class="attr-btn uni" onclick="setGridAttrFilter('uni', this)">🟣 Универсал</button>
-      </div>
-      <input type="text" id="hero-grid-filter" class="search-box" style="width: 100%; margin-top: 6px;" placeholder="Поиск героя..." oninput="renderHeroGrid()">
-    </div>
-
-    <div class="hero-grid-container" id="hero-grid-cards"></div>
-
-    <div id="hero-grid-multi-actions" style="display:none; justify-content: space-between; align-items:center; border-top:2px solid rgba(255,255,255,0.08); padding-top:10px;">
-      <span id="hero-grid-selected-counter" style="font-family:'JetBrains Mono', monospace; font-size: 13px; font-weight: 800; color: var(--rad-emerald);">Выбрано: 0</span>
-      <button class="btn btn-lobby" onclick="applyMultiHeroSelect()">Готово</button>
-    </div>
-  </div>
-</div>
-
 <!-- МОДАЛКА ИГРОКА -->
 <div id="player-modal" class="modal-overlay">
   <div class="modal-window">
@@ -1626,8 +1609,39 @@
     </div>
 
     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-      <button class="btn btn-reset" onclick="closeModal()">Отмена</button>
-      <button class="btn btn-add" onclick="savePlayer()">Сохранить</button>
+      <button type="button" class="btn btn-reset" onclick="closeModal()">Отмена</button>
+      <button type="button" class="btn btn-add" onclick="savePlayer()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- МОДАЛКА ВЫБОРА ГЕРОЕВ -->
+<div id="hero-select-modal" class="modal-overlay">
+  <div class="modal-window hero-grid-modal">
+    <div class="modal-header">
+      <span id="hero-modal-title">Выбор героя</span>
+      <button type="button" style="background: none; border: none; color: var(--text-muted); font-size: 24px; font-weight:800; cursor: pointer;" onclick="closeHeroSelectModal()">✕</button>
+    </div>
+    
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <button type="button" class="attr-btn all active" onclick="setGridAttrFilter('all', this)">Все</button>
+        <button type="button" class="attr-btn str" onclick="setGridAttrFilter('str', this)">🔴 Сила</button>
+        <button type="button" class="attr-btn agi" onclick="setGridAttrFilter('agi', this)">🟢 Ловкость</button>
+        <button type="button" class="attr-btn int" onclick="setGridAttrFilter('int', this)">🔵 Интеллект</button>
+        <button type="button" class="attr-btn uni" onclick="setGridAttrFilter('uni', this)">🟣 Универсал</button>
+      </div>
+      <input type="text" id="hero-grid-filter" class="search-box" style="width: 100%; margin-top: 6px;" placeholder="Поиск героя..." oninput="renderHeroGrid()">
+    </div>
+
+    <div class="hero-grid-container" id="hero-grid-cards"></div>
+
+    <div id="hero-grid-multi-actions" style="display:none; justify-content: space-between; align-items:center; border-top:2px solid rgba(255,255,255,0.08); padding-top:10px; flex-shrink: 0;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span id="hero-grid-selected-counter" style="font-family:'JetBrains Mono', monospace; font-size: 13px; font-weight: 800; color: var(--rad-emerald);">Выбрано: 0</span>
+        <button type="button" class="btn" style="padding:3px 8px; font-size:11px; background:rgba(239,68,68,0.15); border:1px solid #ef4444; color:#ef4444; border-radius:4px; cursor:pointer;" onclick="clearPlayerHeroPool()">Очистить всё</button>
+      </div>
+      <button type="button" class="btn btn-lobby" onclick="applyMultiHeroSelect()">Готово</button>
     </div>
   </div>
 </div>
@@ -4012,6 +4026,26 @@
     }
   }
 
+  function cleanHeroPool(arr) {
+    if (!Array.isArray(arr)) return [];
+    const seen = new Set();
+    const res = [];
+    arr.forEach(h => {
+      if (typeof h === 'string') {
+        const trimmed = h.trim();
+        const lower = trimmed.toLowerCase();
+        if (trimmed && !seen.has(lower)) {
+          seen.add(lower);
+          const canonical = (typeof DOTA2_HEROES_CATALOG !== 'undefined')
+            ? DOTA2_HEROES_CATALOG.find(cat => cat.name.toLowerCase() === lower)
+            : null;
+          res.push(canonical ? canonical.name : trimmed);
+        }
+      }
+    });
+    return res;
+  }
+
   function openAddModal() {
     document.getElementById('modal-title').textContent = 'Добавить игрока';
     document.getElementById('edit-player-id').value = '';
@@ -4036,13 +4070,16 @@
     document.getElementById('form-points').value = p.points || 0;
     document.getElementById('form-steam-id').value = p.steamId || '';
     document.getElementById('opendota-status').textContent = '';
-    currentFormPool = [...p.heroes];
+    currentFormPool = cleanHeroPool(p.heroes);
     renderPlayerFormPool();
-    document.querySelectorAll('input[name="edit-role"]').forEach(c => c.checked = p.roles.includes(parseInt(c.value, 10)));
+    document.querySelectorAll('input[name="edit-role"]').forEach(c => c.checked = (p.roles || []).includes(parseInt(c.value, 10)));
     document.getElementById('player-modal').style.display = 'flex';
   }
 
-  function closeModal() { document.getElementById('player-modal').style.display = 'none'; }
+  function closeModal() {
+    document.getElementById('player-modal').style.display = 'none';
+    document.getElementById('hero-select-modal').style.display = 'none';
+  }
 
   function renderPlayerFormPool() {
     const container = document.getElementById('player-form-pool-chips');
@@ -4073,16 +4110,30 @@
     const steamId = document.getElementById('form-steam-id').value.trim();
     const roles = Array.from(document.querySelectorAll('input[name="edit-role"]:checked')).map(c => parseInt(c.value, 10));
 
-    if (!name || isNaN(mmr) || roles.length === 0) return;
+    if (!name) {
+      alert('Укажите никнейм игрока!');
+      document.getElementById('form-name').focus();
+      return;
+    }
+    if (isNaN(mmr)) {
+      alert('Укажите корректный MMR рейтинг!');
+      document.getElementById('form-mmr').focus();
+      return;
+    }
+    if (roles.length === 0) {
+      alert('Выберите хотя бы одну игровую роль!');
+      return;
+    }
 
+    const cleanedPool = cleanHeroPool(currentFormPool);
     if (id) {
       const p = players.find(x => x.id === id);
       if (p) {
-        p.name = name; p.mmr = mmr; p.points = points; p.roles = roles; p.heroes = currentFormPool; p.steamId = steamId;
+        p.name = name; p.mmr = mmr; p.points = points; p.roles = roles; p.heroes = [...cleanedPool]; p.steamId = steamId;
       }
     } else {
       players.unshift({
-        id: generateId(), name, mmr, points, roles, heroes: currentFormPool, selected: false, steamId
+        id: generateId(), name, mmr, points, roles, heroes: [...cleanedPool], selected: false, steamId
       });
     }
 
@@ -4137,10 +4188,15 @@
 
   function openHeroGridForPlayerPool() {
     heroSelectMode = 'playerPool';
-    document.getElementById('hero-modal-title').textContent = `Формирование пула`;
+    const pName = document.getElementById('form-name').value.trim();
+    document.getElementById('hero-modal-title').textContent = pName ? `Пул героев: ${pName}` : `Формирование пула`;
     document.getElementById('hero-grid-multi-actions').style.display = 'flex';
+    document.getElementById('hero-grid-selected-counter').textContent = `Выбрано: ${currentFormPool.length}`;
     resetGridFilters();
     document.getElementById('hero-select-modal').style.display = 'flex';
+    setTimeout(() => {
+      document.getElementById('hero-grid-filter')?.focus();
+    }, 50);
   }
 
   function resetGridFilters() {
@@ -4152,12 +4208,21 @@
   }
 
   function closeHeroSelectModal() {
+    if (heroSelectMode === 'playerPool') {
+      renderPlayerFormPool();
+    }
     document.getElementById('hero-select-modal').style.display = 'none';
   }
 
   function applyMultiHeroSelect() {
-    renderPlayerFormPool();
     closeHeroSelectModal();
+  }
+
+  function clearPlayerHeroPool() {
+    currentFormPool = [];
+    document.querySelectorAll('#hero-grid-cards .hero-card.is-selected').forEach(c => c.classList.remove('is-selected'));
+    document.getElementById('hero-grid-selected-counter').textContent = 'Выбрано: 0';
+    renderPlayerFormPool();
   }
 
   function renderHeroGrid() {
@@ -4173,7 +4238,12 @@
       const card = document.createElement('div');
       card.className = 'hero-card';
 
-      if (heroSelectMode === 'playerPool' && currentFormPool.includes(hero.name)) {
+      const norm = hero.name.trim().toLowerCase();
+      const isSelected = (heroSelectMode === 'playerPool')
+        ? currentFormPool.some(h => typeof h === 'string' && h.trim().toLowerCase() === norm)
+        : (heroSelectMode === 'lobbyPick' && heroSelectContext && heroSelectContext.player && heroSelectContext.player.pickedHero && heroSelectContext.player.pickedHero.trim().toLowerCase() === norm);
+
+      if (isSelected) {
         card.classList.add('is-selected');
       }
 
@@ -4188,9 +4258,10 @@
           closeHeroSelectModal();
           renderLobby();
         } else {
-          const idx = currentFormPool.indexOf(hero.name);
-          if (idx > -1) {
-            currentFormPool.splice(idx, 1);
+          const normName = hero.name.trim().toLowerCase();
+          const exists = currentFormPool.some(h => typeof h === 'string' && h.trim().toLowerCase() === normName);
+          if (exists) {
+            currentFormPool = currentFormPool.filter(h => typeof h !== 'string' || h.trim().toLowerCase() !== normName);
             card.classList.remove('is-selected');
           } else {
             currentFormPool.push(hero.name);
@@ -4922,6 +4993,26 @@
       else if (e.target.id === 'player-modal') closeModal();
       else if (e.target.id === 'finish-match-modal') closeFinishMatchModal();
       else if (e.target.id === 'slot-pick-modal') closeSlotPickModal();
+    }
+  });
+
+  // Закрытие модалок по нажатию Escape с учетом многоуровневого стека
+  window.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const heroModal = document.getElementById('hero-select-modal');
+      const playerModal = document.getElementById('player-modal');
+      const finishModal = document.getElementById('finish-match-modal');
+      const slotModal = document.getElementById('slot-pick-modal');
+
+      if (heroModal && heroModal.style.display === 'flex') {
+        closeHeroSelectModal();
+      } else if (playerModal && playerModal.style.display === 'flex') {
+        closeModal();
+      } else if (finishModal && finishModal.style.display === 'flex') {
+        closeFinishMatchModal();
+      } else if (slotModal && slotModal.style.display === 'flex') {
+        closeSlotPickModal();
+      }
     }
   });
 
