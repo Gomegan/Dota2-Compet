@@ -1329,6 +1329,7 @@
           <button class="btn btn-lobby-core" onclick="generateLobby('core')" title="Подбор с приоритетом равных кор-позиций и пула героев">👑 По корам</button>
           <button class="btn btn-lobby-points" onclick="generateLobby('points')" title="Подбор по общей сумме поинтов вместо MMR">🔷 По поинтам</button>
           <button class="btn btn-manual" onclick="initManualLobby()" title="Собрать лобби вручную">🛠️ Вручную</button>
+          <button id="btn-calc-points" class="btn btn-lobby-points" style="display: none;" onclick="autoFillPointsFromMmr()" title="Рассчитать поинты (0-100) из MMR для игроков с 0 PTS">⚡ Поинты из MMR</button>
           <button id="btn-backup-json" class="btn btn-random10" style="display: none;" onclick="exportBackupJSON()" title="Скачать бэкап базы (.json)">💾 Бэкап</button>
           <button id="btn-import-json" class="btn btn-reset" style="display: none;" onclick="document.getElementById('file-import-input').click()" title="Загрузить базу из файла">📥 Импорт</button>
           <input type="file" id="file-import-input" accept=".json" style="display: none;" onchange="importBackupJSON(event)">
@@ -1599,8 +1600,11 @@
       <input type="number" id="form-mmr" class="form-input" placeholder="Например: 4500" step="10">
     </div>
     <div class="form-group">
-      <label class="form-label">Поинты (для сборки 5x5 по поинтам)</label>
-      <input type="number" id="form-points" class="form-input" placeholder="Например: 100" step="1">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <label class="form-label">Поинты (0 - 100 для сборки 5x5)</label>
+        <button type="button" class="btn" style="padding: 2px 8px; font-size: 11px; background: rgba(56, 189, 248, 0.15); border: 1px solid var(--mana-cyan); color: var(--mana-cyan); border-radius: 4px; cursor: pointer;" onclick="calcPointsFromFormMmr()" title="Рассчитать поинты из указанного выше MMR">⚡ Из MMR</button>
+      </div>
+      <input type="number" id="form-points" class="form-input" placeholder="0 - 100 (например: 85)" step="1" min="0" max="100">
     </div>
     <div class="form-group">
       <label class="form-label">Игровые роли</label>
@@ -1845,26 +1849,507 @@
     return { name: "Страж", medal: 2, class: "rank-guardian" };
   }
 
-  /* По умолчанию ВСЕ игроки имеют selected: false */
+  /* По умолчанию ВСЕ игроки имеют selected: false, поинты откалиброваны по шкале 0-100 */
   const DEFAULT_ROSTER = [
-    { id: "1", name: "Varker32", mmr: 6800, roles: [3], heroes: ["Primal Beast", "Night Stalker", "Axe", "Doom", "Sand King", "Dark Seer", "Enigma", "Slardar", "Pudge", "Dawnbreaker"], selected: false, points: 0 },
-    { id: "2", name: "Shimmy", mmr: 6800, roles: [5], heroes: ["Bane", "Tusk", "Ringmaster", "Shadow Demon", "Grimstroke", "Ancient Apparition"], selected: false, points: 0 },
-    { id: "3", name: "K1zaz", mmr: 6400, roles: [3], heroes: ["Lycan", "Nature's Prophet", "Brewmaster", "Tidehunter", "Beastmaster", "Batrider", "Enigma", "Dragon Knight"], selected: false, points: 0 },
-    { id: "4", name: "nonta", mmr: 5600, roles: [2], heroes: ["Invoker", "Shadow Fiend", "Leshrac", "Outworld Destroyer", "Ember Spirit", "Lone Druid", "Necrophos", "Arc Warden", "Nature's Prophet"], selected: false, points: 0 },
-    { id: "5", name: "Arabius", mmr: 5400, roles: [2], heroes: ["Templar Assassin", "Shadow Fiend", "Huskar", "Arc Warden", "Outworld Destroyer", "Ember Spirit", "Void Spirit"], selected: false, points: 0 },
-    { id: "6", name: "Tutik", mmr: 4600, roles: [1], heroes: ["Shadow Fiend", "Drow Ranger", "Phantom Lancer", "Medusa", "Necrophos", "Lifestealer", "Ursa"], selected: false, points: 0 },
-    { id: "7", name: "Sumnir", mmr: 4000, roles: [1], heroes: ["Faceless Void", "Anti-Mage", "Lifestealer", "Ursa"], selected: false, points: 0 },
-    { id: "8", name: "Polosofast", mmr: 4000, roles: [3], heroes: ["Brewmaster", "Dark Seer", "Necrophos"], selected: false, points: 0 },
-    { id: "9", name: "Kiberborsh", mmr: 3500, roles: [3, 4], heroes: ["Ringmaster"], selected: false, points: 0 },
-    { id: "10", name: "Gomegan", mmr: 2900, roles: [4, 5], heroes: ["Clockwerk", "Warlock", "Ancient Apparition", "Ringmaster", "Hoodwink", "Jakiro"], selected: false, points: 0 },
-    { id: "11", name: "Ap", mmr: 2600, roles: [1, 4], heroes: ["Pudge", "Phantom Assassin", "Lion", "Shadow Fiend"], selected: false, points: 0 },
-    { id: "12", name: "DeniumC", mmr: 2400, roles: [2], heroes: ["Tinker"], selected: false, points: 0 },
-    { id: "13", name: "Watcher", mmr: 2000, roles: [1], heroes: ["Naga Siren", "Juggernaut", "Terrorblade", "Templar Assassin"], selected: false, points: 0 },
-    { id: "14", name: "Mkka", mmr: 1500, roles: [1, 3, 5], heroes: ["Anti-Mage", "Tidehunter", "Dazzle"], selected: false, points: 0 },
-    { id: "15", name: "Maramirk", mmr: 1400, roles: [3], heroes: ["Axe", "Timbersaw", "Centaur Warrunner"], selected: false, points: 0 },
-    { id: "16", name: "Zvzelya", mmr: 1000, roles: [1, 2, 3, 4, 5], heroes: ["Spirit Breaker", "Ogre Magi", "Shadow Fiend", "Ursa", "Spectre", "Wraith King"], selected: false, points: 0 },
-    { id: "17", name: "Vistu", mmr: 1000, roles: [4], heroes: ["Zeus", "Bane", "Undying"], selected: false, points: 0 },
-    { id: "18", name: "Roman", mmr: 900, roles: [3], heroes: ["Dawnbreaker"], selected: false, points: 0 }
+    {
+      "id": "e2c68a6f-a54e-4dc1-a102-ca9245c62068",
+      "name": "Varker32",
+      "mmr": 7309,
+      "roles": [
+        3
+      ],
+      "heroes": [
+        "Primal Beast",
+        "Night Stalker",
+        "Axe",
+        "Doom",
+        "Sand King",
+        "Dark Seer",
+        "Enigma",
+        "Largo",
+        "Pudge",
+        "Dawnbreaker"
+      ],
+      "selected": false,
+      "points": 97,
+      "steamId": ""
+    },
+    {
+      "id": "3",
+      "name": "K1zaz",
+      "mmr": 6359,
+      "roles": [
+        3
+      ],
+      "heroes": [
+        "Lycan",
+        "Nature's Prophet",
+        "Brewmaster",
+        "Tidehunter",
+        "Beastmaster",
+        "Batrider",
+        "Enigma",
+        "Dragon Knight",
+        "Invoker"
+      ],
+      "selected": false,
+      "points": 95,
+      "steamId": ""
+    },
+    {
+      "id": "2",
+      "name": "Shimmy",
+      "mmr": 7175,
+      "roles": [
+        5
+      ],
+      "heroes": [
+        "Bane",
+        "Tusk",
+        "Ringmaster",
+        "Shadow Demon",
+        "Grimstroke",
+        "Ancient Apparition",
+        "Slark",
+        "Storm Spirit",
+        "Keeper of the Light"
+      ],
+      "selected": false,
+      "points": 85,
+      "steamId": ""
+    },
+    {
+      "id": "4",
+      "name": "nonta",
+      "mmr": 6000,
+      "roles": [
+        2
+      ],
+      "heroes": [
+        "Invoker",
+        "Shadow Fiend",
+        "Leshrac",
+        "Outworld Destroyer",
+        "Ember Spirit",
+        "Necrophos",
+        "Nature's Prophet"
+      ],
+      "selected": false,
+      "points": 80,
+      "steamId": ""
+    },
+    {
+      "id": "5",
+      "name": "Arabius",
+      "mmr": 5700,
+      "roles": [
+        2
+      ],
+      "heroes": [
+        "Outworld Destroyer",
+        "Ember Spirit",
+        "Windranger"
+      ],
+      "selected": false,
+      "points": 75,
+      "steamId": ""
+    },
+    {
+      "id": "6",
+      "name": "Tutik",
+      "mmr": 4720,
+      "roles": [
+        1
+      ],
+      "heroes": [
+        "Shadow Fiend",
+        "Drow Ranger",
+        "Phantom Lancer",
+        "Medusa",
+        "Necrophos",
+        "Lifestealer",
+        "Ursa"
+      ],
+      "selected": false,
+      "points": 69,
+      "steamId": ""
+    },
+    {
+      "id": "8",
+      "name": "Polosofast",
+      "mmr": 4847,
+      "roles": [
+        3
+      ],
+      "heroes": [
+        "Brewmaster",
+        "Dark Seer",
+        "Necrophos"
+      ],
+      "selected": false,
+      "points": 67,
+      "steamId": ""
+    },
+    {
+      "id": "7",
+      "name": "Sumnir",
+      "mmr": 4000,
+      "roles": [
+        1
+      ],
+      "heroes": [
+        "Faceless Void",
+        "Anti-Mage",
+        "Lifestealer",
+        "Ursa"
+      ],
+      "selected": false,
+      "points": 53,
+      "steamId": ""
+    },
+    {
+      "id": "1789065864714",
+      "name": "Ls( Diana)",
+      "mmr": 4071,
+      "roles": [
+        4
+      ],
+      "heroes": [
+        "Windranger",
+        "Hoodwink",
+        "Earthshaker"
+      ],
+      "selected": false,
+      "points": 50,
+      "steamId": ""
+    },
+    {
+      "id": "9",
+      "name": "Kiberborsh",
+      "mmr": 3500,
+      "roles": [
+        3,
+        4
+      ],
+      "heroes": [
+        "Ringmaster",
+        "Doom",
+        "Tidehunter",
+        "Axe",
+        "Lich",
+        "Jakiro",
+        "Tusk"
+      ],
+      "selected": false,
+      "points": 44,
+      "steamId": ""
+    },
+    {
+      "id": "5999ffc2-1550-4996-8bde-aa0906466742",
+      "name": "kozebot",
+      "mmr": 3500,
+      "roles": [
+        3
+      ],
+      "heroes": [
+        "Legion Commander",
+        "Dragon Knight",
+        "Pudge",
+        "Wraith King"
+      ],
+      "selected": false,
+      "points": 40,
+      "steamId": ""
+    },
+    {
+      "id": "10",
+      "name": "Gomegan",
+      "mmr": 3500,
+      "roles": [
+        5
+      ],
+      "heroes": [
+        "Hoodwink",
+        "Warlock",
+        "Ringmaster",
+        "Ancient Apparition",
+        "Clockwerk",
+        "Jakiro"
+      ],
+      "selected": false,
+      "points": 40,
+      "steamId": ""
+    },
+    {
+      "id": "13",
+      "name": "Watcher",
+      "mmr": 3281,
+      "roles": [
+        1
+      ],
+      "heroes": [
+        "Naga Siren",
+        "Juggernaut",
+        "Terrorblade",
+        "Templar Assassin"
+      ],
+      "selected": false,
+      "points": 35,
+      "steamId": ""
+    },
+    {
+      "id": "17",
+      "name": "Vistu",
+      "mmr": 2618,
+      "roles": [
+        4
+      ],
+      "heroes": [
+        "Zeus",
+        "Bane",
+        "Undying"
+      ],
+      "selected": false,
+      "points": 31,
+      "steamId": ""
+    },
+    {
+      "id": "11",
+      "name": "Ap",
+      "mmr": 2600,
+      "roles": [
+        4
+      ],
+      "heroes": [
+        "Pudge",
+        "Phantom Assassin",
+        "Lion",
+        "Shadow Fiend"
+      ],
+      "selected": false,
+      "points": 31,
+      "steamId": ""
+    },
+    {
+      "id": "12",
+      "name": "DeniumC",
+      "mmr": 2400,
+      "roles": [
+        2,
+        4
+      ],
+      "heroes": [
+        "Tinker",
+        "Rubick",
+        "Queen of Pain"
+      ],
+      "selected": false,
+      "points": 29,
+      "steamId": ""
+    },
+    {
+      "id": "14",
+      "name": "Mkka",
+      "mmr": 1600,
+      "roles": [
+        5
+      ],
+      "heroes": [
+        "Anti-Mage",
+        "Tidehunter",
+        "Dazzle"
+      ],
+      "selected": false,
+      "points": 27,
+      "steamId": ""
+    },
+    {
+      "id": "18",
+      "name": "Roman",
+      "mmr": 1600,
+      "roles": [
+        3
+      ],
+      "heroes": [
+        "Dawnbreaker",
+        "Night Stalker",
+        "Dragon Knight",
+        "Bristleback"
+      ],
+      "selected": false,
+      "points": 23,
+      "steamId": ""
+    },
+    {
+      "id": "15",
+      "name": "Maramirk",
+      "mmr": 1400,
+      "roles": [
+        3,
+        4
+      ],
+      "heroes": [
+        "Axe",
+        "Timbersaw",
+        "Centaur Warrunner",
+        "Shadow Shaman",
+        "Witch Doctor"
+      ],
+      "selected": false,
+      "points": 22,
+      "steamId": ""
+    },
+    {
+      "id": "5bb30075-acb6-4b1b-a51c-585c3b417c36",
+      "name": "kiotaka",
+      "mmr": 6087,
+      "roles": [
+        2
+      ],
+      "heroes": [
+        "Ember Spirit",
+        "Shadow Fiend",
+        "Lina",
+        "Outworld Destroyer",
+        "Arc Warden"
+      ],
+      "selected": false,
+      "points": 81,
+      "steamId": ""
+    },
+    {
+      "id": "8d651b08-2c45-4afb-af0d-7a19b6070255",
+      "name": "irma",
+      "mmr": 4500,
+      "roles": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "heroes": [],
+      "selected": false,
+      "points": 60,
+      "steamId": ""
+    },
+    {
+      "id": "edda272f-26ed-4252-b82e-1cae34d31530",
+      "name": "tator",
+      "mmr": 4100,
+      "roles": [
+        1
+      ],
+      "heroes": [],
+      "selected": false,
+      "points": 55,
+      "steamId": ""
+    },
+    {
+      "id": "1789070023781",
+      "name": "БАРЫГА КЕГАМИ",
+      "mmr": 4100,
+      "roles": [
+        2
+      ],
+      "heroes": [
+        "Death Prophet",
+        "Phoenix"
+      ],
+      "selected": false,
+      "points": 55,
+      "steamId": ""
+    },
+    {
+      "id": "a727409f-c101-483b-800c-9a4345c932e5",
+      "name": "кибербойчик",
+      "mmr": 3892,
+      "roles": [
+        3
+      ],
+      "heroes": [
+        "Axe",
+        "Night Stalker",
+        "Pudge",
+        "Dawnbreaker"
+      ],
+      "selected": false,
+      "points": 52,
+      "steamId": ""
+    },
+    {
+      "id": "95969a9f-1f8a-4927-84b7-dfdf379066eb",
+      "name": "derek",
+      "mmr": 3400,
+      "roles": [
+        1,
+        2
+      ],
+      "heroes": [
+        "Tinker",
+        "Outworld Destroyer",
+        "Phantom Lancer",
+        "Juggernaut"
+      ],
+      "selected": false,
+      "points": 45,
+      "steamId": ""
+    },
+    {
+      "id": "e068aff7-2a24-4b83-8cb4-43322dfd9a79",
+      "name": "bak",
+      "mmr": 3000,
+      "roles": [
+        3,
+        4
+      ],
+      "heroes": [
+        "Jakiro",
+        "Skywrath Mage",
+        "Death Prophet"
+      ],
+      "selected": false,
+      "points": 40,
+      "steamId": ""
+    },
+    {
+      "id": "824e0737-877a-4941-9709-e16d47abe9bc",
+      "name": "Латентный",
+      "mmr": 1500,
+      "roles": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "heroes": [],
+      "selected": false,
+      "points": 20,
+      "steamId": ""
+    },
+    {
+      "id": "16",
+      "name": "Zvzelya",
+      "mmr": 1000,
+      "roles": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "heroes": [
+        "Spirit Breaker",
+        "Ogre Magi",
+        "Shadow Fiend",
+        "Ursa",
+        "Spectre",
+        "Wraith King"
+      ],
+      "selected": false,
+      "points": 13,
+      "steamId": ""
+    }
   ];
 
   let players = [];
@@ -1899,7 +2384,7 @@
     if (!activeSortType) return;
     players.sort((a, b) => {
       if (activeSortType === 'mmr') return (a.mmr - b.mmr) * sortDirection.mmr;
-      if (activeSortType === 'points') return ((a.points || 0) - (b.points || 0)) * sortDirection.points;
+      if (activeSortType === 'points') return (getBalanceValue(a, 'points') - getBalanceValue(b, 'points')) * sortDirection.points;
       if (activeSortType === 'name') return a.name.localeCompare(b.name) * sortDirection.name;
       return 0;
     });
@@ -1960,12 +2445,53 @@
     }
   }
 
+  // Калибровка и авто-оценка поинтов (0 - 100) из официального MMR Dota 2
+  function estimatePointsFromMmr(mmr) {
+    if (!mmr || mmr <= 0) return 0;
+    return Math.min(100, Math.max(5, Math.round(mmr / 75)));
+  }
+
+  function calcPointsFromFormMmr() {
+    const mmrInput = document.getElementById('form-mmr');
+    const pointsInput = document.getElementById('form-points');
+    const mmr = parseInt(mmrInput.value, 10);
+    if (!isNaN(mmr) && mmr > 0) {
+      pointsInput.value = estimatePointsFromMmr(mmr);
+    } else {
+      alert('Сначала укажите корректный MMR игрока!');
+    }
+  }
+
+  function autoFillPointsFromMmr(onlyZero = true) {
+    if (!isAdmin()) {
+      alert('Доступно только в режиме администратора.');
+      return;
+    }
+    let updatedCount = 0;
+    players.forEach(p => {
+      if (!onlyZero || !p.points || p.points === 0) {
+        if (p.mmr > 0) {
+          p.points = estimatePointsFromMmr(p.mmr);
+          updatedCount++;
+        }
+      }
+    });
+    if (updatedCount > 0) {
+      syncCloud();
+      renderTable();
+      alert(`Рассчитаны поинты для ${updatedCount} игроков на основе их MMR.`);
+    } else {
+      alert('У всех игроков с MMR уже заполнены поинты!');
+    }
+  }
+
   function updateAdminUI() {
     const btn = document.getElementById('admin-toggle-btn');
     const addBtn = document.getElementById('btn-add-player');
     const resetBtn = document.getElementById('btn-reset-roster');
     const backupBtn = document.getElementById('btn-backup-json');
     const importBtn = document.getElementById('btn-import-json');
+    const calcPointsBtn = document.getElementById('btn-calc-points');
     const thActions = document.getElementById('th-actions');
     const finishBtn = document.getElementById('btn-finish-lobby-match');
 
@@ -1975,6 +2501,7 @@
       addBtn.style.display = 'inline-flex';
       resetBtn.style.display = 'inline-flex';
       if (backupBtn) backupBtn.style.display = 'inline-flex';
+      if (calcPointsBtn) calcPointsBtn.style.display = 'inline-flex';
       importBtn.style.display = 'inline-flex';
       thActions.style.display = '';
       if (finishBtn) finishBtn.style.display = 'inline-flex';
@@ -1984,6 +2511,7 @@
       addBtn.style.display = 'none';
       resetBtn.style.display = 'none';
       if (backupBtn) backupBtn.style.display = 'none';
+      if (calcPointsBtn) calcPointsBtn.style.display = 'none';
       importBtn.style.display = 'none';
       thActions.style.display = 'none';
       if (finishBtn) finishBtn.style.display = 'none';
@@ -2067,7 +2595,12 @@
     }
   }
 
-  players.forEach(p => p.selected = false);
+  players.forEach(p => {
+    p.selected = false;
+    if (p.mmr > 0 && (p.points == null || p.points === 0)) {
+      p.points = estimatePointsFromMmr(p.mmr);
+    }
+  });
   document.getElementById('badge-history-count').textContent = matches.length;
   applySort();
   syncLobbyWithRoster();
@@ -2321,14 +2854,15 @@
       matchId, score, duration,
       date: new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
       winner,
+      metric: currentLobbyData.metric || 'mmr',
       diff: currentLobbyData.diff,
       radiantAvg: Math.round(currentLobbyData.radiantMmr / (currentLobbyData.radiant.length || 1)),
       direAvg: Math.round(currentLobbyData.direMmr / (currentLobbyData.dire.length || 1)),
       radiant: currentLobbyData.radiant.map(p => ({
-        id: p.id, name: p.name, pos: p.assignedPos, hero: p.pickedHero, mmr: p.mmr, kda: extractKda(p)
+        id: p.id, name: p.name, pos: p.assignedPos, hero: p.pickedHero, mmr: p.mmr, points: (p.points != null ? p.points : 0), kda: extractKda(p)
       })),
       dire: currentLobbyData.dire.map(p => ({
-        id: p.id, name: p.name, pos: p.assignedPos, hero: p.pickedHero, mmr: p.mmr, kda: extractKda(p)
+        id: p.id, name: p.name, pos: p.assignedPos, hero: p.pickedHero, mmr: p.mmr, points: (p.points != null ? p.points : 0), kda: extractKda(p)
       }))
     };
 
@@ -2432,32 +2966,55 @@
   const MMR_PRIORITY_MAX_PREMIUM = 250;
   const CORE_POS_PRIORITY = [0, 1, 1, 0.5, 0, 0]; // индекс = позиция 1..5
 
-  // Универсальный геттер "силы" игрока для балансировки: MMR (по умолчанию) или поинты.
+  // Универсальный геттер "силы" игрока для балансировки: поинты (0-100) или MMR.
   function getBalanceValue(player, metric) {
     if (!player) return 0;
-    return metric === 'points' ? (player.points || 0) : (player.mmr || 0);
+    if (metric === 'points') {
+      if (typeof player.points === 'number' && player.points > 0) return player.points;
+      // Fallback: если поинты не заданы (0 или null), но есть MMR, используем оценку из MMR,
+      // чтобы сильный игрок (например 6000+ MMR) с незаполненными поинтами не ломал баланс в 0.
+      if (player.mmr && player.mmr > 0) return estimatePointsFromMmr(player.mmr);
+      return player.points || 0;
+    }
+    return player.mmr || 0;
   }
 
   function assignBestRoles(teamPlayers, mode = 'standard', metric = 'mmr') {
-    const rolePenaltyWeights = mode === 'core' ? [0, 1200, 1200, 500, 200, 150] : [0, 200, 200, 200, 200, 200];
-    const usePriority = mode === 'core';
+    const isPoints = metric === 'points';
+    // В режиме поинтов (0-100) шкала штрафов за офф-роль выражена в поинтах (18-35 PTS),
+    // а штраф за размер пула героев — максимум 1-3 PTS, чтобы пустой профиль на сайте
+    // никогда не выбивал игрока с его родной роли.
+    const rolePenaltyWeights = isPoints
+      ? [0, 35, 35, 25, 18, 18]
+      : ((mode === 'core') ? [0, 1200, 1200, 500, 200, 150] : [0, 200, 200, 200, 200, 200]);
 
     const penalties = new Array(PRECOMPUTED_PERMS.length);
     const priorities = new Array(PRECOMPUTED_PERMS.length);
     let minPenalty = Infinity;
 
+    const CORE_POS_PRIORITY = [0, 1.0, 1.0, 0.6, 0.2, 0.1];
+
     for (let i = 0; i < PRECOMPUTED_PERMS.length; i++) {
       const order = PRECOMPUTED_PERMS[i];
       let penalty = 0;
-      let mmrPriority = 0;
+      let priorityVal = 0;
       for (let pos = 1; pos <= 5; pos++) {
         const player = teamPlayers[order[pos - 1]];
-        // При РАВНОМ штрафе за роль предпочтение отдаётся игроку с более высоким MMR/поинтами
-        // (мелкий тай-брейк, как раньше). Основной MMR-приоритет — см. mmrPriority ниже.
-        if (!player.roles.includes(pos)) penalty += rolePenaltyWeights[pos] + getBalanceValue(player, metric) * 0.001;
+        const val = getBalanceValue(player, metric);
+        const hasRole = player.roles && player.roles.includes(pos);
+        if (!hasRole) {
+          const starMult = isPoints ? (val >= 80 ? 1.5 : 1.0) : 1.0;
+          penalty += (rolePenaltyWeights[pos] * starMult) + (isPoints ? val * 0.1 : val * 0.001);
+        }
 
-        if (mode === 'core') {
-          const poolLen = (player.heroes && Array.isArray(player.heroes)) ? player.heroes.length : 0;
+        const poolLen = (player.heroes && Array.isArray(player.heroes)) ? player.heroes.length : 0;
+        if (isPoints) {
+          if (hasRole) {
+            if (poolLen === 0) penalty += (pos <= 2 ? 3 : (pos === 3 ? 2 : 1));
+            else if (poolLen === 1) penalty += (pos <= 2 ? 2 : (pos === 3 ? 1.2 : 0.5));
+            else if (poolLen === 2) penalty += (pos <= 2 ? 1 : 0);
+          }
+        } else if (mode === 'core') {
           if (pos === 1 || pos === 2) {
             if (poolLen === 0) penalty += 700;
             else if (poolLen === 1) penalty += 500;
@@ -2470,17 +3027,16 @@
           }
         }
 
-        if (usePriority && player.roles.includes(pos)) mmrPriority += (player.mmr || 0) * CORE_POS_PRIORITY[pos];
+        if (hasRole) {
+          priorityVal += val * CORE_POS_PRIORITY[pos];
+        }
       }
       penalties[i] = penalty;
-      priorities[i] = MMR_PRIORITY_K * mmrPriority;
+      priorities[i] = (isPoints ? 0.15 : MMR_PRIORITY_K) * priorityVal;
       if (penalty < minPenalty) minPenalty = penalty;
     }
 
-    // Выбор: среди расстановок с базовым штрафом в пределах потолка от минимального
-    // берём с наибольшим MMR-приоритетом (в standard-режиме потолок = 0 → как раньше:
-    // побеждает минимальный штраф, при равенстве — первая найденная).
-    const window = usePriority ? MMR_PRIORITY_MAX_PREMIUM : 0;
+    const window = isPoints ? 5 : (mode === 'core' ? MMR_PRIORITY_MAX_PREMIUM : 0);
     let bestIdx = -1;
     let bestCost = Infinity;
     for (let i = 0; i < PRECOMPUTED_PERMS.length; i++) {
@@ -2495,16 +3051,35 @@
       bestAssignment = order.map((idx, pPos) => ({
         ...teamPlayers[idx],
         assignedPos: pPos + 1,
-        pickedHero: teamPlayers[idx].heroes[0] || 'Pudge'
+        pickedHero: (teamPlayers[idx].heroes && teamPlayers[idx].heroes[0]) || 'Pudge'
       }));
       sortTeamByPositions(bestAssignment);
     }
     return { assigned: bestAssignment, penalty: bestIdx >= 0 ? penalties[bestIdx] : 999999 };
   }
 
-  function getCoreEffectiveRating(player, pos) {
+  function getCoreEffectiveRating(player, pos, metric = 'mmr') {
     if (!player) return 0;
     const poolSize = (player.heroes && Array.isArray(player.heroes)) ? player.heroes.length : 0;
+    if (metric === 'points') {
+      const basePts = getBalanceValue(player, 'points');
+      let poolMod = 0;
+      if (pos === 1 || pos === 2) {
+        if (poolSize === 0) poolMod = -3;
+        else if (poolSize === 1) poolMod = -2;
+        else if (poolSize === 2) poolMod = -1;
+        else if (poolSize >= 5) poolMod = 1.5;
+      } else if (pos === 3) {
+        if (poolSize === 0) poolMod = -2.5;
+        else if (poolSize === 1) poolMod = -1.5;
+        else if (poolSize >= 5) poolMod = 1.0;
+      } else {
+        if (poolSize === 0) poolMod = -1;
+        else if (poolSize >= 5) poolMod = 0.8;
+      }
+      return Math.max(0, basePts + poolMod);
+    }
+
     let poolWeight = 0;
     if (pos === 1 || pos === 2) {
       if (poolSize === 0) poolWeight = -800;
@@ -2518,13 +3093,14 @@
       else if (poolSize === 2) poolWeight = -150;
       else if (poolSize >= 5) poolWeight = 100;
     }
-    return player.mmr + poolWeight;
+    return (player.mmr || 0) + poolWeight;
   }
 
   function evaluateBalanceVariants(selectedPlayers, mode = 'standard', metric = 'mmr') {
     const teammatePairWeights = getRecentTeammatesHistoryMap(3);
     const candidateSplits = [];
     const seenSplits = new Set();
+    const isPoints = metric === 'points';
 
     function getTeamRecentPairPenalty(team) {
       let penalty = 0;
@@ -2540,6 +3116,8 @@
     }
 
     function evalTen(ten) {
+      const historyScale = isPoints ? 0.05 : 1.0;
+
       function getCombos(start, combo) {
         if (combo.length === 5) {
           const teamA = combo;
@@ -2552,32 +3130,114 @@
           if (seenSplits.has(canonicalKey)) return;
           seenSplits.add(canonicalKey);
 
-          const mmrA = teamA.reduce((s, p) => s + getBalanceValue(p, metric), 0);
-          const mmrB = teamB.reduce((s, p) => s + getBalanceValue(p, metric), 0);
-          const diff = Math.abs(mmrA - mmrB);
+          const valA = teamA.reduce((s, p) => s + getBalanceValue(p, metric), 0);
+          const valB = teamB.reduce((s, p) => s + getBalanceValue(p, metric), 0);
+          const diff = Math.abs(valA - valB);
 
-          let coreDistributionPenalty = 0;
-          if (mode === 'core') {
-            const carriesInTen = ten.filter(p => p.roles && p.roles.includes(1)).length;
-            const carriesInA = teamA.filter(p => p.roles && p.roles.includes(1)).length;
-            if (carriesInTen >= 2 && (carriesInA === 0 || carriesInA === carriesInTen)) coreDistributionPenalty += 4000;
-
-            const midsInTen = ten.filter(p => p.roles && p.roles.includes(2)).length;
-            const midsInA = teamA.filter(p => p.roles && p.roles.includes(2)).length;
-            if (midsInTen >= 2 && (midsInA === 0 || midsInA === midsInTen)) coreDistributionPenalty += 4000;
+          // Баланс распределения чистых специалистов по ролям:
+          // Если 2+ игрока заявили строго одну роль, они не должны сваливаться в одну команду
+          let specialistImbalancePenalty = 0;
+          for (let pos = 1; pos <= 5; pos++) {
+            const pureTen = ten.filter(p => p.roles && p.roles.length === 1 && p.roles[0] === pos);
+            if (pureTen.length >= 2) {
+              const pureA = teamA.filter(p => p.roles && p.roles.length === 1 && p.roles[0] === pos).length;
+              const pureB = pureTen.length - pureA;
+              const imb = Math.abs(pureA - pureB);
+              if (imb > 1) {
+                specialistImbalancePenalty += isPoints ? (imb * 25) : (imb * 2000);
+              }
+            }
           }
 
           const rA = assignBestRoles(teamA, mode, metric);
           const rB = assignBestRoles(teamB, mode, metric);
 
-          // При сборке по поинтам ('points') учитываются поинты, роли, штраф за
-          // недавних тиммейтов и антифрод-штраф по стакам — как и в остальных режимах.
           const antiFraudPenalty = getStackAntiFraudPenalty(teamA, teamB);
           const teammatePenalty = getTeamRecentPairPenalty(teamA) + getTeamRecentPairPenalty(teamB);
 
           let score = 0;
-          if (metric === 'points') {
-            score = diff + rA.penalty + rB.penalty + teammatePenalty + antiFraudPenalty;
+          let chosenRad = rA.assigned;
+          let chosenDire = rB.assigned;
+          let chosenRadVal = valA;
+          let chosenDireVal = valB;
+
+          if (isPoints) {
+            const p1A = rA.assigned.find(p => p.assignedPos === 1);
+            const p2A = rA.assigned.find(p => p.assignedPos === 2);
+            const p3A = rA.assigned.find(p => p.assignedPos === 3);
+            const p4A = rA.assigned.find(p => p.assignedPos === 4);
+            const p5A = rA.assigned.find(p => p.assignedPos === 5);
+
+            const p1B = rB.assigned.find(p => p.assignedPos === 1);
+            const p2B = rB.assigned.find(p => p.assignedPos === 2);
+            const p3B = rB.assigned.find(p => p.assignedPos === 3);
+            const p4B = rB.assigned.find(p => p.assignedPos === 4);
+            const p5B = rB.assigned.find(p => p.assignedPos === 5);
+
+            const eff1A = getCoreEffectiveRating(p1A, 1, 'points');
+            const eff2A = getCoreEffectiveRating(p2A, 2, 'points');
+            const eff3A = getCoreEffectiveRating(p3A, 3, 'points');
+            const eff4A = getCoreEffectiveRating(p4A, 4, 'points');
+            const eff5A = getCoreEffectiveRating(p5A, 5, 'points');
+
+            const eff1B = getCoreEffectiveRating(p1B, 1, 'points');
+            const eff2B = getCoreEffectiveRating(p2B, 2, 'points');
+            const eff3B = getCoreEffectiveRating(p3B, 3, 'points');
+            const eff4B = getCoreEffectiveRating(p4B, 4, 'points');
+            const eff5B = getCoreEffectiveRating(p5B, 5, 'points');
+
+            const midDiff = Math.abs(eff2A - eff2B);
+
+            // Кросс-линии: Safe Lane vs Offlane
+            // Orientation A=Rad, B=Dire
+            const radSafeA = eff1A * 0.65 + eff5A * 0.35;
+            const direOffB = eff3B * 0.65 + eff4B * 0.35;
+            const laneAdv1_AB = Math.abs(radSafeA - direOffB);
+
+            const direSafeB = eff1B * 0.65 + eff5B * 0.35;
+            const radOffA = eff3A * 0.65 + eff4A * 0.35;
+            const laneAdv2_AB = Math.abs(direSafeB - radOffA);
+            const totalLaneAdv_AB = laneAdv1_AB + laneAdv2_AB;
+
+            // Orientation B=Rad, A=Dire
+            const radSafeB = eff1B * 0.65 + eff5B * 0.35;
+            const direOffA = eff3A * 0.65 + eff4A * 0.35;
+            const laneAdv1_BA = Math.abs(radSafeB - direOffA);
+
+            const direSafeA = eff1A * 0.65 + eff5A * 0.35;
+            const radOffB = eff3B * 0.65 + eff4B * 0.35;
+            const laneAdv2_BA = Math.abs(direSafeA - radOffB);
+            const totalLaneAdv_BA = laneAdv1_BA + laneAdv2_BA;
+
+            // Выбираем сторону (Radiant vs Dire), которая дает наиболее равные линии
+            const flipSide = (totalLaneAdv_BA < totalLaneAdv_AB);
+            if (flipSide) {
+              chosenRad = rB.assigned;
+              chosenDire = rA.assigned;
+              chosenRadVal = valB;
+              chosenDireVal = valA;
+            }
+
+            const bestLaneAdv = Math.min(totalLaneAdv_AB, totalLaneAdv_BA);
+
+            // Баланс суммарной силы коров (Pos 1 + Pos 2 + Pos 3)
+            const coreSumA = eff1A + eff2A + eff3A;
+            const coreSumB = eff1B + eff2B + eff3B;
+            const coreSumDiff = Math.abs(coreSumA - coreSumB);
+
+            // Дисперсия топ-звезд между командами
+            const sortedA = [...teamA].map(p => getBalanceValue(p, 'points')).sort((a, b) => b - a);
+            const sortedB = [...teamB].map(p => getBalanceValue(p, 'points')).sort((a, b) => b - a);
+            const starDispersion = (Math.abs(sortedA[0] - sortedB[0]) * 1.5) + (Math.abs(sortedA[1] - sortedB[1]) * 1.0);
+
+            score = (diff * 2.0) +
+                    (midDiff * 2.5) +
+                    (coreSumDiff * 1.5) +
+                    (bestLaneAdv * 1.2) +
+                    starDispersion +
+                    specialistImbalancePenalty +
+                    (rA.penalty + rB.penalty) +
+                    (teammatePenalty + antiFraudPenalty) * historyScale;
           } else if (mode === 'core') {
             const p1A = rA.assigned.find(p => p.assignedPos === 1);
             const p1B = rB.assigned.find(p => p.assignedPos === 1);
@@ -2586,25 +3246,29 @@
             const p3A = rA.assigned.find(p => p.assignedPos === 3);
             const p3B = rB.assigned.find(p => p.assignedPos === 3);
 
-            const effCarryA = getCoreEffectiveRating(p1A, 1);
-            const effCarryB = getCoreEffectiveRating(p1B, 1);
-            const effMidA = getCoreEffectiveRating(p2A, 2);
-            const effMidB = getCoreEffectiveRating(p2B, 2);
-            const effOffA = getCoreEffectiveRating(p3A, 3);
-            const effOffB = getCoreEffectiveRating(p3B, 3);
+            const effCarryA = getCoreEffectiveRating(p1A, 1, 'mmr');
+            const effCarryB = getCoreEffectiveRating(p1B, 1, 'mmr');
+            const effMidA = getCoreEffectiveRating(p2A, 2, 'mmr');
+            const effMidB = getCoreEffectiveRating(p2B, 2, 'mmr');
+            const effOffA = getCoreEffectiveRating(p3A, 3, 'mmr');
+            const effOffB = getCoreEffectiveRating(p3B, 3, 'mmr');
 
             score = (diff * 1.0) + (Math.abs(effMidA - effMidB) * 2.2) + (Math.abs(effCarryA - effCarryB) * 1.8) + (Math.abs(effOffA - effOffB) * 1.1) +
-                    rA.penalty + rB.penalty + coreDistributionPenalty + teammatePenalty + antiFraudPenalty;
+                    rA.penalty + rB.penalty + specialistImbalancePenalty + teammatePenalty + antiFraudPenalty;
           } else {
-            score = (diff * 1.5) + rA.penalty + rB.penalty + teammatePenalty + antiFraudPenalty;
+            score = (diff * 1.5) + rA.penalty + rB.penalty + specialistImbalancePenalty + teammatePenalty + antiFraudPenalty;
           }
 
           candidateSplits.push({
             score, diff, metric,
-            radiant: rA.assigned, dire: rB.assigned,
-            radiantMmr: mmrA, direMmr: mmrB,
+            radiant: chosenRad,
+            dire: chosenDire,
+            radiantMmr: chosenRadVal,
+            direMmr: chosenDireVal,
             bench: selectedPlayers.filter(p => !ten.includes(p)),
-            teamAIds: new Set(teamA.map(p => p.id))
+            teamRadIds: new Set(chosenRad.map(p => p.id)),
+            teamDireIds: new Set(chosenDire.map(p => p.id)),
+            rolePenalty: rA.penalty + rB.penalty
           });
 
           return;
@@ -2614,43 +3278,83 @@
       getCombos(0, []);
     }
 
-    if (selectedPlayers.length === 10) evalTen(selectedPlayers);
-    else {
-      for (let it = 0; it < Math.min(300, selectedPlayers.length * 20); it++) {
-        evalTen([...selectedPlayers].sort(() => 0.5 - Math.random()).slice(0, 10));
+    function getSubsetsOfTen(playersList) {
+      const n = playersList.length;
+      if (n === 10) return [playersList];
+      if (n <= 12) {
+        const result = [];
+        function pick(start, current) {
+          if (current.length === 10) { result.push(current); return; }
+          for (let i = start; i < n; i++) pick(i + 1, current.concat([playersList[i]]));
+        }
+        pick(0, []);
+        return result;
       }
+      const samples = [];
+      const seenSampleKeys = new Set();
+      const maxSamples = Math.min(150, n * 15);
+      for (let s = 0; s < maxSamples; s++) {
+        const copy = [...playersList];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        const ten = copy.slice(0, 10);
+        const key = ten.map(p => p.id).sort().join('_');
+        if (!seenSampleKeys.has(key)) {
+          seenSampleKeys.add(key);
+          samples.push(ten);
+        }
+      }
+      return samples;
     }
+
+    const tenSubsets = getSubsetsOfTen(selectedPlayers);
+    tenSubsets.forEach(ten => evalTen(ten));
 
     if (candidateSplits.length === 0) return [];
     candidateSplits.sort((a, b) => a.score - b.score);
+
+    // Честное симметричное пересечение составов с учетом сторон и скамейки
+    function getSplitOverlap(sA, sB) {
+      let sameSide = 0;
+      let crossSide = 0;
+      sA.teamRadIds.forEach(id => {
+        if (sB.teamRadIds.has(id)) sameSide++;
+        if (sB.teamDireIds.has(id)) crossSide++;
+      });
+      sA.teamDireIds.forEach(id => {
+        if (sB.teamDireIds.has(id)) sameSide++;
+        if (sB.teamRadIds.has(id)) crossSide++;
+      });
+      return Math.max(sameSide, crossSide); // максимум совпадений из 10
+    }
 
     const variants = [];
     const v1 = candidateSplits[0];
     v1.variantTitle = "Вариант 1 (Оптимальный)";
     variants.push(v1);
 
-    const minDiffCandidate = [...candidateSplits].sort((a, b) => a.diff - b.diff || a.score - b.score).find(c => {
-      let overlap = 0;
-      c.teamAIds.forEach(id => { if (v1.teamAIds.has(id)) overlap++; });
-      return overlap <= 3;
-    });
+    // Вариант 2: ищем минимальный diff среди жизнеспособных составов (не разрушающих роли)
+    const maxViableScore = v1.score * 1.5 + 30;
+    const minDiffCandidates = candidateSplits
+      .filter(c => c.score <= maxViableScore && getSplitOverlap(c, v1) <= 6)
+      .sort((a, b) => a.diff - b.diff || a.score - b.score);
 
-    if (minDiffCandidate) {
-      minDiffCandidate.variantTitle = metric === 'points' ? "Вариант 2 (Минимум разницы поинтов)" : "Вариант 2 (Минимум MMR)";
-      variants.push(minDiffCandidate);
+    if (minDiffCandidates.length > 0) {
+      const v2 = minDiffCandidates[0];
+      v2.variantTitle = metric === 'points' ? "Вариант 2 (Минимум разницы поинтов)" : "Вариант 2 (Минимум MMR)";
+      variants.push(v2);
     } else if (candidateSplits[1]) {
       candidateSplits[1].variantTitle = "Вариант 2 (Альтернативный)";
       variants.push(candidateSplits[1]);
     }
 
+    // Вариант 3: свежие связки (не повторяющие связки v1 и v2 более чем на 60%)
     const v3Candidate = candidateSplits.find(c => {
       if (variants.includes(c)) return false;
-      let o1 = 0, o2 = 0;
-      c.teamAIds.forEach(id => {
-        if (variants[0]?.teamAIds.has(id)) o1++;
-        if (variants[1]?.teamAIds.has(id)) o2++;
-      });
-      return o1 <= 3 && o2 <= 3;
+      return getSplitOverlap(c, variants[0]) <= 6 &&
+             (!variants[1] || getSplitOverlap(c, variants[1]) <= 6);
     });
 
     if (v3Candidate) {
@@ -2701,6 +3405,7 @@
     currentLobbyData = variants[0];
 
     document.getElementById('badge-lobby-active').style.display = 'inline-block';
+    recalculateLobbyStats();
     renderLobby();
     switchTab('lobby');
   }
@@ -2708,14 +3413,15 @@
   function autoBalanceCurrentLobby(mode = 'standard') {
     if (!currentLobbyData) return;
     const currentTen = [...currentLobbyData.radiant, ...currentLobbyData.dire];
-    if (currentTen.length < 10) {
-      alert('В лобби должно быть суммарно 10 игроков!');
+    const filled = currentTen.filter(p => !p.isEmptySlot);
+    if (filled.length !== 10) {
+      alert(`Для автобаланса необходимо ровно 10 игроков (сейчас заполнено: ${filled.length}/10).`);
       return;
     }
 
     const metric = mode === 'points' ? 'points' : 'mmr';
     const roleMode = mode === 'core' ? 'core' : 'standard';
-    const variants = evaluateBalanceVariants(currentTen, roleMode, metric);
+    const variants = evaluateBalanceVariants(filled, roleMode, metric);
     if (variants.length > 0) {
       variants.forEach(v => {
         sortTeamByPositions(v.radiant);
@@ -2731,431 +3437,8 @@
     }
   }
 
-  
 
-  function renderBalanceVariantsBar() {
-    const bar = document.getElementById('balance-variants-bar');
-    const container = document.getElementById('variants-chips-container');
-    if (!currentBalanceVariants || currentBalanceVariants.length <= 1) {
-      bar.style.display = 'none';
-      return;
-    }
-
-    bar.style.display = 'flex';
-    container.innerHTML = '';
-
-    currentBalanceVariants.forEach((v, idx) => {
-      const btn = document.createElement('button');
-      btn.className = `variant-chip-btn ${idx === activeVariantIndex ? 'active' : ''}`;
-      btn.innerHTML = `
-        <span>${escapeHtml(v.variantTitle || `Вариант ${idx + 1}`)}</span>
-        <span style="font-family:'JetBrains Mono', monospace; opacity:0.9;">(Δ ${v.diff} ${v.metric === 'points' ? 'PTS' : 'MMR'})</span>
-      `;
-      btn.onclick = () => applyLobbyVariant(idx);
-      container.appendChild(btn);
-    });
-  }
-
-  function getBanRiskNotice(player, roleTitle) {
-    if (!player) return '';
-    const pool = player.heroes || [];
-    const pName = escapeHtml(player.name);
-    const rTitle = escapeHtml(roleTitle);
-
-    if (pool.length === 0) return `<div class="cm-ban-warning" style="font-size:10.5px; color:#fca5a5; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:3px 6px; border-radius:4px; margin-top:3px;">⚠️ <b>${pName}</b> (${rTitle}): нет пула — риск бана в CM!</div>`;
-    if (pool.length === 1) return `<div class="cm-ban-warning" style="font-size:10.5px; color:#fca5a5; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:3px 6px; border-radius:4px; margin-top:3px;">⚠️ <b>${pName}</b> (${rTitle}): всего 1 герой (<b>${escapeHtml(pool[0])}</b>) — 100% бан!</div>`;
-    if (pool.length === 2) return `<div class="cm-ban-warning" style="font-size:10.5px; color:#fca5a5; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); padding:3px 6px; border-radius:4px; margin-top:3px;">⚠️ <b>${pName}</b> (${rTitle}): узкий пул (2 героя)!</div>`;
-    return '';
-  }
-
-  function updateLaningAnalysis() {
-    const container = document.getElementById('laning-grid-content');
-    if (!container || !currentLobbyData) return;
-
-    const rad = currentLobbyData.radiant;
-    const dire = currentLobbyData.dire;
-
-    const radMid = rad.find(p => p.assignedPos === 2) || rad[1] || rad[0] || { name: "Не определен", mmr: 0, heroes: [] };
-    const direMid = dire.find(p => p.assignedPos === 2) || dire[1] || dire[0] || { name: "Не определен", mmr: 0, heroes: [] };
-    const cmMidDiff = getCoreEffectiveRating(radMid, 2) - getCoreEffectiveRating(direMid, 2);
-
-    const radCarry = rad.find(p => p.assignedPos === 1) || rad[0];
-    const radHardSup = rad.find(p => p.assignedPos === 5) || rad[rad.length - 1];
-    const direOff = dire.find(p => p.assignedPos === 3) || dire[2] || dire[0];
-    const direSup = dire.find(p => p.assignedPos === 4) || dire[3] || dire[dire.length - 1];
-
-    const radSafeMmr = Math.round(((radCarry ? radCarry.mmr : 0) + (radHardSup ? radHardSup.mmr : 0)) / 2);
-    const direOffMmr = Math.round(((direOff ? direOff.mmr : 0) + (direSup ? direSup.mmr : 0)) / 2);
-    const cmSafeEff = Math.round((getCoreEffectiveRating(radCarry, 1) + getCoreEffectiveRating(radHardSup, 5)) / 2);
-    const cmOffEff = Math.round((getCoreEffectiveRating(direOff, 3) + getCoreEffectiveRating(direSup, 4)) / 2);
-    const topCmDiff = cmSafeEff - cmOffEff;
-
-    const radOff = rad.find(p => p.assignedPos === 3) || rad[2] || rad[0];
-    const radSup = rad.find(p => p.assignedPos === 4) || rad[3] || rad[rad.length - 1];
-    const direCarry = dire.find(p => p.assignedPos === 1) || dire[0];
-    const direHardSup = dire.find(p => p.assignedPos === 5) || dire[dire.length - 1];
-
-    const radOffMmr = Math.round(((radOff ? radOff.mmr : 0) + (radSup ? radSup.mmr : 0)) / 2);
-    const direSafeMmr = Math.round(((direCarry ? direCarry.mmr : 0) + (direHardSup ? direHardSup.mmr : 0)) / 2);
-    const cmRadOffEff = Math.round((getCoreEffectiveRating(radOff, 3) + getCoreEffectiveRating(radSup, 4)) / 2);
-    const cmDireSafeEff = Math.round((getCoreEffectiveRating(direCarry, 1) + getCoreEffectiveRating(direHardSup, 5)) / 2);
-    const botCmDiff = cmRadOffEff - cmDireSafeEff;
-
-    function renderAdvBadge(cmDiff) {
-      const diffStr = cmDiff > 0 ? `+${cmDiff}` : `${cmDiff}`;
-      if (Math.abs(cmDiff) <= 80) return `<div class="lane-advantage adv-even">⚖️ Равная линия (${diffStr} CM)</div>`;
-      if (cmDiff > 80) return `<div class="lane-advantage adv-rad">🟢 Преимущество Radiant (${diffStr} CM)</div>`;
-      return `<div class="lane-advantage adv-dire">🔴 Преимущество Dire (${diffStr} CM)</div>`;
-    }
-
-    container.innerHTML = `
-      <div class="lane-col">
-        <div class="lane-name">
-          <span>⚔️ Центральная линия</span>
-          <span style="color:var(--aegis-gold);">Mid (1x1)</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
-          <span style="color:#4ade80; font-weight:700;">${escapeHtml(radMid.name)} (${radMid.mmr})</span>
-          <span style="color:var(--text-muted);">vs</span>
-          <span style="color:#f87171; font-weight:700;">${escapeHtml(direMid.name)} (${direMid.mmr})</span>
-        </div>
-        ${getBanRiskNotice(radMid, "Mid")}
-        ${getBanRiskNotice(direMid, "Mid")}
-        ${renderAdvBadge(cmMidDiff)}
-      </div>
-
-      <div class="lane-col">
-        <div class="lane-name">
-          <span>🛡️ Легкая Rad vs Сложная Dire</span>
-          <span style="color:var(--mana-cyan);">Bot / Top</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
-          <span style="color:#4ade80; font-weight:700;">Rad: ~${radSafeMmr}</span>
-          <span style="color:var(--text-muted);">vs</span>
-          <span style="color:#f87171; font-weight:700;">Dire: ~${direOffMmr}</span>
-        </div>
-        ${getBanRiskNotice(radCarry, "Carry")}
-        ${getBanRiskNotice(radHardSup, "Hard Sup")}
-        ${getBanRiskNotice(direOff, "Offlane")}
-        ${getBanRiskNotice(direSup, "Support")}
-        ${renderAdvBadge(topCmDiff)}
-      </div>
-
-      <div class="lane-col">
-        <div class="lane-name">
-          <span>⚔️ Сложная Rad vs Легкая Dire</span>
-          <span style="color:var(--attr-uni);">Top / Bot</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
-          <span style="color:#4ade80; font-weight:700;">Rad: ~${radOffMmr}</span>
-          <span style="color:var(--text-muted);">vs</span>
-          <span style="color:#f87171; font-weight:700;">Dire: ~${direSafeMmr}</span>
-        </div>
-        ${getBanRiskNotice(radOff, "Offlane")}
-        ${getBanRiskNotice(radSup, "Support")}
-        ${getBanRiskNotice(direCarry, "Carry")}
-        ${getBanRiskNotice(direHardSup, "Hard Sup")}
-        ${renderAdvBadge(botCmDiff)}
-      </div>
-    `;
-  }
-
-  
-
-  function findFreePosForTeam(team) {
-    const taken = currentLobbyData[team].map(p => p.assignedPos);
-    for (let i = 1; i <= 5; i++) {
-      if (!taken.includes(i)) return i;
-    }
-    return 1;
-  }
-
-  function switchPlayerTeam(fromTeam, idx) {
-    const toTeam = fromTeam === 'radiant' ? 'dire' : 'radiant';
-    if (currentLobbyData[toTeam].length < 5) {
-      const [p] = currentLobbyData[fromTeam].splice(idx, 1);
-      p.assignedPos = findFreePosForTeam(toTeam);
-      currentLobbyData[toTeam].push(p);
-    } else {
-      const temp = currentLobbyData[fromTeam][idx];
-      const targetP = currentLobbyData[toTeam][idx] || currentLobbyData[toTeam][0];
-      const tempPos = temp.assignedPos;
-      temp.assignedPos = targetP.assignedPos;
-      targetP.assignedPos = tempPos;
-      
-      const targetIdx = currentLobbyData[toTeam].indexOf(targetP);
-      currentLobbyData[fromTeam][idx] = targetP;
-      currentLobbyData[toTeam][targetIdx] = temp;
-    }
-    sortTeamByPositions(currentLobbyData.radiant);
-    sortTeamByPositions(currentLobbyData.dire);
-    recalculateLobbyStats();
-    renderLobby();
-  }
-
-  function sendPlayerToBench(team, idx) {
-    const [p] = currentLobbyData[team].splice(idx, 1);
-    if (!currentLobbyData.bench) currentLobbyData.bench = [];
-    currentLobbyData.bench.push(p);
-    sortTeamByPositions(currentLobbyData[team]);
-    recalculateLobbyStats();
-    renderLobby();
-  }
-
-  
-
-  function removeBenchPlayer(benchIdx) {
-    currentLobbyData.bench.splice(benchIdx, 1);
-    renderLobby();
-  }
-
-  function changePlayerPos(team, idx, newPos) {
-    currentLobbyData[team][idx].assignedPos = parseInt(newPos, 10);
-    sortTeamByPositions(currentLobbyData[team]);
-    renderLobby();
-  }
-
-  function handleAddPlayerToLobby(selectEl) {
-    const playerId = selectEl.value;
-    if (!playerId) return;
-    const playerToAdd = players.find(p => p.id === playerId);
-    if (playerToAdd) {
-      if (!currentLobbyData.bench) currentLobbyData.bench = [];
-      currentLobbyData.bench.push({ ...playerToAdd });
-      renderLobby();
-    }
-    selectEl.value = "";
-  }
-
-  /* DRAG AND DROP ЛОББИ */
-  function handleDragStart(e, fromZone, idx) {
-    draggedPlayerInfo = { fromZone, idx };
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', JSON.stringify({ fromZone, idx }));
-    setTimeout(() => { if (e.target) e.target.classList.add('dragging'); }, 10);
-  }
-
-  function handleDragEnd() {
-    draggedPlayerInfo = null;
-    document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
-    document.querySelectorAll('.drop-zone-active').forEach(el => el.classList.remove('drop-zone-active'));
-    document.querySelectorAll('.drag-over-item').forEach(el => el.classList.remove('drag-over-item'));
-  }
-
-  function handleItemDragOver(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    e.dataTransfer.dropEffect = 'move';
-    const targetItem = e.currentTarget;
-    if (!targetItem.classList.contains('drag-over-item')) {
-      document.querySelectorAll('.drag-over-item').forEach(el => el.classList.remove('drag-over-item'));
-      targetItem.classList.add('drag-over-item');
-    }
-  }
-
-  function handleItemDragLeave(e) { e.currentTarget.classList.remove('drag-over-item'); }
-
-  function handleItemDrop(e, targetZone, targetIdx) {
-    e.preventDefault();
-    e.stopPropagation();
-    document.querySelectorAll('.drag-over-item').forEach(el => el.classList.remove('drag-over-item'));
-    document.querySelectorAll('.drop-zone-active').forEach(el => el.classList.remove('drop-zone-active'));
-
-    if (!draggedPlayerInfo) return;
-    const { fromZone, idx: fromIdx } = draggedPlayerInfo;
-    if (fromZone === targetZone && fromIdx === targetIdx) return;
-
-    if (fromZone === targetZone && (fromZone === 'radiant' || fromZone === 'dire')) {
-      const pFrom = currentLobbyData[fromZone][fromIdx];
-      const pTarget = currentLobbyData[targetZone][targetIdx];
-      const tempPos = pFrom.assignedPos;
-      pFrom.assignedPos = pTarget.assignedPos;
-      pTarget.assignedPos = tempPos;
-      sortTeamByPositions(currentLobbyData[fromZone]);
-      recalculateLobbyStats();
-      renderLobby();
-      return;
-    }
-
-    if ((fromZone === 'radiant' || fromZone === 'dire') && (targetZone === 'radiant' || targetZone === 'dire')) {
-      const pFrom = currentLobbyData[fromZone][fromIdx];
-      const pTarget = currentLobbyData[targetZone][targetIdx];
-      const tempPos = pFrom.assignedPos;
-      pFrom.assignedPos = pTarget.assignedPos;
-      pTarget.assignedPos = tempPos;
-
-      currentLobbyData[fromZone][fromIdx] = pTarget;
-      currentLobbyData[targetZone][targetIdx] = pFrom;
-
-      sortTeamByPositions(currentLobbyData.radiant);
-      sortTeamByPositions(currentLobbyData.dire);
-      recalculateLobbyStats();
-      renderLobby();
-      return;
-    }
-
-    if (fromZone === 'bench' && (targetZone === 'radiant' || targetZone === 'dire')) {
-      const [subIn] = currentLobbyData.bench.splice(fromIdx, 1);
-      const replaced = currentLobbyData[targetZone][targetIdx];
-      subIn.assignedPos = replaced.assignedPos;
-      subIn.pickedHero = (subIn.heroes && subIn.heroes[0]) ? subIn.heroes[0] : 'Pudge';
-
-      currentLobbyData.bench.push(replaced);
-      currentLobbyData[targetZone][targetIdx] = subIn;
-
-      sortTeamByPositions(currentLobbyData[targetZone]);
-      recalculateLobbyStats();
-      renderLobby();
-      return;
-    }
-  }
-
-  function handleZoneDragOver(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    const zoneEl = e.currentTarget;
-    if (!zoneEl.classList.contains('drop-zone-active')) zoneEl.classList.add('drop-zone-active');
-  }
-
-  function handleZoneDragLeave(e) { e.currentTarget.classList.remove('drop-zone-active'); }
-
-  function handleZoneDrop(e, targetZone) {
-    e.preventDefault();
-    e.currentTarget.classList.remove('drop-zone-active');
-    document.querySelectorAll('.drag-over-item').forEach(el => el.classList.remove('drag-over-item'));
-    if (!draggedPlayerInfo) return;
-
-    const { fromZone, idx } = draggedPlayerInfo;
-    if (fromZone === targetZone) return;
-
-    let movedPlayer = null;
-    if (fromZone === 'radiant') [movedPlayer] = currentLobbyData.radiant.splice(idx, 1);
-    else if (fromZone === 'dire') [movedPlayer] = currentLobbyData.dire.splice(idx, 1);
-    else if (fromZone === 'bench') [movedPlayer] = currentLobbyData.bench.splice(idx, 1);
-
-    if (!movedPlayer) return;
-
-    if (targetZone === 'bench') {
-      if (!currentLobbyData.bench) currentLobbyData.bench = [];
-      currentLobbyData.bench.push(movedPlayer);
-    } else {
-      if (currentLobbyData[targetZone].length >= 5) {
-        const evicted = currentLobbyData[targetZone].pop();
-        if (!currentLobbyData.bench) currentLobbyData.bench = [];
-        currentLobbyData.bench.push(evicted);
-      }
-      movedPlayer.assignedPos = findFreePosForTeam(targetZone);
-      movedPlayer.pickedHero = (movedPlayer.heroes && movedPlayer.heroes[0]) ? movedPlayer.heroes[0] : 'Pudge';
-      currentLobbyData[targetZone].push(movedPlayer);
-      sortTeamByPositions(currentLobbyData[targetZone]);
-    }
-
-    if (fromZone === 'radiant' || fromZone === 'dire') sortTeamByPositions(currentLobbyData[fromZone]);
-
-    recalculateLobbyStats();
-    renderLobby();
-  }
-
-  function attachDropZoneEvents(el, zoneName) {
-    el.ondragover = handleZoneDragOver;
-    el.ondragleave = handleZoneDragLeave;
-    el.ondrop = (e) => handleZoneDrop(e, zoneName);
-  }
-
-  function renderLobby() {
-    if (!currentLobbyData) return;
-
-    syncLobbyWithRoster();
-    renderBalanceVariantsBar();
-
-    const m = currentLobbyData;
-    sortTeamByPositions(m.radiant);
-    sortTeamByPositions(m.dire);
-    recalculateLobbyStats();
-
-    const smallPoolPlayers = [...m.radiant, ...m.dire].filter(p => !p.heroes || p.heroes.length <= 2);
-    const alertBox = document.getElementById('lobby-cm-alert');
-    if (smallPoolPlayers.length > 0) {
-      const namesList = smallPoolPlayers.map(p => {
-        const count = (p.heroes && Array.isArray(p.heroes)) ? p.heroes.length : 0;
-        const heroesStr = count > 0 ? `: ${p.heroes.map(escapeHtml).join(', ')}` : ' (нет сигнатурок)';
-        return `<b>${escapeHtml(p.name)}</b> (${count} гер.${heroesStr})`;
-      }).join('; ');
-      alertBox.style.display = 'block';
-      alertBox.innerHTML = `⚠️ <b>Сноска для Captains Mode:</b> у игроков [${namesList}] высокий риск бана на 1-й стадии драфта!`;
-    } else {
-      alertBox.style.display = 'none';
-    }
-
-    const radContainer = document.getElementById('radiant-roster');
-    const direContainer = document.getElementById('dire-roster');
-    radContainer.innerHTML = '';
-    direContainer.innerHTML = '';
-
-    attachDropZoneEvents(radContainer, 'radiant');
-    attachDropZoneEvents(direContainer, 'dire');
-
-    m.radiant.forEach((p, idx) => radContainer.appendChild(createLobbyPlayerRow(p, 'radiant', idx)));
-    m.dire.forEach((p, idx) => direContainer.appendChild(createLobbyPlayerRow(p, 'dire', idx)));
-
-    const benchPanel = document.getElementById('bench-panel');
-    const benchContainer = document.getElementById('bench-roster');
-    const benchSelect = document.getElementById('bench-add-select');
-    benchContainer.innerHTML = '';
-    benchPanel.style.display = 'block';
-
-    attachDropZoneEvents(benchContainer, 'bench');
-
-    const inLobbyIds = [
-      ...m.radiant.map(p => p.id),
-      ...m.dire.map(p => p.id),
-      ...(m.bench || []).map(p => p.id)
-    ];
-
-    benchSelect.innerHTML = '<option value="">➕ Добавить игрока в замену...</option>';
-    players.filter(p => !inLobbyIds.includes(p.id)).forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = `${p.name} (${p.mmr} MMR)`;
-      benchSelect.appendChild(opt);
-    });
-
-    if (m.bench && m.bench.length > 0) {
-      document.getElementById('bench-count').textContent = `(${m.bench.length})`;
-      m.bench.forEach((p, idx) => {
-        const b = document.createElement('div');
-        b.className = 'bench-badge';
-        b.draggable = true;
-        
-        b.ondragstart = (e) => handleDragStart(e, 'bench', idx);
-        b.ondragend = handleDragEnd;
-        b.ondragover = handleItemDragOver;
-        b.ondragleave = handleItemDragLeave;
-        b.ondrop = (e) => handleItemDrop(e, 'bench', idx);
-
-        b.innerHTML = `
-          <span class="drag-handle">⠿</span>
-          <span>${escapeHtml(p.name)}</span>
-          <span style="color:var(--aegis-gold); font-family:'JetBrains Mono', monospace; font-size:11.5px;">${p.mmr}</span>
-          <button class="btn btn-add" style="padding:2px 6px; font-size:10px;" onclick="addBenchToTeam(${idx}, 'radiant')">🟢 Rad</button>
-          <button class="btn btn-lobby-core" style="padding:2px 6px; font-size:10px;" onclick="addBenchToTeam(${idx}, 'dire')">🔴 Dire</button>
-          <button style="background:none; border:none; color:#ef4444; font-size:14px; cursor:pointer;" onclick="removeBenchPlayer(${idx})">✕</button>
-        `;
-        benchContainer.appendChild(b);
-      });
-    } else {
-      document.getElementById('bench-count').textContent = '(0)';
-      benchContainer.innerHTML = '<span style="color:var(--text-muted); font-size:12px;">Скамейка запасных пуста.</span>';
-    }
-
-    updateAdminUI();
-  }
-
-  
-
-  
-
-  /* РЕНДЕР ТАБЛИЦЫ И ОБРАБОТКА КЛИКА ПО ВСЕЙ СТРОКЕ */
+    /* РЕНДЕР ТАБЛИЦЫ И ОБРАБОТКА КЛИКА ПО ВСЕЙ СТРОКЕ */
   function renderTable() {
     updateAdminUI();
     const tbody = document.getElementById('roster-body');
@@ -3224,7 +3507,7 @@
           </div>
         </td>
         <td style="text-align:center;"><span class="mmr-badge">${p.mmr}</span></td>
-        <td style="text-align:center;"><span class="points-badge">${p.points || 0}</span></td>
+        <td style="text-align:center;"><span class="points-badge">${getBalanceValue(p, 'points')}</span></td>
         <td>${roleBadges}</td>
         <td><div class="hero-list">${heroBadges} ${smallPoolPill}</div></td>
         ${actionButtons}
@@ -3441,7 +3724,7 @@
       else if (statsSortCol === 'wins') res = a.wins - b.wins;
       else if (statsSortCol === 'losses') res = a.losses - b.losses;
       else if (statsSortCol === 'winrate' || statsSortCol === 'rank') res = (a.winrate - b.winrate) || (a.matches - b.matches);
-      else if (statsSortCol === 'points') res = (a.points || 0) - (b.points || 0);
+      else if (statsSortCol === 'points') res = getBalanceValue(a, 'points') - getBalanceValue(b, 'points');
       return res * statsSortDir;
     });
 
@@ -3458,7 +3741,7 @@
           <div class="winrate-bar-bg"><div class="winrate-bar-fill" style="width: ${s.winrate}%;"></div></div>
           <span style="font-family:'JetBrains Mono', monospace; font-weight:800;">${s.winrate}%</span>
         </td>
-        <td style="text-align:center;"><span class="points-badge">${s.points || 0}</span></td>
+        <td style="text-align:center;"><span class="points-badge">${getBalanceValue(s, 'points')}</span></td>
       `;
       tbody.appendChild(row);
     });
@@ -3589,7 +3872,7 @@
               <span style="color:var(--text-muted); font-size:11px;">(Поз. ${p.pos})</span>
               ${kdaBadge}
             </div>
-            <span style="font-family:'JetBrains Mono', monospace; color:var(--aegis-gold); font-size:12px;">${p.mmr} MMR</span>
+            <span style="font-family:'JetBrains Mono', monospace; color:var(--aegis-gold); font-size:12px;">${m.metric === 'points' ? `${p.points != null ? p.points : (live && live.points != null ? live.points : 0)} PTS` : `${p.mmr} MMR`}</span>
           </div>
         `;
       }).join('');
@@ -3604,7 +3887,7 @@
             ${m.duration ? `<span style="font-size:12px; color:#cbd5e1; font-family:'JetBrains Mono', monospace;">⏱️ ${escapeHtml(m.duration)}</span>` : ''}
           </div>
           <div style="display:flex; align-items:center; gap:10px;">
-            <span style="font-size:12px; color:var(--aegis-gold); font-family:'JetBrains Mono', monospace;">Разница: ${m.diff} MMR</span>
+            <span style="font-size:12px; color:var(--aegis-gold); font-family:'JetBrains Mono', monospace;">Разница: ${m.diff} ${m.metric === 'points' ? 'PTS' : 'MMR'}</span>
             ${isAdmin() ? `<button class="btn-icon del" title="Удалить" onclick="deleteMatch('${escapeHtml(m.id)}')">🗑️</button>` : ''}
           </div>
         </div>
@@ -3612,14 +3895,14 @@
           <div style="background:rgba(16,185,129,0.06); border:1px solid var(--rad-border); border-radius:var(--radius-md); padding:10px;">
             <div style="font-size:12px; font-weight:800; color:#34d399; margin-bottom:6px; display:flex; justify-content:space-between; font-family:'Oswald', sans-serif;">
               <span>🟢 RADIANT</span>
-              <span style="font-family:'JetBrains Mono', monospace;">Avg: ${m.radiantAvg}</span>
+              <span style="font-family:'JetBrains Mono', monospace;">Avg: ${m.radiantAvg} ${m.metric === 'points' ? 'PTS' : 'MMR'}</span>
             </div>
             ${renderPlayerLines(m.radiant)}
           </div>
           <div style="background:rgba(225,29,72,0.06); border:1px solid var(--dire-border); border-radius:var(--radius-md); padding:10px;">
             <div style="font-size:12px; font-weight:800; color:#fb7185; margin-bottom:6px; display:flex; justify-content:space-between; font-family:'Oswald', sans-serif;">
               <span>🔴 DIRE</span>
-              <span style="font-family:'JetBrains Mono', monospace;">Avg: ${m.direAvg}</span>
+              <span style="font-family:'JetBrains Mono', monospace;">Avg: ${m.direAvg} ${m.metric === 'points' ? 'PTS' : 'MMR'}</span>
             </div>
             ${renderPlayerLines(m.dire)}
           </div>
@@ -3983,20 +4266,36 @@
 
     const rad = currentLobbyData.radiant;
     const dire = currentLobbyData.dire;
+    const isPoints = currentLobbyData.metric === 'points';
+    const lobbyMetric = isPoints ? 'points' : 'mmr';
 
-    const radMid = rad.find(p => p.assignedPos === 2 && !p.isEmptySlot) || { name: "Не определен", mmr: 0, heroes: [] };
-    const direMid = dire.find(p => p.assignedPos === 2 && !p.isEmptySlot) || { name: "Не определен", mmr: 0, heroes: [] };
-    const cmMidDiff = getCoreEffectiveRating(radMid.name === "Не определен" ? null : radMid, 2) - getCoreEffectiveRating(direMid.name === "Не определен" ? null : direMid, 2);
+    const radMid = rad.find(p => p.assignedPos === 2 && !p.isEmptySlot) || { name: "Не определен", mmr: 0, points: 0, heroes: [] };
+    const direMid = dire.find(p => p.assignedPos === 2 && !p.isEmptySlot) || { name: "Не определен", mmr: 0, points: 0, heroes: [] };
+    const cmMidDiff = getCoreEffectiveRating(radMid.name === "Не определен" ? null : radMid, 2, lobbyMetric) - getCoreEffectiveRating(direMid.name === "Не определен" ? null : direMid, 2, lobbyMetric);
 
     const radCarry = rad.find(p => p.assignedPos === 1 && !p.isEmptySlot) || null;
     const radHardSup = rad.find(p => p.assignedPos === 5 && !p.isEmptySlot) || null;
     const direOff = dire.find(p => p.assignedPos === 3 && !p.isEmptySlot) || null;
     const direSup = dire.find(p => p.assignedPos === 4 && !p.isEmptySlot) || null;
 
-    const radSafeMmr = Math.round(((radCarry ? radCarry.mmr : 0) + (radHardSup ? radHardSup.mmr : 0)) / (radCarry && radHardSup ? 2 : 1));
-    const direOffMmr = Math.round(((direOff ? direOff.mmr : 0) + (direSup ? direSup.mmr : 0)) / (direOff && direSup ? 2 : 1));
-    const cmSafeEff = Math.round((getCoreEffectiveRating(radCarry, 1) + getCoreEffectiveRating(radHardSup, 5)) / 2);
-    const cmOffEff = Math.round((getCoreEffectiveRating(direOff, 3) + getCoreEffectiveRating(direSup, 4)) / 2);
+    const getLaneEff = (core, corePos, sup, supPos) => {
+      const cEff = core ? getCoreEffectiveRating(core, corePos, lobbyMetric) : 0;
+      const sEff = sup ? getCoreEffectiveRating(sup, supPos, lobbyMetric) : 0;
+      if (core && sup) return Math.round(isPoints ? (cEff * 0.65 + sEff * 0.35) : ((cEff + sEff) / 2));
+      return Math.round(core ? cEff : sEff);
+    };
+
+    const getLaneNominal = (core, sup) => {
+      const cVal = core ? getBalanceValue(core, lobbyMetric) : 0;
+      const sVal = sup ? getBalanceValue(sup, lobbyMetric) : 0;
+      if (core && sup) return Math.round(isPoints ? (cVal * 0.65 + sVal * 0.35) : ((cVal + sVal) / 2));
+      return Math.round(core ? cVal : sVal);
+    };
+
+    const radSafeVal = getLaneNominal(radCarry, radHardSup);
+    const direOffVal = getLaneNominal(direOff, direSup);
+    const cmSafeEff = getLaneEff(radCarry, 1, radHardSup, 5);
+    const cmOffEff = getLaneEff(direOff, 3, direSup, 4);
     const topCmDiff = cmSafeEff - cmOffEff;
 
     const radOff = rad.find(p => p.assignedPos === 3 && !p.isEmptySlot) || null;
@@ -4004,17 +4303,21 @@
     const direCarry = dire.find(p => p.assignedPos === 1 && !p.isEmptySlot) || null;
     const direHardSup = dire.find(p => p.assignedPos === 5 && !p.isEmptySlot) || null;
 
-    const radOffMmr = Math.round(((radOff ? radOff.mmr : 0) + (radSup ? radSup.mmr : 0)) / (radOff && radSup ? 2 : 1));
-    const direSafeMmr = Math.round(((direCarry ? direCarry.mmr : 0) + (direHardSup ? direHardSup.mmr : 0)) / (direCarry && direHardSup ? 2 : 1));
-    const cmRadOffEff = Math.round((getCoreEffectiveRating(radOff, 3) + getCoreEffectiveRating(radSup, 4)) / 2);
-    const cmDireSafeEff = Math.round((getCoreEffectiveRating(direCarry, 1) + getCoreEffectiveRating(direHardSup, 5)) / 2);
+    const radOffVal = getLaneNominal(radOff, radSup);
+    const direSafeVal = getLaneNominal(direCarry, direHardSup);
+    const cmRadOffEff = getLaneEff(radOff, 3, radSup, 4);
+    const cmDireSafeEff = getLaneEff(direCarry, 1, direHardSup, 5);
     const botCmDiff = cmRadOffEff - cmDireSafeEff;
+
+    const unit = isPoints ? 'PTS' : 'MMR';
+    const cmUnit = isPoints ? 'PTS' : 'CM';
+    const thresh = isPoints ? 3 : 80;
 
     function renderAdvBadge(cmDiff) {
       const diffStr = cmDiff > 0 ? `+${cmDiff}` : `${cmDiff}`;
-      if (Math.abs(cmDiff) <= 80) return `<div class="lane-advantage adv-even">⚖️ Равная линия (${diffStr} CM)</div>`;
-      if (cmDiff > 80) return `<div class="lane-advantage adv-rad">🟢 Преимущество Radiant (${diffStr} CM)</div>`;
-      return `<div class="lane-advantage adv-dire">🔴 Преимущество Dire (${diffStr} CM)</div>`;
+      if (Math.abs(cmDiff) <= thresh) return `<div class="lane-advantage adv-even">⚖️ Равная линия (${diffStr} ${cmUnit})</div>`;
+      if (cmDiff > thresh) return `<div class="lane-advantage adv-rad">🟢 Преимущество Radiant (${diffStr} ${cmUnit})</div>`;
+      return `<div class="lane-advantage adv-dire">🔴 Преимущество Dire (${diffStr} ${cmUnit})</div>`;
     }
 
     container.innerHTML = `
@@ -4024,9 +4327,9 @@
           <span style="color:var(--aegis-gold);">Mid (1x1)</span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
-          <span style="color:#4ade80; font-weight:700;">${escapeHtml(radMid.name)} (${radMid.mmr})</span>
+          <span style="color:#4ade80; font-weight:700;">${escapeHtml(radMid.name)} (${isPoints ? `${getBalanceValue(radMid, 'points')} PTS` : `${radMid.mmr} MMR`})</span>
           <span style="color:var(--text-muted);">vs</span>
-          <span style="color:#f87171; font-weight:700;">${escapeHtml(direMid.name)} (${direMid.mmr})</span>
+          <span style="color:#f87171; font-weight:700;">${escapeHtml(direMid.name)} (${isPoints ? `${getBalanceValue(direMid, 'points')} PTS` : `${direMid.mmr} MMR`})</span>
         </div>
         ${getBanRiskNotice(radMid, "Mid")}
         ${getBanRiskNotice(direMid, "Mid")}
@@ -4039,9 +4342,9 @@
           <span style="color:var(--mana-cyan);">Bot / Top</span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
-          <span style="color:#4ade80; font-weight:700;">Rad: ~${radSafeMmr}</span>
+          <span style="color:#4ade80; font-weight:700;">Rad: ~${radSafeVal} ${unit}</span>
           <span style="color:var(--text-muted);">vs</span>
-          <span style="color:#f87171; font-weight:700;">Dire: ~${direOffMmr}</span>
+          <span style="color:#f87171; font-weight:700;">Dire: ~${direOffVal} ${unit}</span>
         </div>
         ${getBanRiskNotice(radCarry, "Carry")}
         ${getBanRiskNotice(radHardSup, "Hard Sup")}
@@ -4056,9 +4359,9 @@
           <span style="color:var(--attr-uni);">Top / Bot</span>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
-          <span style="color:#4ade80; font-weight:700;">Rad: ~${radOffMmr}</span>
+          <span style="color:#4ade80; font-weight:700;">Rad: ~${radOffVal} ${unit}</span>
           <span style="color:var(--text-muted);">vs</span>
-          <span style="color:#f87171; font-weight:700;">Dire: ~${direSafeMmr}</span>
+          <span style="color:#f87171; font-weight:700;">Dire: ~${direSafeVal} ${unit}</span>
         </div>
         ${getBanRiskNotice(radOff, "Offlane")}
         ${getBanRiskNotice(radSup, "Support")}
@@ -4380,7 +4683,7 @@
     players.filter(p => !inLobbyIds.includes(p.id)).forEach(p => {
       const opt = document.createElement('option');
       opt.value = p.id;
-      opt.textContent = lobbyMetric === 'points' ? `${p.name} (${p.points || 0} PTS)` : `${p.name} (${p.mmr} MMR)`;
+      opt.textContent = lobbyMetric === 'points' ? `${p.name} (${getBalanceValue(p, 'points')} PTS)` : `${p.name} (${p.mmr} MMR)`;
       benchSelect.appendChild(opt);
     });
 
@@ -4400,7 +4703,7 @@
         b.innerHTML = `
           <span class="drag-handle">⠿</span>
           <span>${escapeHtml(p.name)}</span>
-          <span style="color:${lobbyMetric === 'points' ? 'var(--mana-cyan)' : 'var(--aegis-gold)'}; font-family:'JetBrains Mono', monospace; font-size:11.5px;">${lobbyMetric === 'points' ? (p.points || 0) : p.mmr}</span>
+          <span style="color:${lobbyMetric === 'points' ? 'var(--mana-cyan)' : 'var(--aegis-gold)'}; font-family:'JetBrains Mono', monospace; font-size:11.5px;">${lobbyMetric === 'points' ? getBalanceValue(p, 'points') : p.mmr}</span>
           <button class="btn btn-add" style="padding:2px 6px; font-size:10px;" onclick="addBenchToTeam(${idx}, 'radiant')">🟢 Rad</button>
           <button class="btn btn-lobby-core" style="padding:2px 6px; font-size:10px;" onclick="addBenchToTeam(${idx}, 'dire')">🔴 Dire</button>
           <button style="background:none; border:none; color:#ef4444; font-size:14px; cursor:pointer;" onclick="removeBenchPlayer(${idx})">✕</button>
@@ -4446,7 +4749,7 @@
     const smallPoolPill = (poolLen <= 2) ? `<span class="pool-warning-pill">⚠️ ${poolLen} гер.</span>` : '';
     const lobbyMetric = (currentLobbyData && currentLobbyData.metric === 'points') ? 'points' : 'mmr';
     const valueBadge = lobbyMetric === 'points'
-      ? `<span class="points-badge">${p.points || 0}</span>`
+      ? `<span class="points-badge">${getBalanceValue(p, 'points')}</span>`
       : `<span class="mmr-badge">${p.mmr}</span>`;
 
     row.innerHTML = `
@@ -4484,7 +4787,7 @@
     const m = currentLobbyData;
     const isPoints = m.metric === 'points';
     const unitLabel = isPoints ? 'PTS' : 'MMR';
-    const valueOf = p => isPoints ? (p.points || 0) : p.mmr;
+    const valueOf = p => isPoints ? getBalanceValue(p, 'points') : p.mmr;
     let text = `⚔️ **DOTA 2 CUSTOM LOBBY 5v5**\n\n🟢 **THE RADIANT**:\n`;
     m.radiant.forEach(p => { 
         if (p.isEmptySlot) text += `• ${ROLE_NAMES[p.assignedPos]}: _Свободно_\n`;
@@ -4533,7 +4836,7 @@
 
     const benchSet = new Set((currentLobbyData.bench || []).map(b => b.id));
     const lobbyMetric = (currentLobbyData.metric === 'points') ? 'points' : 'mmr';
-    const valueLabel = (p) => lobbyMetric === 'points' ? `${p.points || 0} PTS` : `${p.mmr} MMR`;
+    const valueLabel = (p) => lobbyMetric === 'points' ? `${getBalanceValue(p, 'points')} PTS` : `${p.mmr} MMR`;
     const filtered = players.filter(p => !query || p.name.toLowerCase().includes(query));
     const available = [];
     const occupied = [];
